@@ -20,15 +20,13 @@ public:
 signals:
     void sendData(QString);
 private slots:
-    void on_pushButton_clicked();
     void readData();
-    void sendDataToComDevice(const QString command);
 
 private:
     Ui::SpectraSynthesizer *ui;
     QSerialPort m_serial_port;
     QSerialPortInfo m_serial_port_info;
-    QSerialPort m_device;
     void sliderValueChanged(int value, QString objName);
+    void sendDataToComDevice(const QString command);
 };
 #endif // SPECTRASYNTHESIZER_H
