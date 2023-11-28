@@ -1,185 +1,216 @@
 {
     "serial_id": "551393135353517061C2",
+	"mode":"developing",
     "pins_array": [
         {
             "name": "a1",
             "wave": "397.7",
             "start_light_value": 22,
-            "max_value": 1228
+            "max_value": 1228,
+			"color":"#7B0082"
         },
         {
             "name": "a2",
             "wave": "404.5",
             "start_light_value": 22,
-            "max_value": 1070
+            "max_value": 1070,
+			"color":"#7B0082"
         },
         {
             "name": "a3",
             "wave": "412.7",
             "start_light_value": 22,
-            "max_value": 1226
+            "max_value": 1226,
+			"color":"#7B0082"
         },
         {
             "name": "a4",
             "wave": "427.2",
             "start_light_value": 24,
-            "max_value": 1698
+            "max_value": 1698,
+			"color":"#7B0082"
         },
         {
             "name": "a5",
             "wave": "433.7",
             "start_light_value": 22,
-            "max_value": 1783
+            "max_value": 1783,
+			"color":"#7B0082"
         },
         {
             "name": "a6",
             "wave": "445.5",
             "start_light_value": 20,
-            "max_value": 897
+            "max_value": 897,
+			"color":"#7B0082"
         },
         {
             "name": "a7",
             "wave": "452.7",
             "start_light_value": 21,
-            "max_value": 1255
+            "max_value": 1255,
+			"color":"#1D0FFF"
         },
         {
             "name": "a8",
             "wave": "461.9",
             "start_light_value": 22,
-            "max_value": 1289
+            "max_value": 1289,
+			"color":"#1D0FFF"
         },
         {
             "name": "a9",
             "wave": "473.6",
             "start_light_value": 23,
-            "max_value": 1298
+            "max_value": 1298,
+			"color":"#57FFFF"
         },
         {
             "name": "a10",
             "wave": "505.0",
             "start_light_value": 21,
-            "max_value": 1300
+            "max_value": 1300,
+			"color":"#248000"
         },
         {
             "name": "a11",
             "wave": "534.2",
             "start_light_value": 22,
-            "max_value": 1496
+            "max_value": 1496,
+			"color":"#248000"
         },
         {
             "name": "a12",
             "wave": "549.2",
             "start_light_value": 21,
-            "max_value": 1470
+            "max_value": 1470,
+			"color":"#248000"
         },
         {
             "name": "a13",
             "wave": "560.5",
             "start_light_value": 21,
-            "max_value": 1457
+            "max_value": 1457,
+			"color":"#248000"
         },
         {
             "name": "a14",
             "wave": "588.9",
             "start_light_value": 20,
-            "max_value": 660
+            "max_value": 660,
+			"color":"#FEFE00"
         },
         {
             "name": "a15",
             "wave": "595.5",
             "start_light_value": 21,
-            "max_value": 825
+            "max_value": 825,
+			"color":"#FEFE00"
         },
         {
             "name": "a16",
             "wave": "607.5",
             "start_light_value": 23,
-            "max_value": 1041
+            "max_value": 1041,
+			"color":"#F56400"
         },
         {
             "name": "a17",
             "wave": "627.1",
             "start_light_value": 21,
-            "max_value": 1335
+            "max_value": 1335,
+			"color":"#F56400"
         },
         {
             "name": "a18",
             "wave": "640.1",
             "start_light_value": 20,
-            "max_value": 1498
+            "max_value": 1498,
+			"color":"#F40000"
         },
         {
             "name": "a19",
             "wave": "658.7",
             "start_light_value": 23,
-            "max_value": 1345
+            "max_value": 1345,
+			"color":"#F40000"
         },
         {
             "name": "a20",
             "wave": "679.0",
             "start_light_value": 20,
-            "max_value": 1748
+            "max_value": 1748,
+			"color":"#F40000"
         },
         {
             "name": "a21",
             "wave": "725.1",
             "start_light_value": 23,
-            "max_value": 1373
+            "max_value": 1373,
+			"color":"#F40000"
         },
         {
             "name": "a22",
             "wave": "745.8",
             "start_light_value": 24,
-            "max_value": 1535
+            "max_value": 1535,
+			"color":"#F40000"
         },
         {
             "name": "a23",
             "wave": "775.0",
             "start_light_value": 35,
-            "max_value": 1585
+            "max_value": 1585,
+			"color":"#F40000"
         },
         {
             "name": "a24",
             "wave": "800.6",
             "start_light_value": 23,
-            "max_value": 1210
+            "max_value": 1210,
+			"color":"#F40000"
         },
         {
             "name": "a25",
             "wave": "820.0",
             "start_light_value": 23,
-            "max_value": 1208
+            "max_value": 1208,
+			"color":"#F40000"
         },
         {
             "name": "a26",
             "wave": "839.1",
             "start_light_value": 25,
-            "max_value": 1268
+            "max_value": 1268,
+			"color":"#F40000"
         },
         {
             "name": "a27",
             "wave": "893.4",
             "start_light_value": 57,
-            "max_value": 3180
+            "max_value": 3180,
+			"color":"#F40000"
         },
         {
             "name": "a28",
             "wave": "931.4",
             "start_light_value": 29,
-            "max_value": 1431
+            "max_value": 1431,
+			"color":"#F40000"
         },
         {
             "name": "a29",
             "wave": "967.1",
             "start_light_value": 30,
-            "max_value": 1463
+            "max_value": 1463,
+			"color":"#F40000"
         },
         {
             "name": "a30",
             "wave": "1014.6",
             "start_light_value": 29,
-            "max_value": 1440
+            "max_value": 1440,
+			"color":"#F40000"
         }
     ]
 }

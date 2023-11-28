@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "QSerialPort"
 #include "QSerialPortInfo"
+#include "qjsonobject.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -26,6 +27,7 @@ private slots:
 
 private:
     Ui::SpectraSynthesizer *ui;
+    QJsonObject m_json_config;
     QSerialPort m_serial_port;
     QSerialPortInfo m_serial_port_info;
     void sendDataToComDevice(const QString command);

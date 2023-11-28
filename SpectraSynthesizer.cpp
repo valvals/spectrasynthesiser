@@ -11,19 +11,18 @@
 
 QHash<QString,QSlider*> m_sliders;
 QStringList lambdas;
-//constexpr char serial_number[] = "551393135353517061C2";
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::SpectraSynthesizer)
 {
     ui->setupUi(this);
-    QJsonObject jo;
-    db_json::getJsonObjectFromFile("config.json",jo);
+    db_json::getJsonObjectFromFile("config.json",m_json_config);
     QJsonArray ja;
-    ja = jo.value("pins_array").toArray();
+    ja = m_json_config.value("pins_array").toArray();
     qDebug()<<"ja size: "<<ja.size();
-    const QString serial_number = jo.value("serial_id").toString();
+    const QString serial_number = m_json_config.value("serial_id").toString();
+    auto mode = m_json_config.value("mode").toString();
     qDebug()<<"json_test: "<<serial_number;
     auto available_ports = m_serial_port_info.availablePorts();
     qDebug()<< available_ports.size();
@@ -39,38 +38,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
             break;
         }
     }
-    if(!isDeviceConnected){//  TO CHANGE
-    lambdas<<"397.7" // a1
-           <<"404.5" // a2
-           <<"412.7" // a3
-           <<"427.2" // a4
-           <<"433.7" // a5
-           <<"445.5" // a6
-           <<"452.7"  // a7
-           <<"461.9" // a8
-           <<"473.6" // a9
-           <<"505.0" // a10
-           <<"534.2" // a11
-           <<"549.2" // a12
-           <<"560.5" // a13
-           <<"588.9" // a14
-           <<"595.5" // a15
-           <<"607.5" // a16
-           <<"627.1" // a17
-           <<"640.1" // a18
-           <<"658.7" // a19
-           <<"679.0" // a20
-           <<"725.1" // a21
-           <<"745.8" // a22
-           <<"775.0" // a23
-           <<"800.6" // a24
-           <<"820.0" // a25
-           <<"839.1" // a26
-           <<"893.4" // a27
-           <<"931.4" // a28
-           <<"967.1" // a29
-           <<"1014.6";// a30
-
+    if(isDeviceConnected || mode == "developing"){
 
     for(int i=0;i<ja.size();++i){
         auto slider = new QSlider;
@@ -81,12 +49,14 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         auto max_value = ja[i].toObject().value("max_value").toInt();
         slider->setMaximum(max_value);
         vbl->addWidget(slider);
+        auto color = ja[i].toObject().value("color").toString();
+        slider->setStyleSheet(QString("QSlider::handle:vertical {border-radius:5px;background:%1;}").arg(color));
         ui->horizontalLayout->addLayout(vbl);
         m_sliders.insert(slider->objectName(),slider);
-        connect(slider,&QSlider::sliderReleased,[i,slider, this](){
-            qDebug()<<""<<slider->objectName();
+        connect(slider,&QSlider::sliderReleased,[i,slider,ja,this](){
+
             QString style1 = R"(<html><head/><body><p><span style=" font-size:28pt;">)";
-            QString style2 = lambdas.at(i)+" --> ";
+            QString style2 = ja[i].toObject().value("wave").toString()+" --> ";
             style2.append(QString::number(slider->value()));
             QString style3 = R"(</span></p></body></html>)";
             slider->setToolTip(style1+style2+style3);
