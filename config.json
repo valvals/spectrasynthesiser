@@ -1,0 +1,185 @@
+{
+    "serial_id": "551393135353517061C2",
+    "pins_array": [
+        {
+            "name": "a1",
+            "wave": "397.7",
+            "start_light_value": 22,
+            "max_value": 1228
+        },
+        {
+            "name": "a2",
+            "wave": "404.5",
+            "start_light_value": 22,
+            "max_value": 1070
+        },
+        {
+            "name": "a3",
+            "wave": "412.7",
+            "start_light_value": 22,
+            "max_value": 1226
+        },
+        {
+            "name": "a4",
+            "wave": "427.2",
+            "start_light_value": 24,
+            "max_value": 1698
+        },
+        {
+            "name": "a5",
+            "wave": "433.7",
+            "start_light_value": 22,
+            "max_value": 1783
+        },
+        {
+            "name": "a6",
+            "wave": "445.5",
+            "start_light_value": 20,
+            "max_value": 897
+        },
+        {
+            "name": "a7",
+            "wave": "452.7",
+            "start_light_value": 21,
+            "max_value": 1255
+        },
+        {
+            "name": "a8",
+            "wave": "461.9",
+            "start_light_value": 22,
+            "max_value": 1289
+        },
+        {
+            "name": "a9",
+            "wave": "473.6",
+            "start_light_value": 23,
+            "max_value": 1298
+        },
+        {
+            "name": "a10",
+            "wave": "505.0",
+            "start_light_value": 21,
+            "max_value": 1300
+        },
+        {
+            "name": "a11",
+            "wave": "534.2",
+            "start_light_value": 22,
+            "max_value": 1496
+        },
+        {
+            "name": "a12",
+            "wave": "549.2",
+            "start_light_value": 21,
+            "max_value": 1470
+        },
+        {
+            "name": "a13",
+            "wave": "560.5",
+            "start_light_value": 21,
+            "max_value": 1457
+        },
+        {
+            "name": "a14",
+            "wave": "588.9",
+            "start_light_value": 20,
+            "max_value": 660
+        },
+        {
+            "name": "a15",
+            "wave": "595.5",
+            "start_light_value": 21,
+            "max_value": 825
+        },
+        {
+            "name": "a16",
+            "wave": "607.5",
+            "start_light_value": 23,
+            "max_value": 1041
+        },
+        {
+            "name": "a17",
+            "wave": "627.1",
+            "start_light_value": 21,
+            "max_value": 1335
+        },
+        {
+            "name": "a18",
+            "wave": "640.1",
+            "start_light_value": 20,
+            "max_value": 1498
+        },
+        {
+            "name": "a19",
+            "wave": "658.7",
+            "start_light_value": 23,
+            "max_value": 1345
+        },
+        {
+            "name": "a20",
+            "wave": "679.0",
+            "start_light_value": 20,
+            "max_value": 1748
+        },
+        {
+            "name": "a21",
+            "wave": "725.1",
+            "start_light_value": 23,
+            "max_value": 1373
+        },
+        {
+            "name": "a22",
+            "wave": "745.8",
+            "start_light_value": 24,
+            "max_value": 1535
+        },
+        {
+            "name": "a23",
+            "wave": "775.0",
+            "start_light_value": 35,
+            "max_value": 1585
+        },
+        {
+            "name": "a24",
+            "wave": "800.6",
+            "start_light_value": 23,
+            "max_value": 1210
+        },
+        {
+            "name": "a25",
+            "wave": "820.0",
+            "start_light_value": 23,
+            "max_value": 1208
+        },
+        {
+            "name": "a26",
+            "wave": "839.1",
+            "start_light_value": 25,
+            "max_value": 1268
+        },
+        {
+            "name": "a27",
+            "wave": "893.4",
+            "start_light_value": 57,
+            "max_value": 3180
+        },
+        {
+            "name": "a28",
+            "wave": "931.4",
+            "start_light_value": 29,
+            "max_value": 1431
+        },
+        {
+            "name": "a29",
+            "wave": "967.1",
+            "start_light_value": 30,
+            "max_value": 1463
+        },
+        {
+            "name": "a30",
+            "wave": "1014.6",
+            "start_light_value": 29,
+            "max_value": 1440
+        }
+    ]
+}
