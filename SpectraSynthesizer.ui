@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SpectraSynthesizer</string>
+   <string>SpectraSynthesizer 0.2</string>
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: rgb(31, 31, 31);

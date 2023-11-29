@@ -61,8 +61,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
             QString style3 = R"(</span></p></body></html>)";
             slider->setToolTip(style1+style2+style3);
             qDebug()<<slider->objectName();
-            sendDataToComDevice(QString("a") + QString::number(i+1)+"\n" +
-                                QString("v") + (QString::number(slider->value())));
+            sendDataToComDevice(QString("a") + QString::number(i+1) + "\n");
+            Sleep(200);
+            sendDataToComDevice(QString("v") + (QString::number(slider->value()) + "\n"));
         });
     }
     }else{
