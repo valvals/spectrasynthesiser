@@ -8,9 +8,27 @@
 #include "QDebug"
 #include "QMessageBox"
 #include "DBJson.h"
-
+#include "windows.h"
 QHash<QString,QSlider*> m_sliders;
 QStringList lambdas;
+const char styleSlider[]=R"(
+QSlider::groove:vertical {
+    background: #404244;
+    position: absolute;
+    left: 4px; right: 4px;
+}
+
+QSlider::handle:vertical {
+    height: 30px;
+    border-radius: 10px;
+    background: %1;
+    margin: 0 -4px;
+}
+
+QSlider::add-page:vertical {
+    background: %2;
+}
+)";
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     : QMainWindow(parent)
@@ -43,6 +61,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     for(int i=0;i<ja.size();++i){
         auto slider = new QSlider;
         slider->setObjectName(QString("qslider_")+QString::number(i+1));
+        slider->setMinimumWidth(30);
         QVBoxLayout* vbl = new QVBoxLayout;
         auto wave = ja[i].toObject().value("wave").toString();
         vbl->addWidget(new QLabel(wave));
@@ -50,7 +69,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         slider->setMaximum(max_value);
         vbl->addWidget(slider);
         auto color = ja[i].toObject().value("color").toString();
-        slider->setStyleSheet(QString("QSlider::handle:vertical {border-radius:5px;background:%1;}").arg(color));
+        slider->setStyleSheet(QString(styleSlider).arg(color,color));//QString("QSlider::handle {width:50px;height:50px;border-radius:5px;background:%1;}").arg(color));
         ui->horizontalLayout->addLayout(vbl);
         m_sliders.insert(slider->objectName(),slider);
         connect(slider,&QSlider::sliderReleased,[i,slider,ja,this](){
