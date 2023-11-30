@@ -97,8 +97,8 @@ void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked()
 {
   sendDataToComDevice("f\n");
   for(size_t i=0;i<m_sliders.size();++i){
-      m_sliders[i]->setValue(0);
-      setTooltipForSlider(i,0);
+      m_sliders[i]->setValue(1);
+      setTooltipForSlider(i,1);
   }
 }
 
@@ -108,7 +108,9 @@ void SpectraSynthesizer::on_pushButton_apply_clicked()
     auto value = ui->spinBox_bright_value->value();
     m_sliders[index]->setValue(value);
     setTooltipForSlider(index,value);
-    sendDataToComDevice(QString("a%1\n").arg(QString::number(index)));
+    sendDataToComDevice(QString("a") + QString::number(index+1) + "\n");
+    Sleep(200);
+    sendDataToComDevice(QString("v") + (QString::number(value) + "\n"));
 }
 
 void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg1)
