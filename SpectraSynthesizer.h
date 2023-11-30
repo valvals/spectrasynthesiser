@@ -6,6 +6,7 @@
 #include "QSerialPortInfo"
 #include "qjsonarray.h"
 #include "qjsonobject.h"
+#include "qslider.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -25,19 +26,19 @@ signals:
 
 private slots:
     void readData();
-
     void on_pushButton_reset_to_zero_clicked();
-
     void on_pushButton_apply_clicked();
-
     void on_comboBox_waves_currentTextChanged(const QString &arg1);
 
 private:
     Ui::SpectraSynthesizer *ui;
     QJsonObject m_json_config;
     QJsonArray ja;
+    QVector<QSlider*> m_sliders;
+    QHash<QString,size_t> lambdas_indexes;
     QSerialPort m_serial_port;
     QSerialPortInfo m_serial_port_info;
     void sendDataToComDevice(const QString command);
+    void setTooltipForSlider(const int &index, const int &value);
 };
 #endif // SPECTRASYNTHESIZER_H

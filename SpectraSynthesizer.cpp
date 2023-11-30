@@ -9,27 +9,7 @@
 #include "QMessageBox"
 #include "DBJson.h"
 #include "windows.h"
-
-QVector<QSlider*> m_sliders;
-QHash<QString,size_t> lambdas_indexes;
-const char styleSlider[]=R"(
-QSlider::groove:vertical {
-    background: #404244;
-    position: absolute;
-    left: 4px; right: 4px;
-}
-
-QSlider::handle:vertical {
-    height: 30px;
-    border-radius: 10px;
-    background: %1;
-    margin: 0 -4px;
-}
-
-QSlider::add-page:vertical {
-    background: %2;
-}
-)";
+#include "style_sheets.h"
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     : QMainWindow(parent)
@@ -71,17 +51,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         slider->setMaximum(max_value);
         vbl->addWidget(slider);
         auto color = ja[i].toObject().value("color").toString();
-        slider->setStyleSheet(QString(styleSlider).arg(color,color));//QString("QSlider::handle {width:50px;height:50px;border-radius:5px;background:%1;}").arg(color));
+        slider->setStyleSheet(QString(styles::slider).arg(color,color));
         ui->horizontalLayout->addLayout(vbl);
         m_sliders.push_back(slider);
         connect(slider,&QSlider::sliderReleased,[i,slider,this](){
-
-            QString style1 = R"(<html><head/><body><p><span style=" font-size:28pt;">)";
-            QString style2 = ja[i].toObject().value("wave").toString()+" --> ";
-            style2.append(QString::number(slider->value()));
-            QString style3 = R"(</span></p></body></html>)";
-            slider->setToolTip(style1+style2+style3);
-            qDebug()<<slider->objectName();
+            setTooltipForSlider(i,slider->value());
             sendDataToComDevice(QString("a") + QString::number(i+1) + "\n");
             Sleep(200);
             sendDataToComDevice(QString("v") + (QString::number(slider->value()) + "\n"));
@@ -112,10 +86,20 @@ void SpectraSynthesizer::sendDataToComDevice(QString command)
     m_serial_port.write(command.toLatin1());
 }
 
+void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
+{
+    QString waveStr = ja[index].toObject().value("wave").toString();
+    QString valueStr = (QString::number(value));
+    m_sliders[index]->setToolTip(QString(styles::tooltip).arg(waveStr,valueStr));
+}
+
 void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked()
 {
   sendDataToComDevice("f\n");
-  for(auto &&it:m_sliders)it->setValue(0);
+  for(size_t i=0;i<m_sliders.size();++i){
+      m_sliders[i]->setValue(0);
+      setTooltipForSlider(i,0);
+  }
 }
 
 void SpectraSynthesizer::on_pushButton_apply_clicked()
@@ -123,9 +107,9 @@ void SpectraSynthesizer::on_pushButton_apply_clicked()
     auto index = lambdas_indexes.value(ui->comboBox_waves->currentText());
     auto value = ui->spinBox_bright_value->value();
     m_sliders[index]->setValue(value);
+    setTooltipForSlider(index,value);
     sendDataToComDevice(QString("a%1\n").arg(QString::number(index)));
 }
-
 
 void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg1)
 {
@@ -134,4 +118,3 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg
     ui->spinBox_bright_value->setMaximum(max);
     ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
 }
-
