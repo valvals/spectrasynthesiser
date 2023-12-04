@@ -7,14 +7,19 @@ TARGET = spectrasynthesizer
 
 SOURCES += \
     DBJson.cpp \
+    QrcFilesRestorer.cpp \
     main.cpp \
     SpectraSynthesizer.cpp \
     style_sheets.cpp
 
 HEADERS += \
     DBJson.h \
+    QrcFilesRestorer.h \
     SpectraSynthesizer.h \
     style_sheets.h
 
 FORMS += \
     SpectraSynthesizer.ui
+
+RESOURCES += \
+    res.qrc

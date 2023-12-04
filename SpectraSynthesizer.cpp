@@ -8,6 +8,7 @@
 #include "QDebug"
 #include "QMessageBox"
 #include "DBJson.h"
+#include "QrcFilesRestorer.h"
 #include "windows.h"
 #include "style_sheets.h"
 
@@ -16,7 +17,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     , ui(new Ui::SpectraSynthesizer)
 {
     ui->setupUi(this);
-    db_json::getJsonObjectFromFile("config.json",m_json_config);
+    if(!db_json::getJsonObjectFromFile("config.json",m_json_config)){
+        qDebug()<<"Config file was not found on the disk...";
+       db_json::getJsonObjectFromFile(":/config.json",m_json_config);
+       QrcFilesRestorer::restoreFilesFromQrc(":/");
+    };
     ja = m_json_config.value("pins_array").toArray();
     qDebug()<<"ja size: "<<ja.size();
     const QString serial_number = m_json_config.value("serial_id").toString();
@@ -96,7 +101,7 @@ void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
 void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked()
 {
   sendDataToComDevice("f\n");
-  for(size_t i=0;i<m_sliders.size();++i){
+  for(int i=0;i<m_sliders.size();++i){
       m_sliders[i]->setValue(1);
       setTooltipForSlider(i,1);
   }
