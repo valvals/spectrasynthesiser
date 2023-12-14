@@ -54,6 +54,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         vbl->addWidget(new QLabel(wave));
         auto max_value = ja[i].toObject().value("max_value").toInt();
         slider->setMaximum(max_value);
+        slider->setMinimum(1);
         vbl->addWidget(slider);
         auto color = ja[i].toObject().value("color").toString();
         slider->setStyleSheet(QString(styles::slider).arg(color,color));

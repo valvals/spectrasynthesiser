@@ -39,10 +39,6 @@ bool getJsonObjectFromFile(const QString &path,
         qDebug() << "JSON IS EMPTY: "<<errorPtr.errorString();
         return false;
     }
-    if(!isAllNodesExist(object)){
-        qDebug() << "NOT ALL NODES EXISTS IN JSON FILE...";
-        return false;
-    }
     file.close();
     return true;
 }
