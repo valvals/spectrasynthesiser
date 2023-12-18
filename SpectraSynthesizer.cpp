@@ -9,7 +9,6 @@
 #include "QMessageBox"
 #include "DBJson.h"
 #include "QrcFilesRestorer.h"
-#include "windows.h"
 #include "style_sheets.h"
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
@@ -62,9 +61,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         m_sliders.push_back(slider);
         connect(slider,&QSlider::sliderReleased,[i,slider,this](){
             setTooltipForSlider(i,slider->value());
-            sendDataToComDevice(QString("a") + QString::number(i+1) + "\n");
-            Sleep(200);
-            sendDataToComDevice(QString("v") + (QString::number(slider->value()) + "\n"));
+            sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(i+1),QString::number(slider->value())));
         });
     }
     }else{
@@ -114,9 +111,7 @@ void SpectraSynthesizer::on_pushButton_apply_clicked()
     auto value = ui->spinBox_bright_value->value();
     m_sliders[index]->setValue(value);
     setTooltipForSlider(index,value);
-    sendDataToComDevice(QString("a") + QString::number(index+1) + "\n");
-    Sleep(200);
-    sendDataToComDevice(QString("v") + (QString::number(value) + "\n"));
+    sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(index+1),QString::number(value)));
 }
 
 void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg1)
