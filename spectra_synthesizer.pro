@@ -1,5 +1,5 @@
-QT       += core gui serialport
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui serialport printsupport widgets
+
 CONFIG += c++17
 
 RC_FILE = recource.rc
