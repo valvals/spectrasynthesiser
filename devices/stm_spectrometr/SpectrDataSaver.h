@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <QVariant>
-#include "Include/CommonTypes.h"
+#include "common/CommonTypes.h"
 
 class SpectrDataSaver : public QObject
 {

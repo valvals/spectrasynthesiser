@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QVariant>
-#include "Include/CommonTypes.h"
+#include "common/CommonTypes.h"
 
 /**
  * @brief The BaseSpectrometer class

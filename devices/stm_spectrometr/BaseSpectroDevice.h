@@ -2,7 +2,7 @@
 #define ABSTRACTSPECTRODEVICE_H
 
 #include <QObject>
-#include "Math/CalculationModule.h"
+#include "math/CalculationModule.h"
 #include "SpectrDataSaver.h"
 #include "BaseSpectrometer.h"
 

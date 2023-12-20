@@ -1,8 +1,8 @@
 #ifndef TEENSY_H
 #define TEENSY_H
 
-#include "SpectroDevices/BaseSpectroDevice.h"
-#include "ExtraDevices/ComPortManager.h"
+#include "BaseSpectroDevice.h"
+#include "ComPortManager.h"
 #include <QObject>
 
 class Teensy : public BaseSpectroDevice

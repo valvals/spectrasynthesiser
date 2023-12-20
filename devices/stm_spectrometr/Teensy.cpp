@@ -1,6 +1,6 @@
 #include "Teensy.h"
 #include <QDebug>
-#include "Math/RelaxMediumAlg.h"
+#include "math/RelaxMediumAlg.h"
 #include "math.h"
 #include <QDateTime>
 
@@ -13,7 +13,7 @@ Teensy::Teensy(QString comPortName, int baudRate): BaseSpectroDevice()
     m_expositionValue = 15;
     m_bandsCount = 3648;
     m_comPortManager = new ComPortManager(comPortName, baudRate);
-    connect(m_comPortManager, SIGNAL(dataIsReady(QByteArray)), SLOT(parseComPortData(QByteArray)));
+    connect(m_comPortManager, SIGNAL(dataIsReady(QByteArray)),this, SLOT(parseComPortData(QByteArray)));
     connect(this, SIGNAL(writeCommandToComPort(QByteArray)), m_comPortManager, SLOT(writeCommand(QByteArray)), Qt::QueuedConnection);
 
     m_experimentTimeMs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
@@ -44,7 +44,8 @@ void Teensy::captureSpectr()
 
 void Teensy::setExpositionValue(double expositionValue)
 {
-//    qDebug()<<"setExpositionValue"<<expositionValue;
+qDebug()<<"Capturing Time:"<<QDateTime::currentDateTime().currentMSecsSinceEpoch();
+    //    qDebug()<<"setExpositionValue"<<expositionValue;
     if(expositionValue > 14.99){
         m_isNeedToUpdate = false;
         m_tempExpositionValue = expositionValue;
@@ -57,8 +58,9 @@ void Teensy::setExpositionValue(double expositionValue)
 
 void Teensy::parseComPortData(QByteArray comAnswer)
 {
+    qDebug()<<"Answer: ....."<<comAnswer.size();
     if(m_comPortManager->currentCommandType() == CHANGING_EXPOSITION){
-//        qDebug()<<"expo recieved:"<<comAnswer;
+        qDebug()<<"expo recieved:"<<comAnswer;
         m_expositionValue = m_tempExpositionValue;
         emit expositionWasChanged(m_expositionValue);
         m_isExpositionChanging = false;
@@ -68,7 +70,7 @@ void Teensy::parseComPortData(QByteArray comAnswer)
     }else if(m_comPortManager->currentCommandType() == GETTING_SPECTRUM){
         SpectrumData spectrumData;
         memcpy(&spectrumData, comAnswer.data(), sizeof(spectrumData));
-        minusDarkPixelsAndSend(spectrumData);
+        //minusDarkPixelsAndSend(spectrumData);
     }
 }
 
@@ -117,6 +119,7 @@ void Teensy::minusDarkPixelsAndSend(SpectrumData &spectrumData)
         m_isSpectrumRequested = true;
         requestExpositionChanging();
     }
+
 }
 
 void Teensy::requestExpositionChanging()

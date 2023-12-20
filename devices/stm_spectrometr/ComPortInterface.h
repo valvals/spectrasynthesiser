@@ -2,7 +2,7 @@
 #define COMPORTINTERFACE_H
 
 #include <QByteArray>
-#include <Include/CommonTypes.h>
+#include <common/CommonTypes.h>
 #include <QList>
 
 enum CurrentCommandType

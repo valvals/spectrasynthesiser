@@ -1,5 +1,5 @@
 #include "CalculationModule.h"
-#include "../Math/RelaxMediumAlg.h"
+#include "../math/RelaxMediumAlg.h"
 #include "math.h"
 #include <QDateTime>
 #include "qdebug.h"

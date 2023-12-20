@@ -2,7 +2,7 @@
 #define CALCULATIONMODULE_H
 #include <QVector>
 #include <QObject>
-#include "SpectroDevices/SpectrDataSaver.h"
+#include "../devices/stm_spectrometr/SpectrDataSaver.h"
 
 class CalculationModule : public QObject
 {

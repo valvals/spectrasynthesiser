@@ -6,6 +6,7 @@
 #include "windows.h"
 #include "ComPortInterface.h"
 
+
 /**
  * @brief The ComPortManager class
  * Base class for COM-port using

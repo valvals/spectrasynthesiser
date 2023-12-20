@@ -11,11 +11,17 @@
 #include "QrcFilesRestorer.h"
 #include "style_sheets.h"
 
+
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::SpectraSynthesizer)
 {
     ui->setupUi(this);
+
+    teensy = new Teensy("COM9",115200);
+    //teensy->captureSpectr();
+
+
     if(!db_json::getJsonObjectFromFile("config.json",m_json_config)){
         qDebug()<<"Config file was not found on the disk...";
        db_json::getJsonObjectFromFile(":/config.json",m_json_config);
@@ -33,10 +39,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         qDebug()<<available_ports[i].serialNumber()
                 <<available_ports[i].portName();
         if(serial_number == available_ports[i].serialNumber()){
-            m_serial_port.setPort(available_ports[i]);
-            m_serial_port.open(QIODevice::ReadWrite);
+            m_serial_diods_controller.setPort(available_ports[i]);
+            m_serial_diods_controller.open(QIODevice::ReadWrite);
             isDeviceConnected = true;
-            connect(&m_serial_port,SIGNAL(readyRead()),this,SLOT(readData()));
+            connect(&m_serial_diods_controller,SIGNAL(readyRead()),this,SLOT(readData()));
             break;
         }
     }
@@ -70,6 +76,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         mb.setText("Устройство не подключено!");
         mb.exec();
     }
+    m_serial_stm_spectrometr.write("r\n");
 }
 
 SpectraSynthesizer::~SpectraSynthesizer()
@@ -79,14 +86,14 @@ SpectraSynthesizer::~SpectraSynthesizer()
 
 void SpectraSynthesizer::readData()
 {
-    const QByteArray data = m_serial_port.readAll();
+    const QByteArray data = m_serial_diods_controller.readAll();
     qDebug()<<"recieved data: --> "<<data;
 }
 
 void SpectraSynthesizer::sendDataToComDevice(QString command)
 {
     qDebug()<<"Test data before sending: "<<command;
-    m_serial_port.write(command.toLatin1());
+    m_serial_diods_controller.write(command.toLatin1());
 }
 
 void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
@@ -98,11 +105,12 @@ void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
 
 void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked()
 {
-  sendDataToComDevice("f\n");
+  /*sendDataToComDevice("f\n");
   for(int i=0;i<m_sliders.size();++i){
       m_sliders[i]->setValue(1);
       setTooltipForSlider(i,1);
-  }
+  }*/
+  teensy->captureSpectr();
 }
 
 void SpectraSynthesizer::on_pushButton_apply_clicked()

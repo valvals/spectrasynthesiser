@@ -7,7 +7,7 @@
 #include "qjsonarray.h"
 #include "qjsonobject.h"
 #include "qslider.h"
-
+#include "devices/stm_spectrometr/Teensy.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class SpectraSynthesizer; }
@@ -36,9 +36,11 @@ private:
     QJsonArray ja;
     QVector<QSlider*> m_sliders;
     QHash<QString,int> lambdas_indexes;
-    QSerialPort m_serial_port;
+    QSerialPort m_serial_diods_controller;
+    QSerialPort m_serial_stm_spectrometr;
     QSerialPortInfo m_serial_port_info;
     void sendDataToComDevice(const QString command);
     void setTooltipForSlider(const int &index, const int &value);
+    Teensy* teensy;
 };
 #endif // SPECTRASYNTHESIZER_H
