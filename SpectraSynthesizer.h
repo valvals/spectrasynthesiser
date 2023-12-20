@@ -29,6 +29,8 @@ private slots:
     void on_pushButton_reset_to_zero_clicked();
     void on_pushButton_apply_clicked();
     void on_comboBox_waves_currentTextChanged(const QString &arg1);
+    //spectrReadyToShow(QVector<double> data, double max, bool isNeedToUpdate);
+    void show_stm_spectr(QVector<double> data, double max, bool isNeedToUpdate);
 
 private:
     Ui::SpectraSynthesizer *ui;

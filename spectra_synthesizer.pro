@@ -1,4 +1,4 @@
-QT       += core gui serialport printsupport widgets
+QT += core gui serialport printsupport widgets
 
 CONFIG += c++17
 
@@ -20,6 +20,7 @@ SOURCES += \
     math/CalculationModule.cpp \
     math/CubSpline.cpp \
     math/RelaxMediumAlg.cpp \
+    qcustomplot.cpp \
     style_sheets.cpp
 
 HEADERS += \
@@ -36,6 +37,7 @@ HEADERS += \
     math/CalculationModule.h \
     math/CubSpline.h \
     math/RelaxMediumAlg.h \
+    qcustomplot.h \
     style_sheets.h
 
 FORMS += \

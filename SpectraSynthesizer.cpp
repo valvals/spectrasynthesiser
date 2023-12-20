@@ -10,6 +10,7 @@
 #include "DBJson.h"
 #include "QrcFilesRestorer.h"
 #include "style_sheets.h"
+#include "qcustomplot.h"
 
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
@@ -17,10 +18,14 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     , ui(new Ui::SpectraSynthesizer)
 {
     ui->setupUi(this);
+    ui->widget_plot->setBackground(QBrush(QColor(64,66,68)));
+    ui->widget_plot->addGraph();
+    QPen graphPen(QColor(13,160,5));
+    //graphPen.setWidth(2);
+    ui->widget_plot->graph(0)->setPen(graphPen);
 
     teensy = new Teensy("COM9",115200);
-    //teensy->captureSpectr();
-
+    connect(teensy,SIGNAL(spectrReadyToShow(QVector<double>, double, bool)),SLOT(show_stm_spectr(QVector<double>,double,bool)));
 
     if(!db_json::getJsonObjectFromFile("config.json",m_json_config)){
         qDebug()<<"Config file was not found on the disk...";
@@ -28,10 +33,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
        QrcFilesRestorer::restoreFilesFromQrc(":/");
     };
     ja = m_json_config.value("pins_array").toArray();
-    qDebug()<<"ja size: "<<ja.size();
+    //qDebug()<<"ja size: "<<ja.size();
     const QString serial_number = m_json_config.value("serial_id").toString();
     auto mode = m_json_config.value("mode").toString();
-    qDebug()<<"json_test: "<<serial_number;
+    //qDebug()<<"json_test: "<<serial_number;
     auto available_ports = m_serial_port_info.availablePorts();
     qDebug()<< available_ports.size();
     bool isDeviceConnected = false;
@@ -52,6 +57,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         auto slider = new QSlider;
         slider->setObjectName(QString("qslider_")+QString::number(i+1));
         slider->setMinimumWidth(30);
+        slider->setMinimumHeight(100);
         QVBoxLayout* vbl = new QVBoxLayout;
         auto wave = ja[i].toObject().value("wave").toString();
         ui->comboBox_waves->addItem(wave);
@@ -76,7 +82,6 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         mb.setText("Устройство не подключено!");
         mb.exec();
     }
-    m_serial_stm_spectrometr.write("r\n");
 }
 
 SpectraSynthesizer::~SpectraSynthesizer()
@@ -105,11 +110,11 @@ void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
 
 void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked()
 {
-  /*sendDataToComDevice("f\n");
+  sendDataToComDevice("f\n");
   for(int i=0;i<m_sliders.size();++i){
       m_sliders[i]->setValue(1);
       setTooltipForSlider(i,1);
-  }*/
+  }
   teensy->captureSpectr();
 }
 
@@ -128,4 +133,16 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg
     auto max = ja[index].toObject().value("max_value").toInt();
     ui->spinBox_bright_value->setMaximum(max);
     ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
+}
+
+void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max, bool isNeedToUpdate)
+{
+    qDebug()<<"data size:"<<data.size();
+    QVector<double> waves(3648);
+    for(int i=0;i<3648;++i)waves[i]=i;
+
+    ui->widget_plot->graph(0)->setData(waves,data);
+    ui->widget_plot->xAxis->setRange(1, 3648);
+    ui->widget_plot->yAxis->setRange(0, max);
+    ui->widget_plot->replot();
 }

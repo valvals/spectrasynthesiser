@@ -71,6 +71,13 @@ void Teensy::parseComPortData(QByteArray comAnswer)
         SpectrumData spectrumData;
         memcpy(&spectrumData, comAnswer.data(), sizeof(spectrumData));
         //minusDarkPixelsAndSend(spectrumData);
+        QVector<double>values(3648);
+        double max = 0;
+        for(size_t i=0;i<3648;++i){
+           values[i]=spectrumData.spectrum[i];
+           if(max<values[i])max=values[i];
+        }
+        emit spectrReadyToShow(values,max,true);
     }
 }
 

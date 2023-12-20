@@ -147,7 +147,7 @@ signals:
      * @param max   Maximum value in spectrum
      * @param isNeedToUpdate    Is need to update spectrum in plotter
      */
-    void spectrReadyToShow(QVector<double> data, double max, bool isNeedToUpdate);
+    //void spectrReadyToShow(QVector<double> data, double max, bool isNeedToUpdate);
 
     /**
      * @brief showMessage   Signal to show to user text message in message box
