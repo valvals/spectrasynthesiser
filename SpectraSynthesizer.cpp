@@ -12,6 +12,7 @@
 #include "style_sheets.h"
 #include "qcustomplot.h"
 #include "windows.h"
+#include "Version.h"
 
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
@@ -19,29 +20,22 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     , ui(new Ui::SpectraSynthesizer)
 {
     ui->setupUi(this);
+    this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
     ui->widget_plot->setBackground(QBrush(QColor(64,66,68)));
     ui->widget_plot->addGraph();
     QPen graphPen(QColor(13,160,5));
-    //graphPen.setWidth(2);
     ui->widget_plot->graph(0)->setPen(graphPen);
-
-    //teensy = new Teensy("COM9",115200);
-    //connect(teensy,SIGNAL(spectrReadyToShow(QVector<double>, double, bool)),SLOT(show_stm_spectr(QVector<double>,double,bool)));
     m_serial_diods_controller = new QSerialPort;
     m_serial_stm_spectrometr = new QSerialPort;
-
     if(!db_json::getJsonObjectFromFile("config.json",m_json_config)){
         qDebug()<<"Config file was not found on the disk...";
        db_json::getJsonObjectFromFile(":/config.json",m_json_config);
        QrcFilesRestorer::restoreFilesFromQrc(":/");
     };
     ja = m_json_config.value("pins_array").toArray();
-    //qDebug()<<"ja size: "<<ja.size();
     const QString serial_number = m_json_config.value("serial_id").toString();
     auto mode = m_json_config.value("mode").toString();
-    //qDebug()<<"json_test: "<<serial_number;
     auto available_ports = m_serial_port_info.availablePorts();
-    qDebug()<< available_ports.size();
     bool isDeviceConnected = false;
     for(int i=0;i<available_ports.size();++i){
         qDebug()<<available_ports[i].serialNumber()
@@ -51,14 +45,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
             m_serial_diods_controller->open(QIODevice::ReadWrite);
             isDeviceConnected = true;
             connect(m_serial_diods_controller,SIGNAL(readyRead()),this,SLOT(readData()));
-            //break;
         }
         if("2089358E5748" == available_ports[i].serialNumber()){
             m_serial_stm_spectrometr->setPort(available_ports[i]);
             m_serial_stm_spectrometr->open(QIODevice::ReadWrite);
             connect(m_serial_stm_spectrometr,SIGNAL(readyRead()),this,SLOT(readStmData()));
-            //m_serial_stm_spectrometr->write("r\n");
-            //break;
         }
     }
     if(isDeviceConnected || mode == "developing"){
@@ -102,7 +93,6 @@ SpectraSynthesizer::~SpectraSynthesizer()
 void SpectraSynthesizer::readData()
 {
     const QByteArray data = m_serial_diods_controller->readAll();
-    qDebug()<<"recieved data: --> "<<data;
 }
 
 void SpectraSynthesizer::readStmData()
@@ -125,10 +115,13 @@ void SpectraSynthesizer::readStmData()
 
 }
 
-void SpectraSynthesizer::sendDataToComDevice(QString command)
+void SpectraSynthesizer::sendDataToComDevice(const QString& command)
 {
     qDebug()<<"Test data before sending: "<<command;
-    if(m_serial_diods_controller->isOpen())m_serial_diods_controller->write(command.toLatin1());
+    if(m_serial_diods_controller->isOpen()){
+        m_serial_diods_controller->write(command.toLatin1());
+        Sleep(50);
+    }
 }
 
 void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
@@ -166,10 +159,8 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg
 
 void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max, bool isNeedToUpdate)
 {
-    qDebug()<<"data size:"<<data.size();
     QVector<double> waves(3648);
     for(int i=0;i<3648;++i)waves[i]=i+1;
-
     ui->widget_plot->graph(0)->setData(waves,data);
     ui->widget_plot->xAxis->setRange(1, 3648);
     ui->widget_plot->yAxis->setRange(0, max);
@@ -180,9 +171,5 @@ void SpectraSynthesizer::on_pushButton_clicked()
 {
     m_serial_stm_spectrometr->write("r\n");
     m_serial_stm_spectrometr->waitForBytesWritten(1000);
-    qDebug()<<m_serial_stm_spectrometr->bytesAvailable();
-    Sleep(10);
-    //qDebug()<<"rbs:"<<m_serial_stm_spectrometr->readBufferSize();
-    //qDebug()<<m_serial_stm_spectrometr->readAll().size();
-
+    Sleep(50);
 }
