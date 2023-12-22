@@ -26,11 +26,14 @@ signals:
 
 private slots:
     void readData();
+    void readStmData();
     void on_pushButton_reset_to_zero_clicked();
     void on_pushButton_apply_clicked();
     void on_comboBox_waves_currentTextChanged(const QString &arg1);
     //spectrReadyToShow(QVector<double> data, double max, bool isNeedToUpdate);
     void show_stm_spectr(QVector<double> data, double max, bool isNeedToUpdate);
+
+    void on_pushButton_clicked();
 
 private:
     Ui::SpectraSynthesizer *ui;
@@ -38,8 +41,8 @@ private:
     QJsonArray ja;
     QVector<QSlider*> m_sliders;
     QHash<QString,int> lambdas_indexes;
-    QSerialPort m_serial_diods_controller;
-    QSerialPort m_serial_stm_spectrometr;
+    QSerialPort *m_serial_diods_controller;
+    QSerialPort *m_serial_stm_spectrometr;
     QSerialPortInfo m_serial_port_info;
     void sendDataToComDevice(const QString command);
     void setTooltipForSlider(const int &index, const int &value);

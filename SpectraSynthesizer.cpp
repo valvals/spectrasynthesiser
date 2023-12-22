@@ -11,6 +11,7 @@
 #include "QrcFilesRestorer.h"
 #include "style_sheets.h"
 #include "qcustomplot.h"
+#include "windows.h"
 
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
@@ -24,8 +25,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
     //graphPen.setWidth(2);
     ui->widget_plot->graph(0)->setPen(graphPen);
 
-    teensy = new Teensy("COM9",115200);
-    connect(teensy,SIGNAL(spectrReadyToShow(QVector<double>, double, bool)),SLOT(show_stm_spectr(QVector<double>,double,bool)));
+    //teensy = new Teensy("COM9",115200);
+    //connect(teensy,SIGNAL(spectrReadyToShow(QVector<double>, double, bool)),SLOT(show_stm_spectr(QVector<double>,double,bool)));
+    m_serial_diods_controller = new QSerialPort;
+    m_serial_stm_spectrometr = new QSerialPort;
 
     if(!db_json::getJsonObjectFromFile("config.json",m_json_config)){
         qDebug()<<"Config file was not found on the disk...";
@@ -44,11 +47,18 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         qDebug()<<available_ports[i].serialNumber()
                 <<available_ports[i].portName();
         if(serial_number == available_ports[i].serialNumber()){
-            m_serial_diods_controller.setPort(available_ports[i]);
-            m_serial_diods_controller.open(QIODevice::ReadWrite);
+            m_serial_diods_controller->setPort(available_ports[i]);
+            m_serial_diods_controller->open(QIODevice::ReadWrite);
             isDeviceConnected = true;
-            connect(&m_serial_diods_controller,SIGNAL(readyRead()),this,SLOT(readData()));
-            break;
+            connect(m_serial_diods_controller,SIGNAL(readyRead()),this,SLOT(readData()));
+            //break;
+        }
+        if("2089358E5748" == available_ports[i].serialNumber()){
+            m_serial_stm_spectrometr->setPort(available_ports[i]);
+            m_serial_stm_spectrometr->open(QIODevice::ReadWrite);
+            connect(m_serial_stm_spectrometr,SIGNAL(readyRead()),this,SLOT(readStmData()));
+            //m_serial_stm_spectrometr->write("r\n");
+            //break;
         }
     }
     if(isDeviceConnected || mode == "developing"){
@@ -91,14 +101,34 @@ SpectraSynthesizer::~SpectraSynthesizer()
 
 void SpectraSynthesizer::readData()
 {
-    const QByteArray data = m_serial_diods_controller.readAll();
+    const QByteArray data = m_serial_diods_controller->readAll();
     qDebug()<<"recieved data: --> "<<data;
+}
+
+void SpectraSynthesizer::readStmData()
+{
+    if(m_serial_stm_spectrometr->bytesAvailable()!=7384){
+        return;
+    }
+    auto ba = m_serial_stm_spectrometr->readAll();
+    SpectrumData spectrumData;
+    memcpy(&spectrumData, ba, sizeof(spectrumData));
+    QVector<double> values;
+    QVector<double> channels;
+    int max = 0;
+    for(size_t i=0;i<3648;++i){
+        channels.push_back(i+1);
+        values.push_back(spectrumData.spectrum[i]);
+        if(max<spectrumData.spectrum[i])max = spectrumData.spectrum[i];
+    };
+    show_stm_spectr(values,max,false);
+
 }
 
 void SpectraSynthesizer::sendDataToComDevice(QString command)
 {
     qDebug()<<"Test data before sending: "<<command;
-    m_serial_diods_controller.write(command.toLatin1());
+    if(m_serial_diods_controller->isOpen())m_serial_diods_controller->write(command.toLatin1());
 }
 
 void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
@@ -115,7 +145,6 @@ void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked()
       m_sliders[i]->setValue(1);
       setTooltipForSlider(i,1);
   }
-  teensy->captureSpectr();
 }
 
 void SpectraSynthesizer::on_pushButton_apply_clicked()
@@ -139,10 +168,21 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max, bool 
 {
     qDebug()<<"data size:"<<data.size();
     QVector<double> waves(3648);
-    for(int i=0;i<3648;++i)waves[i]=i;
+    for(int i=0;i<3648;++i)waves[i]=i+1;
 
     ui->widget_plot->graph(0)->setData(waves,data);
     ui->widget_plot->xAxis->setRange(1, 3648);
     ui->widget_plot->yAxis->setRange(0, max);
     ui->widget_plot->replot();
+}
+
+void SpectraSynthesizer::on_pushButton_clicked()
+{
+    m_serial_stm_spectrometr->write("r\n");
+    m_serial_stm_spectrometr->waitForBytesWritten(1000);
+    qDebug()<<m_serial_stm_spectrometr->bytesAvailable();
+    Sleep(10);
+    //qDebug()<<"rbs:"<<m_serial_stm_spectrometr->readBufferSize();
+    //qDebug()<<m_serial_stm_spectrometr->readAll().size();
+
 }
