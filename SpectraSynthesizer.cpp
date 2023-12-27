@@ -97,13 +97,13 @@ SpectraSynthesizer::~SpectraSynthesizer() {
 
 void SpectraSynthesizer::readData() {
   const QByteArray data = m_serial_diods_controller->readAll();
-  m_debug_console->add_message("recieved from diods controller: " + QString(data),dbg::DIODS_CONTROLLER);
+  m_debug_console->add_message("recieved from diods controller: " + QString(data), dbg::DIODS_CONTROLLER);
 }
 
 void SpectraSynthesizer::readStmData() {
   if (m_serial_stm_spectrometr->bytesAvailable() == expo_packet_size) {
     auto expo = m_serial_stm_spectrometr->readAll();
-    m_debug_console->add_message("recieved from stm: "+QString::number(expo.toInt())+"\n",dbg::STM_CONTROLLER);
+    m_debug_console->add_message("recieved from stm: " + QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
     return;
   } else if (m_serial_stm_spectrometr->bytesAvailable() != spectr_packet_size) {
     qDebug() << "spectr packet recieved";
@@ -125,7 +125,7 @@ void SpectraSynthesizer::readStmData() {
 }
 
 void SpectraSynthesizer::sendDataToComDevice(const QString& command) {
-   m_debug_console->add_message("send to diods controller: " + command.toLatin1(),dbg::DIODS_CONTROLLER);
+  m_debug_console->add_message("send to diods controller: " + command.toLatin1(), dbg::DIODS_CONTROLLER);
   if (m_serial_diods_controller->isOpen()) {
     m_serial_diods_controller->write(command.toLatin1());
     Sleep(50);
@@ -178,8 +178,7 @@ void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
   Sleep(50);
 }
 
-void SpectraSynthesizer::on_pushButton_exposition_clicked()
-{
-    m_serial_stm_spectrometr->write("e150\n");
-    m_serial_stm_spectrometr->waitForBytesWritten(1000);
+void SpectraSynthesizer::on_pushButton_exposition_clicked() {
+  m_serial_stm_spectrometr->write("e150\n");
+  m_serial_stm_spectrometr->waitForBytesWritten(1000);
 }

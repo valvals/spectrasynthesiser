@@ -9,27 +9,26 @@ DebugConsole::DebugConsole(QWidget* parent) :
 }
 
 DebugConsole::~DebugConsole() {
-    delete ui;
+  delete ui;
 }
 
-void DebugConsole::add_message(const QString &msg, dbg::object obj)
-{
-    QTextCursor cursor(ui->textBrowser_debug_console->textCursor());
-    QTextCharFormat format;
-    format.setFontWeight( QFont::DemiBold );
-    QString color;
-    switch (obj) {
+void DebugConsole::add_message(const QString& msg, dbg::object obj) {
+  QTextCursor cursor(ui->textBrowser_debug_console->textCursor());
+  QTextCharFormat format;
+  format.setFontWeight(QFont::DemiBold);
+  QString color;
+  switch (obj) {
     case dbg::SOFT:
-        color = "red";
-        break;
+      color = "red";
+      break;
     case dbg::DIODS_CONTROLLER:
-        color = "yellow";
-        break;
+      color = "yellow";
+      break;
     case dbg::STM_CONTROLLER:
-        color = "green";
-        break;
-    }
-    format.setForeground(QBrush(QColor(color)));
-    cursor.setCharFormat(format);
-    cursor.insertText(msg);
+      color = "green";
+      break;
+  }
+  format.setForeground(QBrush(QColor(color)));
+  cursor.setCharFormat(format);
+  cursor.insertText(msg);
 }

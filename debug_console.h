@@ -7,11 +7,11 @@ namespace Ui {
 class DebugConsole;
 }
 
-namespace dbg{
-enum object{
-    SOFT,
-    DIODS_CONTROLLER,
-    STM_CONTROLLER
+namespace dbg {
+enum object {
+  SOFT,
+  DIODS_CONTROLLER,
+  STM_CONTROLLER
 };
 }
 
