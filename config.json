@@ -1,216 +1,217 @@
 {
-    "serial_id": "551393135353517061C2",
-	"mode":"developing",
+    "serial_diods_controller_id": "551393135353517061C2",
+    "serial_stm_controller_id": "2089358E5748",
+    "mode":"developing",
     "pins_array": [
         {
             "name": "a1",
             "wave": "397",
             "start_light_value": 22,
             "max_value": 1228,
-			"color":"#7712fc"
+            "color":"#7712fc"
         },
         {
             "name": "a2",
             "wave": "404",
             "start_light_value": 22,
             "max_value": 1070,
-			"color":"#734dff"
+            "color":"#734dff"
         },
         {
             "name": "a3",
             "wave": "412",
             "start_light_value": 22,
             "max_value": 1226,
-			"color":"#4c00fc"
+            "color":"#4c00fc"
         },
         {
             "name": "a4",
             "wave": "427",
             "start_light_value": 24,
             "max_value": 1698,
-			"color":"#2b0aff"
+            "color":"#2b0aff"
         },
         {
             "name": "a5",
             "wave": "433",
             "start_light_value": 22,
             "max_value": 1783,
-			"color":"#1c2fff"
+            "color":"#1c2fff"
         },
         {
             "name": "a6",
             "wave": "445",
             "start_light_value": 20,
             "max_value": 897,
-			"color":"#0a42fa"
+            "color":"#0a42fa"
         },
         {
             "name": "a7",
             "wave": "452",
             "start_light_value": 21,
             "max_value": 1255,
-			"color":"#078bde"
+            "color":"#078bde"
         },
         {
             "name": "a8",
             "wave": "461",
             "start_light_value": 22,
             "max_value": 1289,
-			"color":"#05bdff"
+            "color":"#05bdff"
         },
         {
             "name": "a9",
             "wave": "473",
             "start_light_value": 23,
             "max_value": 1298,
-			"color":"#02fa8f"
+            "color":"#02fa8f"
         },
         {
             "name": "a10",
             "wave": "505",
             "start_light_value": 21,
             "max_value": 1300,
-			"color":"#2efc05"
+            "color":"#2efc05"
         },
         {
             "name": "a11",
             "wave": "534",
             "start_light_value": 22,
             "max_value": 1496,
-			"color":"#a6fc05"
+            "color":"#a6fc05"
         },
         {
             "name": "a12",
             "wave": "549",
             "start_light_value": 21,
             "max_value": 1470,
-			"color":"#caed00"
+            "color":"#caed00"
         },
         {
             "name": "a13",
             "wave": "560",
             "start_light_value": 21,
             "max_value": 1457,
-			"color":"#fc7f03"
+            "color":"#fc7f03"
         },
         {
             "name": "a14",
             "wave": "588",
             "start_light_value": 20,
             "max_value": 660,
-			"color":"#fc6b03"
+            "color":"#fc6b03"
         },
         {
             "name": "a15",
             "wave": "595",
             "start_light_value": 21,
             "max_value": 825,
-			"color":"#fc4e03"
+            "color":"#fc4e03"
         },
         {
             "name": "a16",
             "wave": "607",
             "start_light_value": 23,
             "max_value": 1041,
-			"color":"#ed3502"
+            "color":"#ed3502"
         },
         {
             "name": "a17",
             "wave": "627",
             "start_light_value": 21,
             "max_value": 1335,
-			"color":"#fc0d0d"
+            "color":"#fc0d0d"
         },
         {
             "name": "a18",
             "wave": "640",
             "start_light_value": 20,
             "max_value": 1498,
-			"color":"#f50004"
+            "color":"#f50004"
         },
         {
             "name": "a19",
             "wave": "658",
             "start_light_value": 23,
             "max_value": 1345,
-			"color":"#e60202"
+            "color":"#e60202"
         },
         {
             "name": "a20",
             "wave": "679",
             "start_light_value": 20,
             "max_value": 1748,
-			"color":"#a10227"
+            "color":"#a10227"
         },
         {
             "name": "a21",
             "wave": "725",
             "start_light_value": 23,
             "max_value": 1373,
-			"color":"#8a012f"
+            "color":"#8a012f"
         },
         {
             "name": "a22",
             "wave": "745",
             "start_light_value": 24,
             "max_value": 1535,
-			"color":"#661916"
+            "color":"#661916"
         },
         {
             "name": "a23",
             "wave": "775",
             "start_light_value": 35,
             "max_value": 1585,
-			"color":"#4a2b2a"
+            "color":"#4a2b2a"
         },
         {
             "name": "a24",
             "wave": "800",
             "start_light_value": 23,
             "max_value": 1210,
-			"color":"#4f2928"
+            "color":"#4f2928"
         },
         {
             "name": "a25",
             "wave": "820",
             "start_light_value": 23,
             "max_value": 1208,
-			"color":"#4d1e1c"
+            "color":"#4d1e1c"
         },
         {
             "name": "a26",
             "wave": "839",
             "start_light_value": 25,
             "max_value": 1268,
-			"color":"#451311"
+            "color":"#451311"
         },
         {
             "name": "a27",
             "wave": "893",
             "start_light_value": 57,
             "max_value": 3180,
-			"color":"#4a0b09"
+            "color":"#4a0b09"
         },
         {
             "name": "a28",
             "wave": "931",
             "start_light_value": 29,
             "max_value": 1431,
-			"color":"#3d0806"
+            "color":"#3d0806"
         },
         {
             "name": "a29",
             "wave": "967",
             "start_light_value": 30,
             "max_value": 1463,
-			"color":"#1c0807"
+            "color":"#1c0807"
         },
         {
             "name": "a30",
             "wave": "1014",
             "start_light_value": 29,
             "max_value": 1440,
-			"color":"#050000"
+            "color":"#050000"
         }
     ]
 }

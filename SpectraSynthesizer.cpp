@@ -33,24 +33,24 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget *parent)
         QrcFilesRestorer::restoreFilesFromQrc(":/");
     };
     ja = m_json_config.value("pins_array").toArray();
-    const QString serial_number = m_json_config.value("serial_id").toString();
-    auto mode = m_json_config.value("mode").toString();
+    const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
+    const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
+    const QString mode = m_json_config.value("mode").toString();
     auto available_ports = m_serial_port_info.availablePorts();
     bool isDeviceConnected = false;
     for(int i=0;i<available_ports.size();++i){
-        qDebug()<<available_ports[i].serialNumber()
-               <<available_ports[i].portName();
-        if(serial_number == available_ports[i].serialNumber()){
+        qDebug()<<available_ports[i].serialNumber()<<available_ports[i].portName();
+        if(serial_diods_number == available_ports[i].serialNumber()){
             m_serial_diods_controller->setPort(available_ports[i]);
             m_serial_diods_controller->open(QIODevice::ReadWrite);
             isDeviceConnected = true;
             connect(m_serial_diods_controller,SIGNAL(readyRead()),this,SLOT(readData()));
         }
-        if("2089358E5748" == available_ports[i].serialNumber()){
+        if(serial_stm_number == available_ports[i].serialNumber()){
             m_serial_stm_spectrometr->setPort(available_ports[i]);
             m_serial_stm_spectrometr->open(QIODevice::ReadWrite);
             connect(m_serial_stm_spectrometr,SIGNAL(readyRead()),this,SLOT(readStmData()));
-            m_serial_stm_spectrometr->write("e1500\n");
+            m_serial_stm_spectrometr->write("e150\n");
             m_serial_stm_spectrometr->waitForBytesWritten(1000);
         }
     }
