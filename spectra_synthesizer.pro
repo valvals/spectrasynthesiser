@@ -8,6 +8,7 @@ TARGET = spectrasynthesizer
 SOURCES += \
     DBJson.cpp \
     QrcFilesRestorer.cpp \
+    debug_console.cpp \
     main.cpp \
     SpectraSynthesizer.cpp \
     qcustomplot.cpp \
@@ -18,11 +19,13 @@ HEADERS += \
     QrcFilesRestorer.h \
     SpectraSynthesizer.h \
     Version.h \
+    debug_console.h \
     qcustomplot.h \
     style_sheets.h
 
 FORMS += \
-    SpectraSynthesizer.ui
+    SpectraSynthesizer.ui \
+    debug_console.ui
 
 RESOURCES += \
     res.qrc

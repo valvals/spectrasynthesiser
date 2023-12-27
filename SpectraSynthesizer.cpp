@@ -14,6 +14,8 @@
 #include "windows.h"
 #include "Version.h"
 
+constexpr uint16_t expo_packet_size = 4;
+const uint16_t spectr_packet_size = 7384;
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
@@ -76,6 +78,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       connect(slider, &QSlider::sliderReleased, [i, slider, this]() {
         setTooltipForSlider(i, slider->value());
         sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
+        ui->comboBox_waves->setCurrentIndex(i);
       });
     }
   } else {
@@ -84,6 +87,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     mb.setText("Устройство не подключено!");
     mb.exec();
   }
+  m_debug_console = new DebugConsole;
+  connect(ui->action_show_debug_console, SIGNAL(triggered()), m_debug_console, SLOT(show()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -92,16 +97,16 @@ SpectraSynthesizer::~SpectraSynthesizer() {
 
 void SpectraSynthesizer::readData() {
   const QByteArray data = m_serial_diods_controller->readAll();
+  m_debug_console->add_message("recieved from diods controller: " + QString(data),dbg::DIODS_CONTROLLER);
 }
 
 void SpectraSynthesizer::readStmData() {
-  qDebug() << "<------ read data ------";
-  qDebug() << m_serial_stm_spectrometr->bytesAvailable();
-  if (m_serial_stm_spectrometr->bytesAvailable() == 4) {
-    qDebug() << "exposition was changed...";
-    m_serial_stm_spectrometr->readAll();
+  if (m_serial_stm_spectrometr->bytesAvailable() == expo_packet_size) {
+    auto expo = m_serial_stm_spectrometr->readAll();
+    m_debug_console->add_message("recieved from stm: "+QString::number(expo.toInt())+"\n",dbg::STM_CONTROLLER);
     return;
-  } else if (m_serial_stm_spectrometr->bytesAvailable() != 7384) {
+  } else if (m_serial_stm_spectrometr->bytesAvailable() != spectr_packet_size) {
+    qDebug() << "spectr packet recieved";
     return;
   }
   auto ba = m_serial_stm_spectrometr->readAll();
@@ -110,7 +115,7 @@ void SpectraSynthesizer::readStmData() {
   QVector<double> values;
   QVector<double> channels;
   int max = 0;
-  for (size_t i = 0; i < 3648; ++i) {
+  for (size_t i = 0; i < spectr_values_size; ++i) {
     channels.push_back(i + 1);
     values.push_back(spectrumData.spectrum[i]);
     if (max < spectrumData.spectrum[i])
@@ -120,7 +125,7 @@ void SpectraSynthesizer::readStmData() {
 }
 
 void SpectraSynthesizer::sendDataToComDevice(const QString& command) {
-  qDebug() << "Test data before sending: " << command;
+   m_debug_console->add_message("send to diods controller: " + command.toLatin1(),dbg::DIODS_CONTROLLER);
   if (m_serial_diods_controller->isOpen()) {
     m_serial_diods_controller->write(command.toLatin1());
     Sleep(50);
@@ -157,11 +162,11 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString& arg
 }
 
 void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max) {
-  QVector<double> waves(3648);
-  for (int i = 0; i < 3648; ++i)
+  QVector<double> waves(spectr_values_size);
+  for (int i = 0; i < spectr_values_size; ++i)
     waves[i] = i + 1;
   ui->widget_plot->graph(0)->setData(waves, data);
-  ui->widget_plot->xAxis->setRange(1, 3648);
+  ui->widget_plot->xAxis->setRange(1, spectr_values_size);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
 }
@@ -171,4 +176,10 @@ void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
   m_serial_stm_spectrometr->write("r\n");
   m_serial_stm_spectrometr->waitForBytesWritten(1000);
   Sleep(50);
+}
+
+void SpectraSynthesizer::on_pushButton_exposition_clicked()
+{
+    m_serial_stm_spectrometr->write("e150\n");
+    m_serial_stm_spectrometr->waitForBytesWritten(1000);
 }

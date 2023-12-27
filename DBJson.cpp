@@ -195,7 +195,7 @@ void getJsonObjectFromStruct(const SPECTRAL_STRUCT& spectral_struct, QJsonObject
 
   QJsonArray images_array;
   for (int i = 0; i < spectral_struct.md.images.size(); ++i) {
-    images_array.append(QJsonValue( {
+    images_array.append(QJsonValue({
       {"name", spectral_struct.md.images[i].name},
       {"type", spectral_struct.md.images[i].type},
       {"description", spectral_struct.md.images[i].description}
