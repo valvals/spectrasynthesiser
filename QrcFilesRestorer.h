@@ -7,11 +7,10 @@
 
     Данный класс предназначен для восстановления файлов в директории с СПО из ресурсов в случае их отсутствия.
 */
-class QrcFilesRestorer
-{
-public:
-    QrcFilesRestorer(const QString& path2Qrc);
-    static void restoreFilesFromQrc(const QString& path2Qrc);
+class QrcFilesRestorer {
+ public:
+  QrcFilesRestorer(const QString& path2Qrc);
+  static void restoreFilesFromQrc(const QString& path2Qrc);
 
 };
 

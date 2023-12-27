@@ -18,8 +18,8 @@
  */
 enum SpectrometerSettingsType {
 
-    EXPOSITION, COUNT_IN_SERIES, CALIBRATION_FILE_PATH, SAVING_FILE_PATH, IS_NEED2SAVE_MEAN,
-    IS_NEED2SAVE_DARK
+  EXPOSITION, COUNT_IN_SERIES, CALIBRATION_FILE_PATH, SAVING_FILE_PATH, IS_NEED2SAVE_MEAN,
+  IS_NEED2SAVE_DARK
 
 };
 Q_DECLARE_METATYPE(SpectrometerSettingsType)
@@ -35,7 +35,7 @@ Q_DECLARE_METATYPE(SpectrometerSettingsType)
  */
 enum SpectrMode {
 
-    SINGLE_MODE, SERIES_MODE, CONTINUOUS_MODE, COMBO_MODE
+  SINGLE_MODE, SERIES_MODE, CONTINUOUS_MODE, COMBO_MODE
 
 };
 
@@ -46,9 +46,9 @@ enum SpectrMode {
  * BAND_NUMBERS     Numbers of bands
  * WAVELENGTH       Waves, nm
  */
-enum BandsValues{
+enum BandsValues {
 
-    BAND_NUMBERS, WAVELENGTH
+  BAND_NUMBERS, WAVELENGTH
 };
 Q_DECLARE_METATYPE(BandsValues)
 
@@ -59,25 +59,24 @@ Q_DECLARE_METATYPE(BandsValues)
  * ADC_VALUES       ADC units
  * RFL_VALUES       Reflectance (from 0 to 1)
  */
-enum GraphValues{
+enum GraphValues {
 
-    ADC_VALUES, RFL_VALUES
+  ADC_VALUES, RFL_VALUES
 };
 Q_DECLARE_METATYPE(GraphValues)
 
-enum CommonAngleType{
-    SUN_ANGLE, SPECTROMETER_ANGLE, PATTERN_ANGLE
+enum CommonAngleType {
+  SUN_ANGLE, SPECTROMETER_ANGLE, PATTERN_ANGLE
 };
 Q_DECLARE_METATYPE(CommonAngleType)
 
 #pragma pack(push,1)
-struct SpectrumData
-{
-    unsigned short  dummy1[14];     // 32 байта (нужно 16, заменено для STM)
-    short int       black1[13];     // 26 байт
-    unsigned short  dummy2[3];      // 6 байт
-    short int       spectrum[3648]; // 7296 байт
-    unsigned short  dummy[14];      // 28 байт
+struct SpectrumData {
+  unsigned short  dummy1[14];     // 32 байта (нужно 16, заменено для STM)
+  short int       black1[13];     // 26 байт
+  unsigned short  dummy2[3];      // 6 байт
+  short int       spectrum[3648]; // 7296 байт
+  unsigned short  dummy[14];      // 28 байт
 };  //!< Spectrum data structure
 Q_DECLARE_METATYPE(SpectrumData)
 #pragma pack(pop)
@@ -86,14 +85,14 @@ Q_DECLARE_METATYPE(SpectrumData)
  * @brief The Spectrum struct
  * Structure of spectrum data
  */
-struct Spectrum{
+struct Spectrum {
 
-    QString name;               //!< Spectrum name
-    double exposition;          //!< Exposition in spectrum
-    BandsValues bandsValues;    //!< Bands values
-    GraphValues graphValues;    //!< Graph values
-    QVector<double> wavesSpectrum;  //!< Vector of wavelength
-    QVector<double> dataSpectrum;   //!< Vector of Spectrum data
+  QString name;               //!< Spectrum name
+  double exposition;          //!< Exposition in spectrum
+  BandsValues bandsValues;    //!< Bands values
+  GraphValues graphValues;    //!< Graph values
+  QVector<double> wavesSpectrum;  //!< Vector of wavelength
+  QVector<double> dataSpectrum;   //!< Vector of Spectrum data
 
 };
 Q_DECLARE_METATYPE(Spectrum)
@@ -102,10 +101,10 @@ Q_DECLARE_METATYPE(Spectrum)
  * @brief The DarkSpectrum struct
  * Structure of dark spectrum data (actual for solar device)
  */
-struct DarkSpectrum{
+struct DarkSpectrum {
 
-    int expositionIndex;            //!< Exposition index in list of expositions
-    QVector<double> dataSpectrum;   //!< Dark spectrum data
+  int expositionIndex;            //!< Exposition index in list of expositions
+  QVector<double> dataSpectrum;   //!< Dark spectrum data
 
 };
 
@@ -113,10 +112,9 @@ struct DarkSpectrum{
  * @brief The SunCoordinates struct
  * Sctructure needed to contain sun coordinates
  */
-struct SunCoordinates
-{
-    double zenithAngle;     //!< Zenith angle
-    double azimuth;         //!< azimuth
+struct SunCoordinates {
+  double zenithAngle;     //!< Zenith angle
+  double azimuth;         //!< azimuth
 };
 
 #endif // COMMONTYPES_H

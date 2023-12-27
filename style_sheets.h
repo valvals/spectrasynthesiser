@@ -1,7 +1,7 @@
 #ifndef STYLE_SHEETS_H
 #define STYLE_SHEETS_H
 
-namespace styles{
+namespace styles {
 
 extern const char slider[];
 extern const char tooltip[];

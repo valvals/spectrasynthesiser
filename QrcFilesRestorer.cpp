@@ -3,27 +3,25 @@
 #include <QDir>
 #include "qdebug.h"
 
-QrcFilesRestorer::QrcFilesRestorer(const QString& path2Qrc)
-{
-    QDir dir(path2Qrc);
-    QStringList files = dir.entryList();
+QrcFilesRestorer::QrcFilesRestorer(const QString& path2Qrc) {
+  QDir dir(path2Qrc);
+  QStringList files = dir.entryList();
 
 }
 
-void QrcFilesRestorer::restoreFilesFromQrc(const QString& path2Qrc)
-{
-    QDir dir(path2Qrc);
-    QStringList files = dir.entryList();
+void QrcFilesRestorer::restoreFilesFromQrc(const QString& path2Qrc) {
+  QDir dir(path2Qrc);
+  QStringList files = dir.entryList();
 
-    for(int i=0;i<files.count();++i){
-        QString filenameNew = QDir::currentPath()+"/"+ files.at(i);
-        QFile file(filenameNew);
+  for (int i = 0; i < files.count(); ++i) {
+    QString filenameNew = QDir::currentPath() + "/" + files.at(i);
+    QFile file(filenameNew);
 
-        if(!file.exists()){
-            QFile::copy(path2Qrc +"/"+files.at(i), filenameNew);
-            file.setPermissions(QFileDevice::WriteUser|QFileDevice::ReadUser);
-        }
+    if (!file.exists()) {
+      QFile::copy(path2Qrc + "/" + files.at(i), filenameNew);
+      file.setPermissions(QFileDevice::WriteUser | QFileDevice::ReadUser);
     }
+  }
 }
 
 

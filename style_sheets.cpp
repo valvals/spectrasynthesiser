@@ -1,6 +1,6 @@
 #include "style_sheets.h"
 
-namespace styles{
+namespace styles {
 const char slider[] = R"(
 QSlider::groove:vertical {
     background: #404244;
