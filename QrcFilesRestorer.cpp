@@ -3,14 +3,14 @@
 #include <QDir>
 #include "qdebug.h"
 
-QrcFilesRestorer::QrcFilesRestorer(QString path2Qrc)
+QrcFilesRestorer::QrcFilesRestorer(const QString& path2Qrc)
 {
     QDir dir(path2Qrc);
     QStringList files = dir.entryList();
 
 }
 
-void QrcFilesRestorer::restoreFilesFromQrc(QString path2Qrc)
+void QrcFilesRestorer::restoreFilesFromQrc(const QString& path2Qrc)
 {
     QDir dir(path2Qrc);
     QStringList files = dir.entryList();

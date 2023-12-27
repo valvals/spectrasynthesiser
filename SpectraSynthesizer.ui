@@ -144,7 +144,7 @@ color: rgb(0, 170, 0);</string>
        </widget>
       </item>
       <item row="0" column="1" rowspan="3">
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushButton_update_stm_spectr">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -170,7 +170,19 @@ color: rgb(0, 170, 0);</string>
      <height>20</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Отладка</string>
+    </property>
+    <addaction name="action"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
+  <action name="action">
+   <property name="text">
+    <string>консоль контроллера светодиодов</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

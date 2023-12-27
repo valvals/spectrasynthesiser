@@ -10,8 +10,8 @@
 class QrcFilesRestorer
 {
 public:
-    QrcFilesRestorer(QString path2Qrc);
-    static void restoreFilesFromQrc(QString path2Qrc);
+    QrcFilesRestorer(const QString& path2Qrc);
+    static void restoreFilesFromQrc(const QString& path2Qrc);
 
 };
 

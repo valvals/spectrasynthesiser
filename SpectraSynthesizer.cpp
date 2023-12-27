@@ -119,8 +119,7 @@ void SpectraSynthesizer::readStmData()
         values.push_back(spectrumData.spectrum[i]);
         if(max<spectrumData.spectrum[i])max = spectrumData.spectrum[i];
     };
-    show_stm_spectr(values,max,false);
-
+    show_stm_spectr(values,max);
 }
 
 void SpectraSynthesizer::sendDataToComDevice(const QString& command)
@@ -165,7 +164,7 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString &arg
     ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
 }
 
-void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max, bool isNeedToUpdate)
+void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max)
 {
     QVector<double> waves(3648);
     for(int i=0;i<3648;++i)waves[i]=i+1;
@@ -175,11 +174,8 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max, bool 
     ui->widget_plot->replot();
 }
 
-void SpectraSynthesizer::on_pushButton_clicked()
+void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked()
 {
-    //m_serial_stm_spectrometr->write("e150\n");
-    //m_serial_stm_spectrometr->waitForBytesWritten(1000);
-
     qDebug()<<"get spectr....";
     m_serial_stm_spectrometr->write("r\n");
     m_serial_stm_spectrometr->waitForBytesWritten(1000);
