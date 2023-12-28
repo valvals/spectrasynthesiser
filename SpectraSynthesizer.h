@@ -51,7 +51,9 @@ class SpectraSynthesizer : public QMainWindow {
 
   void on_pushButton_exposition_clicked();
 
- private:
+  void on_pushButton_sound_switcher_toggled(bool checked);
+
+private:
   Ui::SpectraSynthesizer* ui;
   DebugConsole* m_debug_console;
   QJsonObject m_json_config;

@@ -96,8 +96,14 @@ SpectraSynthesizer::~SpectraSynthesizer() {
 }
 
 void SpectraSynthesizer::readData() {
+  static QByteArray buffer;
   const QByteArray data = m_serial_diods_controller->readAll();
-  m_debug_console->add_message("recieved from diods controller: " + QString(data), dbg::DIODS_CONTROLLER);
+  buffer.append(data);
+  if(data[data.size()-1]=='\n'){
+     m_debug_console->add_message("recieved from diods controller: " + QString(buffer), dbg::DIODS_CONTROLLER);
+     buffer.clear();
+  }
+
 }
 
 void SpectraSynthesizer::readStmData() {
@@ -181,4 +187,16 @@ void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
 void SpectraSynthesizer::on_pushButton_exposition_clicked() {
   m_serial_stm_spectrometr->write("e150\n");
   m_serial_stm_spectrometr->waitForBytesWritten(1000);
+}
+
+void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked)
+{
+    if(checked){
+        ui->pushButton_sound_switcher->setText("Включить звук");
+        sendDataToComDevice("m\n");
+    }
+    else{
+        ui->pushButton_sound_switcher->setText("Выключить звук");
+        sendDataToComDevice("u\n");
+    }
 }
