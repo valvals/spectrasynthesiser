@@ -25,6 +25,8 @@ class DebugConsole : public QWidget {
 
  private:
   Ui::DebugConsole* ui;
+ private slots:
+  void clearConsole();
 };
 
 #endif // DEBUG_CONSOLE_H

@@ -1,11 +1,17 @@
 #include "debug_console.h"
 #include "ui_debug_console.h"
 #include "QDebug"
+#include "QAction"
 
 DebugConsole::DebugConsole(QWidget* parent) :
   QWidget(parent),
   ui(new Ui::DebugConsole) {
   ui->setupUi(this);
+  QAction* clear_console_action = new QAction;
+  clear_console_action->setText("очистить консоль");
+  ui->textBrowser_debug_console->setContextMenuPolicy(Qt::ContextMenuPolicy::ActionsContextMenu);
+  ui->textBrowser_debug_console->addAction(clear_console_action);
+  connect(clear_console_action, SIGNAL(triggered()), SLOT(clearConsole()));
 }
 
 DebugConsole::~DebugConsole() {
@@ -15,8 +21,8 @@ DebugConsole::~DebugConsole() {
 void DebugConsole::add_message(const QString& msg, dbg::object obj) {
   QTextCursor cursor(ui->textBrowser_debug_console->textCursor());
   QTextCharFormat format;
-  format.setFontWeight(QFont::DemiBold);
-  format.setFontPointSize(22);
+  format.setFontWeight(QFont::Cursive);
+  format.setFontPointSize(16);
   QString color;
   switch (obj) {
     case dbg::SOFT:
@@ -32,4 +38,8 @@ void DebugConsole::add_message(const QString& msg, dbg::object obj) {
   format.setForeground(QBrush(QColor(color)));
   cursor.setCharFormat(format);
   cursor.insertText(msg);
+}
+
+void DebugConsole::clearConsole() {
+  ui->textBrowser_debug_console->clear();
 }
