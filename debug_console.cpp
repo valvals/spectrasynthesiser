@@ -16,6 +16,7 @@ void DebugConsole::add_message(const QString& msg, dbg::object obj) {
   QTextCursor cursor(ui->textBrowser_debug_console->textCursor());
   QTextCharFormat format;
   format.setFontWeight(QFont::DemiBold);
+  format.setFontPointSize(22);
   QString color;
   switch (obj) {
     case dbg::SOFT:

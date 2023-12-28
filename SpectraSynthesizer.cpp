@@ -14,7 +14,7 @@
 #include "windows.h"
 #include "Version.h"
 
-constexpr uint16_t expo_packet_size = 4;
+const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
