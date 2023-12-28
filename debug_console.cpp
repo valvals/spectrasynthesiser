@@ -2,6 +2,7 @@
 #include "ui_debug_console.h"
 #include "QDebug"
 #include "QAction"
+#include "QScrollBar"
 
 DebugConsole::DebugConsole(QWidget* parent) :
   QWidget(parent),
@@ -38,6 +39,8 @@ void DebugConsole::add_message(const QString& msg, dbg::object obj) {
   format.setForeground(QBrush(QColor(color)));
   cursor.setCharFormat(format);
   cursor.insertText(msg);
+  auto sb = ui->textBrowser_debug_console->verticalScrollBar();
+  sb->setValue(sb->maximum());
 }
 
 void DebugConsole::clearConsole() {
