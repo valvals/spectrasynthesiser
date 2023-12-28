@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "QSerialPort"
 #include "QSerialPortInfo"
+#include "QTimer"
 #include "qjsonarray.h"
 #include "qjsonobject.h"
 #include "qslider.h"
@@ -43,14 +44,13 @@ class SpectraSynthesizer : public QMainWindow {
  private slots:
   void readData();
   void readStmData();
+  void show_stm_spectr(QVector<double> data, double max);
+  void changeWidgetState();
   void on_pushButton_reset_to_zero_clicked();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
-  void show_stm_spectr(QVector<double> data, double max);
   void on_pushButton_update_stm_spectr_clicked();
-
   void on_pushButton_exposition_clicked();
-
   void on_pushButton_sound_switcher_toggled(bool checked);
 
 private:
@@ -63,6 +63,7 @@ private:
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
   QSerialPortInfo m_serial_port_info;
+  QTimer m_timer;
   void sendDataToComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
 };

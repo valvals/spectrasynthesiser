@@ -89,6 +89,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   }
   m_debug_console = new DebugConsole;
   connect(ui->action_show_debug_console, SIGNAL(triggered()), m_debug_console, SLOT(show()));
+  connect(&m_timer,SIGNAL(timeout()),SLOT(changeWidgetState()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -103,7 +104,6 @@ void SpectraSynthesizer::readData() {
      m_debug_console->add_message("recieved from diods controller: " + QString(buffer), dbg::DIODS_CONTROLLER);
      buffer.clear();
   }
-
 }
 
 void SpectraSynthesizer::readStmData() {
@@ -177,6 +177,20 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max) {
   ui->widget_plot->replot();
 }
 
+void SpectraSynthesizer::changeWidgetState()
+{
+    static bool state;
+    if(state){
+    ui->centralwidget->setStyleSheet("background-color:rgb(128, 31, 31)");
+    state = false;
+    }else{
+    ui->centralwidget->setStyleSheet("background-color:rgb(31, 31, 31)");
+    state = true;
+    }
+    ui->centralwidget->repaint();
+    ui->centralwidget->update();
+}
+
 void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
   qDebug() << "get spectr....";
   m_serial_stm_spectrometr->write("r\n");
@@ -194,9 +208,12 @@ void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked)
     if(checked){
         ui->pushButton_sound_switcher->setText("Включить звук");
         sendDataToComDevice("m\n");
+        m_timer.start(1000);
     }
     else{
         ui->pushButton_sound_switcher->setText("Выключить звук");
         sendDataToComDevice("u\n");
+        m_timer.stop();
+        ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
     }
 }
