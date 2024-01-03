@@ -13,6 +13,7 @@
 #include "qcustomplot.h"
 #include "windows.h"
 #include "Version.h"
+#include "QFile"
 
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
@@ -55,6 +56,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_serial_stm_spectrometr->waitForBytesWritten(1000);
     }
   }
+  m_sliders_previous_values.reserve(ja.size());
+  m_elapsed_timers.reserve(ja.size());
   if (isDeviceConnected || mode == "developing") {
 
     for (int i = 0; i < ja.size(); ++i) {
@@ -62,6 +65,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       slider->setObjectName(QString("qslider_") + QString::number(i + 1));
       slider->setMinimumWidth(30);
       slider->setMinimumHeight(100);
+      m_sliders_previous_values[i] = 1;
       QVBoxLayout* vbl = new QVBoxLayout;
       auto wave = ja[i].toObject().value("wave").toString();
       ui->comboBox_waves->addItem(wave);
@@ -80,6 +84,17 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
         ui->comboBox_waves->setCurrentIndex(i);
         ui->spinBox_bright_value->setValue(slider->value());
+        auto prev_value = m_sliders_previous_values[i];
+        if(prev_value!=slider->value()){
+            QString file_name = QString("diod_%1_power_track.txt").arg(QString::number(i));
+            QFile file(file_name);
+            file.open(QIODevice::WriteOnly,QFile::Append);
+            QString data = QString("%1 %2 %3\n").arg(QString::number(i),
+                                                   ja[i].toObject().value("wave").toString(),
+                                                   QString::number(m_elapsed_timers[i].elapsed()));
+            file.write(data.toLatin1());
+            file.close();
+        }
       });
     }
   } else {

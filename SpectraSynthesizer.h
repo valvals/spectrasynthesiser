@@ -9,6 +9,7 @@
 #include "qjsonobject.h"
 #include "qslider.h"
 #include "debug_console.h"
+#include "QElapsedTimer"
 
 
 const uint16_t spectr_values_size = 3648;
@@ -60,6 +61,8 @@ private:
   QJsonObject m_json_config;
   QJsonArray ja;
   QVector<QSlider*> m_sliders;
+  QVector<uint16_t> m_sliders_previous_values;
+  QVector<QElapsedTimer> m_elapsed_timers;
   QHash<QString, int> lambdas_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
