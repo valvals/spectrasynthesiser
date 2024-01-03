@@ -52,6 +52,7 @@ class SpectraSynthesizer : public QMainWindow {
   void on_pushButton_update_stm_spectr_clicked();
   void on_pushButton_exposition_clicked();
   void on_pushButton_sound_switcher_toggled(bool checked);
+  void on_pushButton_water_clicked();
 
 private:
   Ui::SpectraSynthesizer* ui;

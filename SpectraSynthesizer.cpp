@@ -79,6 +79,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         setTooltipForSlider(i, slider->value());
         sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
         ui->comboBox_waves->setCurrentIndex(i);
+        ui->spinBox_bright_value->setValue(slider->value());
       });
     }
   } else {
@@ -150,6 +151,7 @@ void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked() {
     m_sliders[i]->setValue(1);
     setTooltipForSlider(i, 1);
   }
+  ui->spinBox_bright_value->setValue(1);
 }
 
 void SpectraSynthesizer::on_pushButton_apply_clicked() {
@@ -216,4 +218,9 @@ void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked)
         m_timer.stop();
         ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
     }
+}
+
+void SpectraSynthesizer::on_pushButton_water_clicked()
+{
+    sendDataToComDevice("w\n");
 }
