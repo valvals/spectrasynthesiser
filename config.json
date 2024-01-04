@@ -6,6 +6,7 @@
         {
             "name": "a1",
             "wave": "397",
+            "max_current":2.54,
             "start_light_value": 22,
             "max_value": 1228,
             "color":"#7712fc"
@@ -13,6 +14,7 @@
         {
             "name": "a2",
             "wave": "404",
+            "max_current":2.21,
             "start_light_value": 22,
             "max_value": 1070,
             "color":"#734dff"
@@ -20,6 +22,7 @@
         {
             "name": "a3",
             "wave": "412",
+            "max_current":3.54,
             "start_light_value": 22,
             "max_value": 1226,
             "color":"#4c00fc"
@@ -27,6 +30,7 @@
         {
             "name": "a4",
             "wave": "427",
+            "max_current":3.22,
             "start_light_value": 24,
             "max_value": 1698,
             "color":"#2b0aff"
@@ -34,6 +38,7 @@
         {
             "name": "a5",
             "wave": "433",
+            "max_current":3.56,
             "start_light_value": 22,
             "max_value": 1783,
             "color":"#1c2fff"
@@ -41,6 +46,7 @@
         {
             "name": "a6",
             "wave": "445",
+            "max_current":1.87,
             "start_light_value": 20,
             "max_value": 897,
             "color":"#0a42fa"
@@ -48,6 +54,7 @@
         {
             "name": "a7",
             "wave": "452",
+            "max_current":2.58,
             "start_light_value": 21,
             "max_value": 1255,
             "color":"#078bde"
@@ -55,6 +62,7 @@
         {
             "name": "a8",
             "wave": "461",
+            "max_current":2.64,
             "start_light_value": 22,
             "max_value": 1289,
             "color":"#05bdff"
@@ -62,6 +70,7 @@
         {
             "name": "a9",
             "wave": "473",
+            "max_current":2.68,
             "start_light_value": 23,
             "max_value": 1298,
             "color":"#02fa8f"
@@ -69,6 +78,7 @@
         {
             "name": "a10",
             "wave": "505",
+            "max_current":2.59,
             "start_light_value": 21,
             "max_value": 1300,
             "color":"#2efc05"
@@ -76,6 +86,7 @@
         {
             "name": "a11",
             "wave": "534",
+            "max_current":2.97,
             "start_light_value": 22,
             "max_value": 1496,
             "color":"#a6fc05"
@@ -83,6 +94,7 @@
         {
             "name": "a12",
             "wave": "549",
+            "max_current":2.98,
             "start_light_value": 21,
             "max_value": 1470,
             "color":"#caed00"
@@ -90,6 +102,7 @@
         {
             "name": "a13",
             "wave": "560",
+            "max_current":2.88,
             "start_light_value": 21,
             "max_value": 1457,
             "color":"#fc7f03"
@@ -97,6 +110,7 @@
         {
             "name": "a14",
             "wave": "588",
+            "max_current":1.61,
             "start_light_value": 20,
             "max_value": 660,
             "color":"#fc6b03"
@@ -104,6 +118,7 @@
         {
             "name": "a15",
             "wave": "595",
+            "max_current":1.98,
             "start_light_value": 21,
             "max_value": 825,
             "color":"#fc4e03"
@@ -111,6 +126,7 @@
         {
             "name": "a16",
             "wave": "607",
+            "max_current":2.42,
             "start_light_value": 23,
             "max_value": 1041,
             "color":"#ed3502"
@@ -118,6 +134,7 @@
         {
             "name": "a17",
             "wave": "627",
+            "max_current":3.0,
             "start_light_value": 21,
             "max_value": 1335,
             "color":"#fc0d0d"
@@ -125,6 +142,7 @@
         {
             "name": "a18",
             "wave": "640",
+            "max_current":2.7,
             "start_light_value": 20,
             "max_value": 1498,
             "color":"#f50004"
@@ -132,6 +150,7 @@
         {
             "name": "a19",
             "wave": "658",
+            "max_current":3.05,
             "start_light_value": 23,
             "max_value": 1345,
             "color":"#e60202"
@@ -139,6 +158,7 @@
         {
             "name": "a20",
             "wave": "679",
+            "max_current":3.81,
             "start_light_value": 20,
             "max_value": 1748,
             "color":"#a10227"
@@ -146,6 +166,7 @@
         {
             "name": "a21",
             "wave": "725",
+            "max_current":3.07,
             "start_light_value": 23,
             "max_value": 1373,
             "color":"#8a012f"
@@ -153,6 +174,7 @@
         {
             "name": "a22",
             "wave": "745",
+            "max_current":3.35,
             "start_light_value": 24,
             "max_value": 1535,
             "color":"#661916"
@@ -160,6 +182,7 @@
         {
             "name": "a23",
             "wave": "775",
+            "max_current":3.45,
             "start_light_value": 35,
             "max_value": 1585,
             "color":"#4a2b2a"
@@ -167,6 +190,7 @@
         {
             "name": "a24",
             "wave": "800",
+            "max_current":2.73,
             "start_light_value": 23,
             "max_value": 1210,
             "color":"#4f2928"
@@ -174,6 +198,7 @@
         {
             "name": "a25",
             "wave": "820",
+            "max_current":2.74,
             "start_light_value": 23,
             "max_value": 1208,
             "color":"#4d1e1c"
@@ -181,6 +206,7 @@
         {
             "name": "a26",
             "wave": "839",
+            "max_current":2.85,
             "start_light_value": 25,
             "max_value": 1268,
             "color":"#451311"
@@ -188,6 +214,7 @@
         {
             "name": "a27",
             "wave": "893",
+            "max_current":3.04,
             "start_light_value": 57,
             "max_value": 3180,
             "color":"#4a0b09"
@@ -195,6 +222,7 @@
         {
             "name": "a28",
             "wave": "931",
+            "max_current":3.26,
             "start_light_value": 29,
             "max_value": 1431,
             "color":"#3d0806"
@@ -202,6 +230,7 @@
         {
             "name": "a29",
             "wave": "967",
+            "max_current":3.25,
             "start_light_value": 30,
             "max_value": 1463,
             "color":"#1c0807"
@@ -209,6 +238,7 @@
         {
             "name": "a30",
             "wave": "1014",
+            "max_current":2.85,
             "start_light_value": 29,
             "max_value": 1440,
             "color":"#050000"
