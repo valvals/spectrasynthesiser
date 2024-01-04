@@ -19,7 +19,6 @@
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 const char power_dir[] = "diods_tracker";
-const char tracker_file_name[] = "diods_tracker.json";
 const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
@@ -106,17 +105,23 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         ui->comboBox_waves->setCurrentIndex(i);
         ui->spinBox_bright_value->setValue(slider->value());
         auto prev_value = m_sliders_previous_values[i];
+        auto max_value = ja[i].toObject().value("max_value").toInt();
+        auto max_current = ja[i].toObject().value("max_current").toDouble();
+        auto x_current = (double)(max_current*prev_value)/max_value;
+        auto group = ((double)x_current/max_current)*100;
+        qDebug()<<"group: "<<group<<x_current;
         if(prev_value!=slider->value()){
            if(prev_value==1){
                m_elapsed_timers[i].restart();
            }else{
                auto prev_object = m_power_tracker[i].toObject();
                double hours = (double)m_elapsed_timers[i].restart()/1000.0/60.0/60.0;
-               qDebug()<<hours;
-               auto prev_value = prev_object["time"].toDouble();
-               prev_object["time"] = prev_value+hours;
+               auto prev_time_value = prev_object["time"].toDouble();
+               auto prev_current_value = prev_object["current"].toDouble();
+               prev_object["time"] = prev_time_value+hours;
+               prev_object["current"] = x_current+prev_current_value;
                m_power_tracker[i]=prev_object;
-               qDebug()<<m_power_tracker[i].toObject();
+
            }
         }
         m_sliders_previous_values[i] = slider->value();
