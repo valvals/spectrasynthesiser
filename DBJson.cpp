@@ -42,6 +42,24 @@ bool getJsonObjectFromFile(const QString& path,
   return true;
 }
 
+bool getJsonArrayFromFile(const QString& path,
+                           QJsonArray& object) {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    qDebug() << "File can't be opened!" << path;
+    return false;
+  };
+  QByteArray data = file.readAll();
+  QJsonParseError errorPtr;
+  object = QJsonDocument::fromJson(data, &errorPtr).array();
+  if (object.isEmpty()) {
+    qDebug() << "JSON IS EMPTY: " << errorPtr.errorString();
+    return false;
+  }
+  file.close();
+  return true;
+}
+
 void getStructFromJsonObject(SPECTRAL_STRUCT& spectral_struct,
                              const QJsonObject& json_object) {
 
@@ -130,6 +148,7 @@ bool saveJsonObjectToFile(const QString& path,
   else
     return true;
 }
+
 
 bool saveStructToJsonFile(const QString& path,
                           const SPECTRAL_STRUCT& spectral_struct,
@@ -295,6 +314,22 @@ void makeStructCleared(SPECTRAL_STRUCT& spectral_struct) {
   spectral_struct.sd.waves.clear();
   spectral_struct.sd.values.clear();
 
+}
+
+bool saveJsonArrayToFile(const QString &path,
+                         const QJsonArray &json_object,
+                         QJsonDocument::JsonFormat format)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+      return false;
+    auto json_doc = QJsonDocument(json_object).toJson(format);
+    auto result = file.write(json_doc);
+    file.close();
+    if (result == -1)
+      return false;
+    else
+      return true;
 }
 
 } // end db_json namespace

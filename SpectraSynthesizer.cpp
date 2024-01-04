@@ -14,14 +14,20 @@
 #include "windows.h"
 #include "Version.h"
 #include "QFile"
+#include "QDir"
 
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
+const char power_dir[] = "diods_tracker";
+const char tracker_file_name[] = "diods_tracker.json";
+const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
   ui->setupUi(this);
+  QDir dir;
+  if(!dir.exists(power_dir))dir.mkdir(power_dir);
   this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
   ui->widget_plot->setBackground(QBrush(QColor(64, 66, 68)));
   ui->widget_plot->addGraph();
@@ -58,6 +64,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   }
   m_sliders_previous_values.reserve(ja.size());
   m_elapsed_timers.reserve(ja.size());
+  bool isInitialTrackerFileExists = QFile(tracker_full_path).exists();
+  if(isInitialTrackerFileExists)db_json::getJsonArrayFromFile(tracker_full_path,m_power_tracker);
   if (isDeviceConnected || mode == "developing") {
 
     for (int i = 0; i < ja.size(); ++i) {
@@ -72,6 +80,19 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       lambdas_indexes.insert(wave, i);
       vbl->addWidget(new QLabel(wave));
       auto max_value = ja[i].toObject().value("max_value").toInt();
+
+      if(!isInitialTrackerFileExists){
+      QJsonObject obj;
+      obj.insert("time",0);
+      obj.insert("current",0);
+      obj.insert("name",ja[i].toObject().value("name").toString());
+      obj.insert("wave",ja[i].toObject().value("wave").toString());
+      for(int i=0;i<10;++i){
+      obj.insert(QString(QString::number((i+1)*10)),0);
+      }
+      m_power_tracker.append(obj);
+      }
+
       slider->setMaximum(max_value);
       slider->setMinimum(1);
       vbl->addWidget(slider);
@@ -86,15 +107,19 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         ui->spinBox_bright_value->setValue(slider->value());
         auto prev_value = m_sliders_previous_values[i];
         if(prev_value!=slider->value()){
-            QString file_name = QString("diod_%1_power_track.txt").arg(QString::number(i));
-            QFile file(file_name);
-            file.open(QIODevice::WriteOnly,QFile::Append);
-            QString data = QString("%1 %2 %3\n").arg(QString::number(i),
-                                                   ja[i].toObject().value("wave").toString(),
-                                                   QString::number(m_elapsed_timers[i].elapsed()));
-            file.write(data.toLatin1());
-            file.close();
+           if(prev_value==1){
+               m_elapsed_timers[i].restart();
+           }else{
+               auto prev_object = m_power_tracker[i].toObject();
+               double hours = (double)m_elapsed_timers[i].restart()/1000.0/60.0/60.0;
+               qDebug()<<hours;
+               auto prev_value = prev_object["time"].toDouble();
+               prev_object["time"] = prev_value+hours;
+               m_power_tracker[i]=prev_object;
+               qDebug()<<m_power_tracker[i].toObject();
+           }
         }
+        m_sliders_previous_values[i] = slider->value();
       });
     }
   } else {
@@ -106,6 +131,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_debug_console = new DebugConsole;
   connect(ui->action_show_debug_console, SIGNAL(triggered()), m_debug_console, SLOT(show()));
   connect(&m_timer,SIGNAL(timeout()),SLOT(changeWidgetState()));
+
+  if(!isInitialTrackerFileExists){
+      db_json::saveJsonArrayToFile(tracker_full_path,m_power_tracker,QJsonDocument::Indented);
+  }
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -209,7 +238,6 @@ void SpectraSynthesizer::changeWidgetState()
 }
 
 void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
-  qDebug() << "get spectr....";
   m_serial_stm_spectrometr->write("r\n");
   m_serial_stm_spectrometr->waitForBytesWritten(1000);
   Sleep(50);
@@ -238,4 +266,5 @@ void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked)
 void SpectraSynthesizer::on_pushButton_water_clicked()
 {
     sendDataToComDevice("w\n");
+    db_json::saveJsonArrayToFile(tracker_full_path,m_power_tracker,QJsonDocument::Indented);
 }

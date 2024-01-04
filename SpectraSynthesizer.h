@@ -59,6 +59,7 @@ private:
   Ui::SpectraSynthesizer* ui;
   DebugConsole* m_debug_console;
   QJsonObject m_json_config;
+  QJsonArray m_power_tracker;
   QJsonArray ja;
   QVector<QSlider*> m_sliders;
   QVector<uint16_t> m_sliders_previous_values;
