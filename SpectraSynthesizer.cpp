@@ -118,8 +118,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
                double hours = (double)m_elapsed_timers[i].restart()/1000.0/60.0/60.0;
                auto prev_time_value = prev_object["time"].toDouble();
                auto prev_current_value = prev_object["current"].toDouble();
+               double ampers_hours = x_current*hours;
                prev_object["time"] = prev_time_value+hours;
-               prev_object["current"] = x_current+prev_current_value;
+               prev_object["current"] = ampers_hours+prev_current_value;
                m_power_tracker[i]=prev_object;
 
            }
