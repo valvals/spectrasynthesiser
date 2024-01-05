@@ -60,7 +60,7 @@ private:
   DebugConsole* m_debug_console;
   QJsonObject m_json_config;
   QJsonArray m_power_tracker;
-  QJsonArray ja;
+  QJsonArray m_pins_json_array;
   QVector<QSlider*> m_sliders;
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
@@ -71,5 +71,7 @@ private:
   QTimer m_timer;
   void sendDataToComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
+  QString getGroupID(const double& value);
+  void savePowerParams(const int& index, const int& value);
 };
 #endif // SPECTRASYNTHESIZER_H

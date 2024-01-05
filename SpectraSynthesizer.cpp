@@ -39,7 +39,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     db_json::getJsonObjectFromFile(":/config.json", m_json_config);
     QrcFilesRestorer::restoreFilesFromQrc(":/");
   };
-  ja = m_json_config.value("pins_array").toArray();
+  m_pins_json_array = m_json_config.value("pins_array").toArray();
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
   const QString mode = m_json_config.value("mode").toString();
@@ -61,31 +61,31 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_serial_stm_spectrometr->waitForBytesWritten(1000);
     }
   }
-  m_sliders_previous_values.reserve(ja.size());
-  m_elapsed_timers.reserve(ja.size());
+  m_sliders_previous_values.reserve(m_pins_json_array.size());
+  m_elapsed_timers.reserve(m_pins_json_array.size());
   bool isInitialTrackerFileExists = QFile(tracker_full_path).exists();
   if(isInitialTrackerFileExists)db_json::getJsonArrayFromFile(tracker_full_path,m_power_tracker);
   if (isDeviceConnected || mode == "developing") {
 
-    for (int i = 0; i < ja.size(); ++i) {
+    for (int i = 0; i < m_pins_json_array.size(); ++i) {
       auto slider = new QSlider;
       slider->setObjectName(QString("qslider_") + QString::number(i + 1));
       slider->setMinimumWidth(30);
       slider->setMinimumHeight(100);
       m_sliders_previous_values[i] = 1;
       QVBoxLayout* vbl = new QVBoxLayout;
-      auto wave = ja[i].toObject().value("wave").toString();
+      auto wave = m_pins_json_array[i].toObject().value("wave").toString();
       ui->comboBox_waves->addItem(wave);
       lambdas_indexes.insert(wave, i);
       vbl->addWidget(new QLabel(wave));
-      auto max_value = ja[i].toObject().value("max_value").toInt();
+      auto max_value = m_pins_json_array[i].toObject().value("max_value").toInt();
 
       if(!isInitialTrackerFileExists){
       QJsonObject obj;
       obj.insert("time",0);
       obj.insert("current",0);
-      obj.insert("name",ja[i].toObject().value("name").toString());
-      obj.insert("wave",ja[i].toObject().value("wave").toString());
+      obj.insert("name",m_pins_json_array[i].toObject().value("name").toString());
+      obj.insert("wave",m_pins_json_array[i].toObject().value("wave").toString());
       for(int i=0;i<10;++i){
       obj.insert(QString(QString::number((i+1)*10)),0);
       }
@@ -95,7 +95,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       slider->setMaximum(max_value);
       slider->setMinimum(1);
       vbl->addWidget(slider);
-      auto color = ja[i].toObject().value("color").toString();
+      auto color = m_pins_json_array[i].toObject().value("color").toString();
       slider->setStyleSheet(QString(styles::slider).arg(color, color));
       ui->horizontalLayout->addLayout(vbl);
       m_sliders.push_back(slider);
@@ -104,28 +104,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
         ui->comboBox_waves->setCurrentIndex(i);
         ui->spinBox_bright_value->setValue(slider->value());
-        auto prev_value = m_sliders_previous_values[i];
-        auto max_value = ja[i].toObject().value("max_value").toInt();
-        auto max_current = ja[i].toObject().value("max_current").toDouble();
-        auto x_current = (double)(max_current*prev_value)/max_value;
-        auto group = ((double)x_current/max_current)*100;
-        qDebug()<<"group: "<<group<<x_current;
-        if(prev_value!=slider->value()){
-           if(prev_value==1){
-               m_elapsed_timers[i].restart();
-           }else{
-               auto prev_object = m_power_tracker[i].toObject();
-               double hours = (double)m_elapsed_timers[i].restart()/1000.0/60.0/60.0;
-               auto prev_time_value = prev_object["time"].toDouble();
-               auto prev_current_value = prev_object["current"].toDouble();
-               double ampers_hours = x_current*hours;
-               prev_object["time"] = prev_time_value+hours;
-               prev_object["current"] = ampers_hours+prev_current_value;
-               m_power_tracker[i]=prev_object;
-
-           }
-        }
-        m_sliders_previous_values[i] = slider->value();
+        savePowerParams(i,slider->value());
       });
     }
   } else {
@@ -190,16 +169,65 @@ void SpectraSynthesizer::sendDataToComDevice(const QString& command) {
 }
 
 void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value) {
-  QString waveStr = ja[index].toObject().value("wave").toString();
+  QString waveStr = m_pins_json_array[index].toObject().value("wave").toString();
   QString valueStr = (QString::number(value));
   m_sliders[index]->setToolTip(QString(styles::tooltip).arg(waveStr, valueStr));
+}
+
+QString SpectraSynthesizer::getGroupID(const double& value)
+{
+    Q_ASSERT(value < 0 || value > 100);
+    if(value >=0 && value <= 10) return "10";
+    if(value >10 && value <= 20) return "20";
+    if(value >20 && value <= 30) return "30";
+    if(value >30 && value <= 40) return "40";
+    if(value >40 && value <= 50) return "50";
+    if(value >50 && value <= 60) return "60";
+    if(value >60 && value <= 70) return "70";
+    if(value >70 && value <= 80) return "80";
+    if(value >80 && value <= 90) return "90";
+    if(value >90 && value <= 100)return "100";
+    return "";
+}
+
+void SpectraSynthesizer::savePowerParams(const int& index, const int& value)
+{
+    auto prev_value = m_sliders_previous_values[index];
+    auto max_value = m_pins_json_array[index].toObject().value("max_value").toInt();
+    auto max_current = m_pins_json_array[index].toObject().value("max_current").toDouble();
+    auto x_current = (double)(max_current*prev_value)/max_value;
+    auto group = ((double)x_current/max_current)*100;
+    qDebug()<<"group: "<<group<<x_current;
+    QString groupID = getGroupID(group);
+    if(prev_value!=value){
+       if(prev_value==1){
+           m_elapsed_timers[index].restart();
+       }else{
+           auto prev_object = m_power_tracker[index].toObject();
+           double hours = (double)m_elapsed_timers[index].restart()/1000.0/60.0/60.0;
+           auto prev_time_value = prev_object["time"].toDouble();
+           auto prev_current_value = prev_object["current"].toDouble();
+           auto prev_group_value = prev_object[groupID].toDouble();
+           double ampers_hours = x_current*hours;
+           prev_object["time"] = prev_time_value+hours;
+           prev_object["current"] = ampers_hours+prev_current_value;
+           prev_object[groupID] = ampers_hours + prev_group_value;
+           m_power_tracker[index]=prev_object;
+           db_json::saveJsonArrayToFile(tracker_full_path,m_power_tracker,QJsonDocument::Indented);
+       }
+    }
+    m_sliders_previous_values[index] = value;
 }
 
 void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked() {
   sendDataToComDevice("f\n");
   for (int i = 0; i < m_sliders.size(); ++i) {
+      if(m_sliders[i]->value()>1){
+          savePowerParams(i,(m_sliders[i]->value()));
+      }
     m_sliders[i]->setValue(1);
     setTooltipForSlider(i, 1);
+
   }
   ui->spinBox_bright_value->setValue(1);
 }
@@ -214,7 +242,7 @@ void SpectraSynthesizer::on_pushButton_apply_clicked() {
 
 void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString& arg1) {
   auto index = lambdas_indexes.value(arg1);
-  auto max = ja[index].toObject().value("max_value").toInt();
+  auto max = m_pins_json_array[index].toObject().value("max_value").toInt();
   ui->spinBox_bright_value->setMaximum(max);
   ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
 }
@@ -272,5 +300,4 @@ void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked)
 void SpectraSynthesizer::on_pushButton_water_clicked()
 {
     sendDataToComDevice("w\n");
-    db_json::saveJsonArrayToFile(tracker_full_path,m_power_tracker,QJsonDocument::Indented);
 }
