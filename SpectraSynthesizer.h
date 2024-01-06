@@ -73,5 +73,9 @@ class SpectraSynthesizer : public QMainWindow {
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);
   void savePowerParams(const int& index, const int& value);
+
+  // QWidget interface
+protected:
+  void closeEvent(QCloseEvent *event) override;
 };
 #endif // SPECTRASYNTHESIZER_H
