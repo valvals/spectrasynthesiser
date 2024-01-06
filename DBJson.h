@@ -89,7 +89,7 @@ bool getJsonObjectFromFile(const QString& path,
                            QJsonObject& object);
 
 bool getJsonArrayFromFile(const QString& path,
-                           QJsonArray& object);
+                          QJsonArray& object);
 
 void getStructFromJsonObject(SPECTRAL_STRUCT& spectral_struct,
                              const QJsonObject& json_object);
@@ -98,8 +98,8 @@ bool saveJsonObjectToFile(const QString& path,
                           const QJsonObject& json_object,
                           QJsonDocument::JsonFormat format);
 bool saveJsonArrayToFile(const QString& path,
-                          const QJsonArray &json_object,
-                          QJsonDocument::JsonFormat format);
+                         const QJsonArray& json_object,
+                         QJsonDocument::JsonFormat format);
 
 bool saveStructToJsonFile(const QString& path,
                           const SPECTRAL_STRUCT& spectral_struct,

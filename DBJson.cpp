@@ -43,7 +43,7 @@ bool getJsonObjectFromFile(const QString& path,
 }
 
 bool getJsonArrayFromFile(const QString& path,
-                           QJsonArray& object) {
+                          QJsonArray& object) {
   QFile file(path);
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     qDebug() << "File can't be opened!" << path;
@@ -316,20 +316,19 @@ void makeStructCleared(SPECTRAL_STRUCT& spectral_struct) {
 
 }
 
-bool saveJsonArrayToFile(const QString &path,
-                         const QJsonArray &json_object,
-                         QJsonDocument::JsonFormat format)
-{
-    QFile file(path);
-    if (!file.open(QIODevice::WriteOnly))
-      return false;
-    auto json_doc = QJsonDocument(json_object).toJson(format);
-    auto result = file.write(json_doc);
-    file.close();
-    if (result == -1)
-      return false;
-    else
-      return true;
+bool saveJsonArrayToFile(const QString& path,
+                         const QJsonArray& json_object,
+                         QJsonDocument::JsonFormat format) {
+  QFile file(path);
+  if (!file.open(QIODevice::WriteOnly))
+    return false;
+  auto json_doc = QJsonDocument(json_object).toJson(format);
+  auto result = file.write(json_doc);
+  file.close();
+  if (result == -1)
+    return false;
+  else
+    return true;
 }
 
 } // end db_json namespace
