@@ -10,6 +10,7 @@
 #include "qslider.h"
 #include "debug_console.h"
 #include "QElapsedTimer"
+#include "qcustomplot.h"
 
 
 const uint16_t spectr_values_size = 3648;
@@ -62,6 +63,9 @@ class SpectraSynthesizer : public QMainWindow {
   QJsonArray m_power_tracker;
   QJsonArray m_pins_json_array;
   QVector<QSlider*> m_sliders;
+  QVector<QCPBars*> m_power_bars;
+  QVector<double> m_power_ticks;
+  QVector<QString> m_power_labels;
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
   QHash<QString, int> lambdas_indexes;
@@ -73,6 +77,7 @@ class SpectraSynthesizer : public QMainWindow {
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);
   void savePowerParams(const int& index, const int& value);
+  void showPowerStat();
 
   // QWidget interface
 protected:

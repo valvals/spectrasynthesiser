@@ -10,7 +10,6 @@
 #include "DBJson.h"
 #include "QrcFilesRestorer.h"
 #include "style_sheets.h"
-#include "qcustomplot.h"
 #include "windows.h"
 #include "Version.h"
 #include "QFile"
@@ -20,6 +19,7 @@ const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 const char power_dir[] = "diods_tracker";
 const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
+
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     : QMainWindow(parent)
@@ -71,6 +71,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
         for (int i = 0; i < m_pins_json_array.size(); ++i) {
             auto slider = new QSlider;
+            m_power_ticks.push_back(i+1);
+            m_power_labels.push_back(QString("diod %1").arg(i+1));
             slider->setObjectName(QString("qslider_") + QString::number(i + 1));
             slider->setMinimumWidth(30);
             slider->setMinimumHeight(100);
@@ -122,6 +124,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     if (!isInitialTrackerFileExists) {
         db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
     }
+
+    showPowerStat();
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -225,6 +229,72 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
         m_power_tracker[index] = prev_object;
         qDebug() << "save: " << db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
     }
+}
+
+void SpectraSynthesizer::showPowerStat()
+{
+    QCustomPlot* m_test_plot = new QCustomPlot;
+    QLinearGradient gradient(0, 0, 0, 400);
+    gradient.setColorAt(0, QColor(90, 90, 90));
+    gradient.setColorAt(0.38, QColor(105, 105, 105));
+    gradient.setColorAt(1, QColor(70, 70, 70));
+    m_test_plot->setBackground(QBrush(gradient));
+
+    m_test_plot->setMinimumSize(QSize(600,600));
+    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+    textTicker->addTicks(m_power_ticks, m_power_labels);
+    m_test_plot->xAxis->setTicker(textTicker);
+    m_test_plot->yAxis->setPadding(5);
+    m_test_plot->yAxis->setLabel("Ampere * hour");
+    m_test_plot->yAxis->setBasePen(QPen(Qt::white));
+    m_test_plot->yAxis->setTickPen(QPen(Qt::white));
+    m_test_plot->yAxis->setTickLabelColor(Qt::white);
+    m_test_plot->yAxis->setLabelColor(Qt::white);
+    m_test_plot->legend->setVisible(true);
+
+    for(int i=0;i<10;++i){
+        auto bar = new QCPBars(m_test_plot->xAxis, m_test_plot->yAxis);
+        bar->setName(QString(QString::number((i+1)*10))+ " %");
+        m_power_bars.push_back(bar);
+    }
+
+    m_test_plot->xAxis->setRange(0,31);
+    m_test_plot->xAxis->setTickLabelRotation(70);
+    QVector<QColor>colors = {{71,107,76},
+                             {37,200,56},
+                             {227,180,0},
+                             {227,255,0},
+                             {255,100,0},
+                             {255,163,0},
+                             {180,40,0},
+                             {200,90,0},
+                             {230,40,165},
+                             {255,0,0}
+                            };
+    double max = 0.0;
+    for(int i=0;i<m_power_bars.size();++i){
+
+         if(i!=m_power_bars.size()-1){
+             m_power_bars[i+1]->moveAbove(m_power_bars[i]);
+         }
+         m_power_bars[i]->setStackingGap(1);
+         m_power_bars[i]->setAntialiased(false);
+         m_power_bars[i]->setBrush(colors[i]);
+         m_power_bars[i]->setPen(QPen(QColor(3, 252, 240).lighter(150)));
+
+         QVector<double>data;
+
+         for(int j=0;j<m_pins_json_array.size();++j){
+           data.push_back(m_power_tracker[j].toObject().value(QString::number((i+1)*10)).toDouble());
+           auto current = m_power_tracker[j].toObject().value("current").toDouble();
+           if(max<current)max =current;
+         }
+
+         m_power_bars[i]->setData(m_power_ticks,data);
+         //qDebug()<<m_power_tracker[i].toObject().value("60").toDouble();
+    }
+    m_test_plot->yAxis->setRange(0,max);
+    m_test_plot->show();
 }
 
 void SpectraSynthesizer::closeEvent(QCloseEvent *event)
