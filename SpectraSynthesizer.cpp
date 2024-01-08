@@ -14,6 +14,7 @@
 #include "Version.h"
 #include "QFile"
 #include "QDir"
+#include "QClipboard"
 
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
@@ -31,6 +32,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
     ui->widget_plot->setBackground(QBrush(QColor(64, 66, 68)));
     ui->widget_plot->addGraph();
+    m_power_stat_plot = new QCustomPlot;
+    m_hours_stat_plot = new QCustomPlot;
     QPen graphPen(QColor(13, 160, 5));
     ui->widget_plot->graph(0)->setPen(graphPen);
     m_serial_diods_controller = new QSerialPort;
@@ -72,7 +75,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         for (int i = 0; i < m_pins_json_array.size(); ++i) {
             auto slider = new QSlider;
             m_power_ticks.push_back(i+1);
-            m_power_labels.push_back(QString("diod %1").arg(i+1));
+            m_power_labels.push_back(QString::number(i+1));
             slider->setObjectName(QString("qslider_") + QString::number(i + 1));
             slider->setMinimumWidth(30);
             slider->setMinimumHeight(100);
@@ -109,6 +112,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
                 ui->comboBox_waves->setCurrentIndex(i);
                 ui->spinBox_bright_value->setValue(slider->value());
                 savePowerParams(i, slider->value());
+                updatePowerStat();
             });
         }
     } else {
@@ -124,8 +128,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     if (!isInitialTrackerFileExists) {
         db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
     }
-
-    showPowerStat();
+    setupPowerStatPlot();
+    updatePowerStat();
+    connect(ui->action_show_power_stat,SIGNAL(triggered()),m_power_stat_plot,SLOT(show()));
+    connect(ui->action_hours_stat,SIGNAL(triggered()),m_hours_stat_plot,SLOT(show()));
+    connect(ui->action_copy_power_stat_to_buffer,SIGNAL(triggered()),SLOT(copyPowerStatToClipboard()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -205,6 +212,84 @@ QString SpectraSynthesizer::getGroupID(const double& value) {
     return "";
 }
 
+void SpectraSynthesizer::setupPowerStatPlot()
+{
+    QLinearGradient gradient(0, 0, 0, 400);
+    gradient.setColorAt(0, QColor(90, 90, 90));
+    gradient.setColorAt(0.38, QColor(105, 105, 105));
+    gradient.setColorAt(1, QColor(70, 70, 70));
+    m_power_stat_plot->setBackground(QBrush(gradient));
+    m_hours_stat_plot->setBackground(QBrush(gradient));
+
+    auto min_size = QSize(900,600);
+    m_power_stat_plot->setMinimumSize(min_size);
+    m_hours_stat_plot->setMinimumSize(min_size);
+    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+    textTicker->addTicks(m_power_ticks, m_power_labels);
+    m_power_stat_plot->xAxis->setTicker(textTicker);
+    m_hours_stat_plot->xAxis->setTicker(textTicker);
+    m_power_stat_plot->yAxis->setPadding(5);
+    m_hours_stat_plot->yAxis->setPadding(5);
+    m_power_stat_plot->yAxis->setLabel("Ampere * hour");
+    m_hours_stat_plot->yAxis->setLabel("Hours");
+    m_power_stat_plot->yAxis->setBasePen(QPen(Qt::white));
+    m_hours_stat_plot->yAxis->setBasePen(QPen(Qt::white));
+    m_power_stat_plot->yAxis->setTickPen(QPen(Qt::white));
+    m_hours_stat_plot->yAxis->setTickPen(QPen(Qt::white));
+    m_power_stat_plot->yAxis->setTickLabelColor(Qt::white);
+    m_hours_stat_plot->yAxis->setTickLabelColor(Qt::white);
+    m_power_stat_plot->yAxis->setLabelColor(Qt::white);
+    m_hours_stat_plot->yAxis->setLabelColor(Qt::white);
+    m_power_stat_plot->xAxis->setBasePen(QPen(Qt::white));
+    m_hours_stat_plot->xAxis->setBasePen(QPen(Qt::white));
+    m_power_stat_plot->xAxis->setTickPen(QPen(Qt::white));
+    m_hours_stat_plot->xAxis->setTickPen(QPen(Qt::white));
+    m_power_stat_plot->xAxis->setTickLabelColor(Qt::white);
+    m_hours_stat_plot->xAxis->setTickLabelColor(Qt::white);
+    m_power_stat_plot->xAxis->setLabelColor(Qt::white);
+    m_hours_stat_plot->xAxis->setLabelColor(Qt::white);
+    m_power_stat_plot->xAxis->setLabel("Diod number");
+    m_hours_stat_plot->xAxis->setLabel("Diod number");
+    m_power_stat_plot->legend->setVisible(true);
+    m_power_stat_plot->plotLayout()->addElement(0, 1, m_power_stat_plot->legend);
+    m_power_stat_plot->plotLayout()->setColumnStretchFactor(1, 0.005);
+    for(int i=0;i<10;++i){
+        auto bar = new QCPBars(m_power_stat_plot->xAxis, m_power_stat_plot->yAxis);
+        bar->setName(QString(QString::number((i+1)*10))+ " %");
+        m_power_bars.push_back(bar);
+    }
+    m_hours_bar = new QCPBars(m_hours_stat_plot->xAxis, m_hours_stat_plot->yAxis);
+    m_power_stat_plot->xAxis->setRange(0,31);
+    m_hours_stat_plot->xAxis->setRange(0,31);
+    //m_test_plot->xAxis->setTickLabelRotation(70);
+
+    QVector<QColor>colors = {{71,107,76},
+                             {37,200,56},
+                             {8,246,186},
+                             {227,255,0},
+                             {255,163,0},
+                             {255,100,0},
+                             {180,40,0},
+                             {148,46,179},
+                             {230,40,165},
+                             {255,0,0}
+                            };
+    for(int i=0;i<m_power_bars.size();++i){
+         if(i!=m_power_bars.size()-1){
+             m_power_bars[i+1]->moveAbove(m_power_bars[i]);
+         }
+         m_power_bars[i]->setStackingGap(1);
+         m_power_bars[i]->setAntialiased(false);
+         m_power_bars[i]->setBrush(colors[i]);
+         m_power_bars[i]->setPen(QPen(QColor(3, 252, 240).lighter(150)));
+    }
+    m_hours_bar->setStackingGap(1);
+    m_hours_bar->setAntialiased(false);
+    m_hours_bar->setBrush(colors[0]);
+    m_hours_bar->setPen(QPen(QColor(3, 252, 240).lighter(150)));
+
+}
+
 void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
     auto prev_value = m_sliders_previous_values[index];
     auto max_value = m_pins_json_array[index].toObject().value("max_value").toInt();
@@ -231,70 +316,57 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
     }
 }
 
-void SpectraSynthesizer::showPowerStat()
+void SpectraSynthesizer::copyPowerStatToClipboard()
 {
-    QCustomPlot* m_test_plot = new QCustomPlot;
-    QLinearGradient gradient(0, 0, 0, 400);
-    gradient.setColorAt(0, QColor(90, 90, 90));
-    gradient.setColorAt(0.38, QColor(105, 105, 105));
-    gradient.setColorAt(1, QColor(70, 70, 70));
-    m_test_plot->setBackground(QBrush(gradient));
+    QString copy_stat;
 
-    m_test_plot->setMinimumSize(QSize(600,600));
-    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-    textTicker->addTicks(m_power_ticks, m_power_labels);
-    m_test_plot->xAxis->setTicker(textTicker);
-    m_test_plot->yAxis->setPadding(5);
-    m_test_plot->yAxis->setLabel("Ampere * hour");
-    m_test_plot->yAxis->setBasePen(QPen(Qt::white));
-    m_test_plot->yAxis->setTickPen(QPen(Qt::white));
-    m_test_plot->yAxis->setTickLabelColor(Qt::white);
-    m_test_plot->yAxis->setLabelColor(Qt::white);
-    m_test_plot->legend->setVisible(true);
-
-    for(int i=0;i<10;++i){
-        auto bar = new QCPBars(m_test_plot->xAxis, m_test_plot->yAxis);
-        bar->setName(QString(QString::number((i+1)*10))+ " %");
-        m_power_bars.push_back(bar);
+    for(int i=0;i<m_power_tracker.size();++i){
+     auto object = m_power_tracker[i].toObject();
+     copy_stat.append(object["name"].toString());
+     copy_stat.append("\t");
+     copy_stat.append(object["wave"].toString());
+     copy_stat.append("\t");
+     copy_stat.append(QString::number(object["time"].toDouble()));
+     copy_stat.append("\t");
+     copy_stat.append(QString::number(object["current"].toDouble()));
+     copy_stat.append("\t");
+     for(int j=0;j<10;++j){
+     copy_stat.append(QString::number(object[QString::number((j+1)*10)].toDouble()));
+     if(j!=9)copy_stat.append("\t");
+     }
+     copy_stat.append("\n");
     }
+    auto clip = QGuiApplication::clipboard();
+    clip->setText(copy_stat);
 
-    m_test_plot->xAxis->setRange(0,31);
-    m_test_plot->xAxis->setTickLabelRotation(70);
-    QVector<QColor>colors = {{71,107,76},
-                             {37,200,56},
-                             {227,180,0},
-                             {227,255,0},
-                             {255,100,0},
-                             {255,163,0},
-                             {180,40,0},
-                             {200,90,0},
-                             {230,40,165},
-                             {255,0,0}
-                            };
+}
+
+void SpectraSynthesizer::updatePowerStat()
+{
     double max = 0.0;
     for(int i=0;i<m_power_bars.size();++i){
-
-         if(i!=m_power_bars.size()-1){
-             m_power_bars[i+1]->moveAbove(m_power_bars[i]);
-         }
-         m_power_bars[i]->setStackingGap(1);
-         m_power_bars[i]->setAntialiased(false);
-         m_power_bars[i]->setBrush(colors[i]);
-         m_power_bars[i]->setPen(QPen(QColor(3, 252, 240).lighter(150)));
-
          QVector<double>data;
-
          for(int j=0;j<m_pins_json_array.size();++j){
            data.push_back(m_power_tracker[j].toObject().value(QString::number((i+1)*10)).toDouble());
            auto current = m_power_tracker[j].toObject().value("current").toDouble();
            if(max<current)max =current;
          }
-
          m_power_bars[i]->setData(m_power_ticks,data);
-         //qDebug()<<m_power_tracker[i].toObject().value("60").toDouble();
     }
-    m_test_plot->yAxis->setRange(0,max);
-    m_test_plot->show();
+    m_power_stat_plot->yAxis->setRange(0,max);
+    m_power_stat_plot->replot();
+
+    max=0.0;
+    QVector<double>hours;
+    for(int j=0;j<m_pins_json_array.size();++j){
+
+      auto time = m_power_tracker[j].toObject().value("time").toDouble();
+      hours.push_back(time);
+      if(max<time)max = time;
+    }
+    m_hours_bar->setData(m_power_ticks,hours);
+    m_hours_stat_plot->yAxis->setRange(0,max);
+    m_hours_stat_plot->replot();
 }
 
 void SpectraSynthesizer::closeEvent(QCloseEvent *event)
@@ -316,6 +388,7 @@ void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked() {
 
     }
     ui->spinBox_bright_value->setValue(1);
+    updatePowerStat();
 }
 
 void SpectraSynthesizer::on_pushButton_apply_clicked() {

@@ -209,7 +209,7 @@ color: rgb(0, 170, 0);</string>
      <x>0</x>
      <y>0</y>
      <width>1478</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -218,11 +218,35 @@ color: rgb(0, 170, 0);</string>
     </property>
     <addaction name="action_show_debug_console"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Ресурс светодиодов</string>
+    </property>
+    <addaction name="action_show_power_stat"/>
+    <addaction name="action_hours_stat"/>
+    <addaction name="action_copy_power_stat_to_buffer"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <action name="action_show_debug_console">
    <property name="text">
     <string>консоль контроллера светодиодов</string>
+   </property>
+  </action>
+  <action name="action_show_power_stat">
+   <property name="text">
+    <string>График (Ампер*часы)</string>
+   </property>
+  </action>
+  <action name="action_hours_stat">
+   <property name="text">
+    <string>График (часы)</string>
+   </property>
+  </action>
+  <action name="action_copy_power_stat_to_buffer">
+   <property name="text">
+    <string>Копировать в буфер обмена</string>
    </property>
   </action>
  </widget>

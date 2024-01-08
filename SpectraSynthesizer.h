@@ -48,6 +48,8 @@ class SpectraSynthesizer : public QMainWindow {
   void readStmData();
   void show_stm_spectr(QVector<double> data, double max);
   void changeWidgetState();
+  void updatePowerStat();
+  void copyPowerStatToClipboard();
   void on_pushButton_reset_to_zero_clicked();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
@@ -63,9 +65,6 @@ class SpectraSynthesizer : public QMainWindow {
   QJsonArray m_power_tracker;
   QJsonArray m_pins_json_array;
   QVector<QSlider*> m_sliders;
-  QVector<QCPBars*> m_power_bars;
-  QVector<double> m_power_ticks;
-  QVector<QString> m_power_labels;
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
   QHash<QString, int> lambdas_indexes;
@@ -73,11 +72,17 @@ class SpectraSynthesizer : public QMainWindow {
   QSerialPort* m_serial_stm_spectrometr;
   QSerialPortInfo m_serial_port_info;
   QTimer m_timer;
+  QCustomPlot* m_power_stat_plot;
+  QVector<QCPBars*> m_power_bars;
+  QCPBars* m_hours_bar;
+  QVector<double> m_power_ticks;
+  QVector<QString> m_power_labels;
+  QCustomPlot* m_hours_stat_plot;
   void sendDataToComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);
+  void setupPowerStatPlot();
   void savePowerParams(const int& index, const int& value);
-  void showPowerStat();
 
   // QWidget interface
 protected:
