@@ -44,7 +44,7 @@ class SpectraSynthesizer : public QMainWindow {
   void sendData(QString);
 
  private slots:
-  void readData();
+  void readDiodsData();
   void readStmData();
   void show_stm_spectr(QVector<double> data, double max);
   void changeWidgetState();

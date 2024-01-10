@@ -15,6 +15,7 @@
 #include "QFile"
 #include "QDir"
 #include "QClipboard"
+#include "inter_process_communicator.h"
 
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
@@ -55,7 +56,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
             m_serial_diods_controller->setPort(available_ports[i]);
             m_serial_diods_controller->open(QIODevice::ReadWrite);
             isDeviceConnected = true;
-            connect(m_serial_diods_controller, SIGNAL(readyRead()), this, SLOT(readData()));
+            connect(m_serial_diods_controller, SIGNAL(readyRead()), this, SLOT(readDiodsData()));
         }
         if (serial_stm_number == available_ports[i].serialNumber()) {
             m_serial_stm_spectrometr->setPort(available_ports[i]);
@@ -139,7 +140,7 @@ SpectraSynthesizer::~SpectraSynthesizer() {
     delete ui;
 }
 
-void SpectraSynthesizer::readData() {
+void SpectraSynthesizer::readDiodsData() {
     static QByteArray buffer;
     const QByteArray data = m_serial_diods_controller->readAll();
     buffer.append(data);
