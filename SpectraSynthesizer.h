@@ -83,9 +83,9 @@ class SpectraSynthesizer : public QMainWindow {
   QString getGroupID(const double& value);
   void setupPowerStatPlot();
   void savePowerParams(const int& index, const int& value);
-
+  void createSamplesJson();
   // QWidget interface
-protected:
-  void closeEvent(QCloseEvent *event) override;
+ protected:
+  void closeEvent(QCloseEvent* event) override;
 };
 #endif // SPECTRASYNTHESIZER_H
