@@ -31,11 +31,16 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     dir.mkdir(power_dir);
   this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
   ui->widget_plot->setBackground(QBrush(QColor(64, 66, 68)));
-  ui->widget_plot->addGraph();
+  ui->widget_plot->addGraph(); // 0 - спектрометр
+  ui->widget_plot->addGraph(); // 1 - эталон
+  db_json::getJsonObjectFromFile("etalons.json", m_etalons);
+  loadEtalons();
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
   QPen graphPen(QColor(13, 160, 5));
   ui->widget_plot->graph(0)->setPen(graphPen);
+  QPen graphPenEtalon(QColor(130, 255, 5));
+  ui->widget_plot->graph(1)->setPen(graphPenEtalon);
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
   if (!db_json::getJsonObjectFromFile("config.json", m_json_config)) {
@@ -319,25 +324,69 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
 
 void SpectraSynthesizer::createSamplesJson() {
   QJsonObject jo;
+  QJsonArray obj;
   QJsonArray grid;
-  QJsonArray sand;
-  QJsonArray grass;
-  QFile file("grass.txt");
-  file.open(QIODevice::ReadOnly);
-  QTextStream qts(&file);
-  QString line;
-  while (qts.readLineInto(&line)) {
-    auto var = line.split("\t");
-    grid.push_back(var[0].toDouble());
-    grass.push_back(var[1].toDouble());
+  QString etalon_name;
+  QStringList files = {"grass.txt", "sand.txt"};
+  jo["_unit"] = "W/(m3*sr)";
+  for (int g = 400; g < 2501; ++g) {
+    grid.push_back(g);
   }
-  file.close();
-  jo["unit"] = "W/(m3*sr)";
-  jo["grid"] = grid;
-  QJsonObject obj;
-  obj.insert("grass", grass);
-  jo.insert("objects", obj);
-  db_json::saveJsonObjectToFile("test.json", jo, QJsonDocument::Indented);
+  jo["_grid"] = grid;
+
+
+  for (int i = 0; i < files.size(); ++i) {
+    QFile file(files[i]);
+    etalon_name = files[i].split(".")[0];
+    obj.push_back(etalon_name);
+    file.open(QIODevice::ReadOnly);
+    QJsonArray values;
+    QTextStream qts(&file);
+    QString line;
+    while (qts.readLineInto(&line)) {
+      auto var = line.split("\t");
+      values.push_back(var[1].toDouble());
+    }
+    file.close();
+    jo.insert(etalon_name, values);
+
+  }
+  jo.insert("_objects", obj);
+  db_json::saveJsonObjectToFile("etalons.json", jo, QJsonDocument::Indented);
+}
+
+void SpectraSynthesizer::loadEtalons() {
+  auto objcts = m_etalons["_objects"].toArray();
+  auto grid = m_etalons["_grid"].toArray();
+  for (int i = 0; i < grid.size(); ++i) {
+    m_etalons_grid.push_back(grid[i].toDouble());
+  }
+  for (int i = 0; i < objcts.size(); ++i) {
+    ui->comboBox_etalons->addItem(objcts[i].toString());
+  }
+  showCurrentEtalon();
+}
+
+
+void SpectraSynthesizer::showCurrentEtalon() {
+  QVector<double>current_etalon;
+  auto sample = m_etalons[ui->comboBox_etalons->currentText()].toArray();
+  double max = 0;
+  for (int i = 0; i < sample.size(); ++i) {
+    double value = sample[i].toDouble();
+    if (max < value)
+      max = value;
+    current_etalon.push_back(value);
+  }
+  ui->widget_plot->graph(1)->setData(m_etalons_grid, current_etalon);
+  ui->widget_plot->xAxis->setRange(400, 2500);
+  ui->widget_plot->yAxis->setRange(0, max);
+  ui->widget_plot->replot();
+}
+
+void SpectraSynthesizer::on_comboBox_etalons_currentIndexChanged(const QString& arg1) {
+  Q_UNUSED(arg1)
+  showCurrentEtalon();
 }
 
 void SpectraSynthesizer::copyPowerStatToClipboard() {
@@ -480,3 +529,5 @@ void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked) {
 void SpectraSynthesizer::on_pushButton_water_clicked() {
   sendDataToComDevice("w\n");
 }
+
+

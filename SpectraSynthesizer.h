@@ -58,15 +58,19 @@ class SpectraSynthesizer : public QMainWindow {
   void on_pushButton_sound_switcher_toggled(bool checked);
   void on_pushButton_water_clicked();
 
+  void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
+
  private:
   Ui::SpectraSynthesizer* ui;
   DebugConsole* m_debug_console;
+  QJsonObject m_etalons;
   QJsonObject m_json_config;
   QJsonArray m_power_tracker;
   QJsonArray m_pins_json_array;
   QVector<QSlider*> m_sliders;
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
+  QVector<double>m_etalons_grid;
   QHash<QString, int> lambdas_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
@@ -84,6 +88,8 @@ class SpectraSynthesizer : public QMainWindow {
   void setupPowerStatPlot();
   void savePowerParams(const int& index, const int& value);
   void createSamplesJson();
+  void loadEtalons();
+  void showCurrentEtalon();
   // QWidget interface
  protected:
   void closeEvent(QCloseEvent* event) override;
