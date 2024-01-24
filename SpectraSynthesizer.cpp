@@ -138,7 +138,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_show_power_stat, SIGNAL(triggered()), m_power_stat_plot, SLOT(show()));
   connect(ui->action_hours_stat, SIGNAL(triggered()), m_hours_stat_plot, SLOT(show()));
   connect(ui->action_copy_power_stat_to_buffer, SIGNAL(triggered()), SLOT(copyPowerStatToClipboard()));
-  connect(ui->action_add_etalon,SIGNAL(triggered()),SLOT(createSamplesJson()));
+  connect(ui->action_add_etalon, SIGNAL(triggered()), SLOT(createSamplesJson()));
   //createSamplesJson();
 }
 
@@ -326,18 +326,19 @@ void SpectraSynthesizer::createSamplesJson() {
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::ExistingFiles);
   dialog.setNameFilter("*.txt");
-  QStringList files = dialog.getOpenFileNames(this,"Select spectral samples","","*.txt");
-  if(files.size()==0) return;
+  QStringList files = dialog.getOpenFileNames(this, "Select spectral samples", "", "*.txt");
+  if (files.size() == 0)
+    return;
   QJsonObject root;
-  db_json::getJsonObjectFromFile("etalons.json",root);
+  db_json::getJsonObjectFromFile("etalons.json", root);
   QJsonArray objects = root["_objects"].toArray();
   QString etalon_name;
   for (int i = 0; i < files.size(); ++i) {
     QFile file(files[i]);
     etalon_name = file.fileName().split('/').last().split('.')[0];
-    if(objects.contains(etalon_name)){
-        qDebug()<<"ignore this file...";
-        continue;
+    if (objects.contains(etalon_name)) {
+      qDebug() << "ignore this file...";
+      continue;
     }
     objects.push_back(etalon_name);
     file.open(QIODevice::ReadOnly);
@@ -346,10 +347,10 @@ void SpectraSynthesizer::createSamplesJson() {
     QString line;
     while (qts.readLineInto(&line)) {
       auto var = line.split("\t");
-      if(var.size()>1){
-      values.push_back(var[1].toDouble());
-      }else{
-      values.push_back(var[0].toDouble());
+      if (var.size() > 1) {
+        values.push_back(var[1].toDouble());
+      } else {
+        values.push_back(var[0].toDouble());
       }
     }
     file.close();

@@ -70,7 +70,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<QSlider*> m_sliders;
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
-  QVector<double>m_etalons_grid;
+  QVector<double> m_etalons_grid;
   QHash<QString, int> lambdas_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
