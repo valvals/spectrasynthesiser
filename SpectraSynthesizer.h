@@ -50,6 +50,7 @@ class SpectraSynthesizer : public QMainWindow {
   void changeWidgetState();
   void updatePowerStat();
   void copyPowerStatToClipboard();
+  void createSamplesJson();
   void on_pushButton_reset_to_zero_clicked();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
@@ -57,7 +58,6 @@ class SpectraSynthesizer : public QMainWindow {
   void on_pushButton_exposition_clicked();
   void on_pushButton_sound_switcher_toggled(bool checked);
   void on_pushButton_water_clicked();
-
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
 
  private:
@@ -87,9 +87,8 @@ class SpectraSynthesizer : public QMainWindow {
   QString getGroupID(const double& value);
   void setupPowerStatPlot();
   void savePowerParams(const int& index, const int& value);
-  void createSamplesJson();
-  void loadEtalons();
   void showCurrentEtalon();
+  void loadEtalons();
   // QWidget interface
  protected:
   void closeEvent(QCloseEvent* event) override;

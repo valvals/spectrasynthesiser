@@ -138,8 +138,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_show_power_stat, SIGNAL(triggered()), m_power_stat_plot, SLOT(show()));
   connect(ui->action_hours_stat, SIGNAL(triggered()), m_hours_stat_plot, SLOT(show()));
   connect(ui->action_copy_power_stat_to_buffer, SIGNAL(triggered()), SLOT(copyPowerStatToClipboard()));
-
-  createSamplesJson();
+  connect(ui->action_add_etalon,SIGNAL(triggered()),SLOT(createSamplesJson()));
+  //createSamplesJson();
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -323,36 +323,44 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
 }
 
 void SpectraSynthesizer::createSamplesJson() {
-  QJsonObject jo;
-  QJsonArray obj;
-  QJsonArray grid;
+  QFileDialog dialog(this);
+  dialog.setFileMode(QFileDialog::ExistingFiles);
+  dialog.setNameFilter("*.txt");
+  QStringList files = dialog.getOpenFileNames(this,"Select spectral samples","","*.txt");
+  if(files.size()==0) return;
+  QJsonObject root;
+  db_json::getJsonObjectFromFile("etalons.json",root);
+  QJsonArray objects = root["_objects"].toArray();
   QString etalon_name;
-  QStringList files = {"grass.txt", "sand.txt"};
-  jo["_unit"] = "W/(m3*sr)";
-  for (int g = 400; g < 2501; ++g) {
-    grid.push_back(g);
-  }
-  jo["_grid"] = grid;
-
-
   for (int i = 0; i < files.size(); ++i) {
     QFile file(files[i]);
-    etalon_name = files[i].split(".")[0];
-    obj.push_back(etalon_name);
+    etalon_name = file.fileName().split('/').last().split('.')[0];
+    if(objects.contains(etalon_name)){
+        qDebug()<<"ignore this file...";
+        continue;
+    }
+    objects.push_back(etalon_name);
     file.open(QIODevice::ReadOnly);
     QJsonArray values;
     QTextStream qts(&file);
     QString line;
     while (qts.readLineInto(&line)) {
       auto var = line.split("\t");
+      if(var.size()>1){
       values.push_back(var[1].toDouble());
+      }else{
+      values.push_back(var[0].toDouble());
+      }
     }
     file.close();
-    jo.insert(etalon_name, values);
-
+    root.insert(etalon_name, values);
   }
-  jo.insert("_objects", obj);
-  db_json::saveJsonObjectToFile("etalons.json", jo, QJsonDocument::Indented);
+  root["_objects"] = objects;
+  db_json::saveJsonObjectToFile("etalons.json", root, QJsonDocument::Indented);
+  m_etalons = root;
+  m_etalons_grid.clear();
+  ui->comboBox_etalons->clear();
+  loadEtalons();
 }
 
 void SpectraSynthesizer::loadEtalons() {
