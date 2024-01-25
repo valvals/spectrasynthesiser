@@ -84,12 +84,15 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       slider->setObjectName(QString("qslider_") + QString::number(i + 1));
       slider->setMinimumWidth(30);
       slider->setMinimumHeight(100);
+      slider->setMaximumHeight(200);
       m_sliders_previous_values[i] = 1;
       QVBoxLayout* vbl = new QVBoxLayout;
       auto wave = m_pins_json_array[i].toObject().value("wave").toString();
       ui->comboBox_waves->addItem(wave);
       lambdas_indexes.insert(wave, i);
-      vbl->addWidget(new QLabel(wave));
+      auto label = new QLabel(wave);
+      label->setMaximumHeight(50);
+      vbl->addWidget(label);
       auto max_value = m_pins_json_array[i].toObject().value("max_value").toInt();
 
       if (!isInitialTrackerFileExists) {
@@ -128,7 +131,17 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   }
   m_debug_console = new DebugConsole;
   connect(ui->action_show_debug_console, SIGNAL(triggered()), m_debug_console, SLOT(show()));
-  connect(&m_timer, SIGNAL(timeout()), SLOT(changeWidgetState()));
+  connect(&m_timer_water_cooler_warning, SIGNAL(timeout()), SLOT(changeWidgetState()));
+  connect(ui->action_water_cooler_warning,&QAction::triggered,[this](){
+      if(ui->action_water_cooler_warning->isChecked()){
+          m_timer_water_cooler_warning.start(1000);
+          sendDataToComDevice("m\n");
+      }else{
+          sendDataToComDevice("u\n");
+          m_timer_water_cooler_warning.stop();
+          ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
+      }
+  });
 
   if (!isInitialTrackerFileExists) {
     db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
@@ -139,7 +152,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_hours_stat, SIGNAL(triggered()), m_hours_stat_plot, SLOT(show()));
   connect(ui->action_copy_power_stat_to_buffer, SIGNAL(triggered()), SLOT(copyPowerStatToClipboard()));
   connect(ui->action_add_etalon, SIGNAL(triggered()), SLOT(createSamplesJson()));
-  //createSamplesJson();
+  connect(ui->action_set_all_diods_to_zero,SIGNAL(triggered()),SLOT(reset_all_diods_to_zero()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -454,11 +467,11 @@ void SpectraSynthesizer::updatePowerStat() {
 
 void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
   event->ignore();
-  on_pushButton_reset_to_zero_clicked();
+  reset_all_diods_to_zero();
   event->accept();
 }
 
-void SpectraSynthesizer::on_pushButton_reset_to_zero_clicked() {
+void SpectraSynthesizer::reset_all_diods_to_zero() {
 
   sendDataToComDevice("f\n");
   for (int i = 0; i < m_sliders.size(); ++i) {
@@ -520,19 +533,6 @@ void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
 void SpectraSynthesizer::on_pushButton_exposition_clicked() {
   m_serial_stm_spectrometr->write("e150\n");
   m_serial_stm_spectrometr->waitForBytesWritten(1000);
-}
-
-void SpectraSynthesizer::on_pushButton_sound_switcher_toggled(bool checked) {
-  if (checked) {
-    ui->pushButton_sound_switcher->setText("Включить звук");
-    sendDataToComDevice("m\n");
-    m_timer.start(1000);
-  } else {
-    ui->pushButton_sound_switcher->setText("Выключить звук");
-    sendDataToComDevice("u\n");
-    m_timer.stop();
-    ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
-  }
 }
 
 void SpectraSynthesizer::on_pushButton_water_clicked() {

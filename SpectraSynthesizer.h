@@ -51,12 +51,11 @@ class SpectraSynthesizer : public QMainWindow {
   void updatePowerStat();
   void copyPowerStatToClipboard();
   void createSamplesJson();
-  void on_pushButton_reset_to_zero_clicked();
+  void reset_all_diods_to_zero();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_pushButton_update_stm_spectr_clicked();
   void on_pushButton_exposition_clicked();
-  void on_pushButton_sound_switcher_toggled(bool checked);
   void on_pushButton_water_clicked();
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
 
@@ -75,7 +74,7 @@ class SpectraSynthesizer : public QMainWindow {
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
   QSerialPortInfo m_serial_port_info;
-  QTimer m_timer;
+  QTimer m_timer_water_cooler_warning;
   QCustomPlot* m_power_stat_plot;
   QVector<QCPBars*> m_power_bars;
   QCPBars* m_hours_bar;
