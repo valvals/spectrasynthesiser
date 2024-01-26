@@ -64,6 +64,8 @@ class SpectraSynthesizer : public QMainWindow {
 private:
   Ui::SpectraSynthesizer* ui;
   bool m_is_show_etalon;
+  bool m_is_stm_spectr_update;
+  bool m_is_stm_exposition_changed;
   bool m_is_stm_spectrometr_connected;
   bool m_is_diods_arduino_connected;
   DebugConsole* m_debug_console;
