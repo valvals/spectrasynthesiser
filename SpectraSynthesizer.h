@@ -55,12 +55,17 @@ class SpectraSynthesizer : public QMainWindow {
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_pushButton_update_stm_spectr_clicked();
-  void on_pushButton_exposition_clicked();
   void on_pushButton_water_clicked();
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
+  void mayBeHideEtalon(bool isHide);
 
- private:
+  void on_spinBox_exposition_valueChanged(int arg1);
+
+private:
   Ui::SpectraSynthesizer* ui;
+  bool m_is_show_etalon;
+  bool m_is_stm_spectrometr_connected;
+  bool m_is_diods_arduino_connected;
   DebugConsole* m_debug_console;
   QJsonObject m_etalons;
   QJsonObject m_json_config;

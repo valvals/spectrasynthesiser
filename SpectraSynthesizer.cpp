@@ -26,6 +26,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
   ui->setupUi(this);
+  m_is_show_etalon = true;
+  m_is_stm_spectrometr_connected = false;
+  m_is_diods_arduino_connected = false;
   QDir dir;
   if (!dir.exists(power_dir))
     dir.mkdir(power_dir);
@@ -53,21 +56,22 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
   const QString mode = m_json_config.value("mode").toString();
   auto available_ports = m_serial_port_info.availablePorts();
-  bool isDeviceConnected = false;
+
   for (int i = 0; i < available_ports.size(); ++i) {
     qDebug() << available_ports[i].serialNumber() << available_ports[i].portName();
     if (serial_diods_number == available_ports[i].serialNumber()) {
       m_serial_diods_controller->setPort(available_ports[i]);
       m_serial_diods_controller->open(QIODevice::ReadWrite);
-      isDeviceConnected = true;
+      m_is_diods_arduino_connected = true;
       connect(m_serial_diods_controller, SIGNAL(readyRead()), this, SLOT(readDiodsData()));
     }
     if (serial_stm_number == available_ports[i].serialNumber()) {
       m_serial_stm_spectrometr->setPort(available_ports[i]);
       m_serial_stm_spectrometr->open(QIODevice::ReadWrite);
       connect(m_serial_stm_spectrometr, SIGNAL(readyRead()), this, SLOT(readStmData()));
-      m_serial_stm_spectrometr->write("e150\n");
+      m_serial_stm_spectrometr->write("e15000\n");
       m_serial_stm_spectrometr->waitForBytesWritten(1000);
+      m_is_stm_spectrometr_connected = true;
     }
   }
   m_sliders_previous_values.reserve(m_pins_json_array.size());
@@ -75,7 +79,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   bool isInitialTrackerFileExists = QFile(tracker_full_path).exists();
   if (isInitialTrackerFileExists)
     db_json::getJsonArrayFromFile(tracker_full_path, m_power_tracker);
-  if (isDeviceConnected || mode == "developing") {
+  if (m_is_diods_arduino_connected || mode == "developing") {
 
     for (int i = 0; i < m_pins_json_array.size(); ++i) {
       auto slider = new QSlider;
@@ -132,15 +136,15 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_debug_console = new DebugConsole;
   connect(ui->action_show_debug_console, SIGNAL(triggered()), m_debug_console, SLOT(show()));
   connect(&m_timer_water_cooler_warning, SIGNAL(timeout()), SLOT(changeWidgetState()));
-  connect(ui->action_water_cooler_warning,&QAction::triggered,[this](){
-      if(ui->action_water_cooler_warning->isChecked()){
-          m_timer_water_cooler_warning.start(1000);
-          sendDataToComDevice("m\n");
-      }else{
-          sendDataToComDevice("u\n");
-          m_timer_water_cooler_warning.stop();
-          ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
-      }
+  connect(ui->action_water_cooler_warning, &QAction::triggered, [this]() {
+    if (ui->action_water_cooler_warning->isChecked()) {
+      m_timer_water_cooler_warning.start(1000);
+      sendDataToComDevice("m\n");
+    } else {
+      sendDataToComDevice("u\n");
+      m_timer_water_cooler_warning.stop();
+      ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
+    }
   });
 
   if (!isInitialTrackerFileExists) {
@@ -152,7 +156,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_hours_stat, SIGNAL(triggered()), m_hours_stat_plot, SLOT(show()));
   connect(ui->action_copy_power_stat_to_buffer, SIGNAL(triggered()), SLOT(copyPowerStatToClipboard()));
   connect(ui->action_add_etalon, SIGNAL(triggered()), SLOT(createSamplesJson()));
-  connect(ui->action_set_all_diods_to_zero,SIGNAL(triggered()),SLOT(reset_all_diods_to_zero()));
+  connect(ui->action_set_all_diods_to_zero, SIGNAL(triggered()), SLOT(reset_all_diods_to_zero()));
+  connect(ui->action_hide_etalon, SIGNAL(triggered(bool)), SLOT(mayBeHideEtalon(bool)));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -175,7 +180,10 @@ void SpectraSynthesizer::readStmData() {
     m_debug_console->add_message("recieved from stm: " + QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
     return;
   } else if (m_serial_stm_spectrometr->bytesAvailable() != spectr_packet_size) {
-    qDebug() << "spectr packet recieved";
+    qDebug() << "spectr packet recieved"<<m_serial_stm_spectrometr->bytesAvailable();
+    if(m_serial_stm_spectrometr->bytesAvailable() > spectr_packet_size){
+        qDebug() << "BAD CASE ----> data will never be processing";
+    }
     return;
   }
   auto ba = m_serial_stm_spectrometr->readAll();
@@ -391,6 +399,8 @@ void SpectraSynthesizer::loadEtalons() {
 
 
 void SpectraSynthesizer::showCurrentEtalon() {
+  if (!m_is_show_etalon)
+    return;
   QVector<double>current_etalon;
   auto sample = m_etalons[ui->comboBox_etalons->currentText()].toArray();
   double max = 0;
@@ -410,6 +420,18 @@ void SpectraSynthesizer::on_comboBox_etalons_currentIndexChanged(const QString& 
   Q_UNUSED(arg1)
   showCurrentEtalon();
 }
+
+void SpectraSynthesizer::mayBeHideEtalon(bool isHide) {
+  if (isHide) {
+    ui->widget_plot->graph(1)->setData({}, {});
+    ui->widget_plot->replot();
+    m_is_show_etalon = false;
+  } else {
+    m_is_show_etalon = true;
+    showCurrentEtalon();
+  }
+}
+
 
 void SpectraSynthesizer::copyPowerStatToClipboard() {
   QString copy_stat;
@@ -509,6 +531,7 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max) {
   ui->widget_plot->xAxis->setRange(1, spectr_values_size);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
+  QTimer::singleShot(100,this,SLOT(on_pushButton_update_stm_spectr_clicked()));
 }
 
 void SpectraSynthesizer::changeWidgetState() {
@@ -525,18 +548,20 @@ void SpectraSynthesizer::changeWidgetState() {
 }
 
 void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
+  if(!m_is_stm_spectrometr_connected)return;
   m_serial_stm_spectrometr->write("r\n");
   m_serial_stm_spectrometr->waitForBytesWritten(1000);
   Sleep(50);
-}
-
-void SpectraSynthesizer::on_pushButton_exposition_clicked() {
-  m_serial_stm_spectrometr->write("e150\n");
-  m_serial_stm_spectrometr->waitForBytesWritten(1000);
 }
 
 void SpectraSynthesizer::on_pushButton_water_clicked() {
   sendDataToComDevice("w\n");
 }
 
-
+void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1)
+{
+    if(!m_is_stm_spectrometr_connected)return;
+    auto expo_command = QString("e%1\n").arg(arg1*1000);
+    m_serial_stm_spectrometr->write(expo_command.toLatin1());
+    m_serial_stm_spectrometr->waitForBytesWritten(1000);
+}

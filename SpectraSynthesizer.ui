@@ -43,7 +43,7 @@ color: rgb(0, 170, 0);</string>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="5" rowspan="2">
+      <item row="0" column="6" rowspan="2">
        <widget class="QLabel" name="label">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -59,88 +59,7 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="5">
-       <widget class="QComboBox" name="comboBox_waves">
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1" rowspan="3">
-       <widget class="QPushButton" name="pushButton_exposition">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>exposition</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2" rowspan="3">
-       <widget class="QPushButton" name="pushButton_water">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>get water</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4" rowspan="3">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>228</width>
-          <height>17</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="0" rowspan="3">
-       <widget class="QPushButton" name="pushButton_update_stm_spectr">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>получить спектр </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="6" rowspan="2">
-       <widget class="QLabel" name="label_value">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>значение</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="6">
+      <item row="2" column="7">
        <widget class="QSpinBox" name="spinBox_bright_value">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -159,7 +78,7 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="7" rowspan="3">
+      <item row="0" column="8" rowspan="3">
        <widget class="QPushButton" name="pushButton_apply">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -172,13 +91,121 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="3" rowspan="3">
+      <item row="0" column="1" rowspan="3">
+       <widget class="QPushButton" name="pushButton_exposition">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>exposition</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="6">
+       <widget class="QComboBox" name="comboBox_waves">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5" rowspan="3">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>228</width>
+          <height>17</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="4" rowspan="3">
        <widget class="QComboBox" name="comboBox_etalons">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="3">
+       <widget class="QPushButton" name="pushButton_update_stm_spectr">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>получить спектр </string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3" rowspan="3">
+       <widget class="QPushButton" name="pushButton_water">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>get water</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7" rowspan="2">
+       <widget class="QLabel" name="label_value">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>значение</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" rowspan="3">
+       <widget class="QSpinBox" name="spinBox_exposition">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>50000</number>
+        </property>
+        <property name="value">
+         <number>1</number>
         </property>
        </widget>
       </item>
@@ -215,6 +242,7 @@ color: rgb(0, 170, 0);</string>
      <string>Эталоны</string>
     </property>
     <addaction name="action_add_etalon"/>
+    <addaction name="action_hide_etalon"/>
    </widget>
    <widget class="QMenu" name="menu_4">
     <property name="title">
@@ -229,9 +257,9 @@ color: rgb(0, 170, 0);</string>
     <addaction name="action_set_all_diods_to_zero"/>
    </widget>
    <addaction name="menu"/>
-   <addaction name="menu_2"/>
-   <addaction name="menu_3"/>
    <addaction name="menu_4"/>
+   <addaction name="menu_3"/>
+   <addaction name="menu_2"/>
    <addaction name="menu_5"/>
   </widget>
   <action name="action_show_debug_console">
@@ -270,6 +298,14 @@ color: rgb(0, 170, 0);</string>
   <action name="action_set_all_diods_to_zero">
    <property name="text">
     <string>Сброс на ноль</string>
+   </property>
+  </action>
+  <action name="action_hide_etalon">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Скрыть эталон</string>
    </property>
   </action>
  </widget>
