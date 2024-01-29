@@ -52,16 +52,19 @@ class SpectraSynthesizer : public QMainWindow {
   void copyPowerStatToClipboard();
   void createSamplesJson();
   void reset_all_diods_to_zero();
+  void mayBeHideEtalon(bool isHide);
+  void update_stm_spectr_clicked();
+  void copy_spectr_to_clipboard();
+  void copy_etalon_to_clipboard();
+  void copy_data_plot_to_clipboard(QSharedPointer<QCPGraphDataContainer>data);
+
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
-  void on_pushButton_update_stm_spectr_clicked();
-  void on_pushButton_water_clicked();
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
-  void mayBeHideEtalon(bool isHide);
-
   void on_spinBox_exposition_valueChanged(int arg1);
+  void on_pushButton_stop_start_update_stm_spectr_toggled(bool checked);
 
-private:
+ private:
   Ui::SpectraSynthesizer* ui;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;

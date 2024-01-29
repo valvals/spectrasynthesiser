@@ -26,13 +26,26 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
   ui->setupUi(this);
-  m_is_show_etalon = true;
+  m_is_show_etalon = false;
+  m_is_stm_spectr_update = true;
   m_is_stm_spectrometr_connected = false;
   m_is_diods_arduino_connected = false;
+  QrcFilesRestorer::restoreFilesFromQrc(":/");
   QDir dir;
-  if (!dir.exists(power_dir))
+  if (!dir.exists(power_dir)) {
     dir.mkdir(power_dir);
+  }
   this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
+  QAction* copy_stm_spectr = new QAction;
+  copy_stm_spectr->setText("копировать в буфер спектр");
+  QAction* copy_etalon_spectr = new QAction;
+  copy_etalon_spectr = new QAction;
+  copy_etalon_spectr->setText("копировать в буфер эталон");
+  ui->widget_plot->addAction(copy_stm_spectr);
+  ui->widget_plot->addAction(copy_etalon_spectr);
+  ui->widget_plot->setContextMenuPolicy(Qt::ActionsContextMenu);
+  connect(copy_stm_spectr, SIGNAL(triggered()), SLOT(copy_spectr_to_clipboard()));
+  connect(copy_etalon_spectr, SIGNAL(triggered()), SLOT(copy_etalon_to_clipboard()));
   ui->widget_plot->setBackground(QBrush(QColor(64, 66, 68)));
   ui->widget_plot->addGraph(); // 0 - спектрометр
   ui->widget_plot->addGraph(); // 1 - эталон
@@ -46,10 +59,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->graph(1)->setPen(graphPenEtalon);
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
+
   if (!db_json::getJsonObjectFromFile("config.json", m_json_config)) {
     qDebug() << "Config file was not found on the disk...";
     db_json::getJsonObjectFromFile(":/config.json", m_json_config);
-    QrcFilesRestorer::restoreFilesFromQrc(":/");
   };
   m_pins_json_array = m_json_config.value("pins_array").toArray();
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
@@ -177,16 +190,25 @@ void SpectraSynthesizer::readDiodsData() {
 void SpectraSynthesizer::readStmData() {
   if (m_serial_stm_spectrometr->bytesAvailable() == expo_packet_size) {
     auto expo = m_serial_stm_spectrometr->readAll();
-    m_debug_console->add_message("recieved from stm: " + QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
+    m_is_stm_exposition_changed = false;
+    if (m_is_stm_spectr_update) {
+      update_stm_spectr_clicked();
+    }
+    m_debug_console->add_message("expo packet recieved from stm: " + QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
     return;
   } else if (m_serial_stm_spectrometr->bytesAvailable() != spectr_packet_size) {
-    qDebug() << "spectr packet recieved"<<m_serial_stm_spectrometr->bytesAvailable();
-    if(m_serial_stm_spectrometr->bytesAvailable() > spectr_packet_size){
-        qDebug() << "BAD CASE ----> data will never be processing";
+    qDebug() << "spectr packet recieved" << m_serial_stm_spectrometr->bytesAvailable();
+    if (m_serial_stm_spectrometr->bytesAvailable() > spectr_packet_size) {
+      qDebug() << "BAD CASE ----> data will never be processing";
+      m_serial_stm_spectrometr->readAll();
+      update_stm_spectr_clicked();
     }
     return;
   }
   auto ba = m_serial_stm_spectrometr->readAll();
+  if (!m_is_stm_spectr_update) {
+    return;
+  }
   SpectrumData spectrumData;
   memcpy(&spectrumData, ba, sizeof(spectrumData));
   QVector<double> values;
@@ -198,7 +220,13 @@ void SpectraSynthesizer::readStmData() {
     if (max < spectrumData.spectrum[i])
       max = spectrumData.spectrum[i];
   };
-  show_stm_spectr(values, max);
+  if (!m_is_stm_exposition_changed) {
+    show_stm_spectr(values, max);
+  } else {
+    auto expo_command = QString("e%1\n").arg(ui->spinBox_exposition->value() * 1000);
+    m_serial_stm_spectrometr->write(expo_command.toLatin1());
+    m_serial_stm_spectrometr->waitForBytesWritten(1000);
+  }
 }
 
 void SpectraSynthesizer::sendDataToComDevice(const QString& command) {
@@ -397,7 +425,6 @@ void SpectraSynthesizer::loadEtalons() {
   showCurrentEtalon();
 }
 
-
 void SpectraSynthesizer::showCurrentEtalon() {
   if (!m_is_show_etalon)
     return;
@@ -431,7 +458,6 @@ void SpectraSynthesizer::mayBeHideEtalon(bool isHide) {
     showCurrentEtalon();
   }
 }
-
 
 void SpectraSynthesizer::copyPowerStatToClipboard() {
   QString copy_stat;
@@ -531,7 +557,7 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max) {
   ui->widget_plot->xAxis->setRange(1, spectr_values_size);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
-  QTimer::singleShot(100,this,SLOT(on_pushButton_update_stm_spectr_clicked()));
+  QTimer::singleShot(100, this, SLOT(update_stm_spectr_clicked()));
 }
 
 void SpectraSynthesizer::changeWidgetState() {
@@ -547,21 +573,47 @@ void SpectraSynthesizer::changeWidgetState() {
   ui->centralwidget->update();
 }
 
-void SpectraSynthesizer::on_pushButton_update_stm_spectr_clicked() {
-  if(!m_is_stm_spectrometr_connected)return;
+void SpectraSynthesizer::update_stm_spectr_clicked() {
+  if (!m_is_stm_spectrometr_connected)
+    return;
   m_serial_stm_spectrometr->write("r\n");
   m_serial_stm_spectrometr->waitForBytesWritten(1000);
   Sleep(50);
 }
 
-void SpectraSynthesizer::on_pushButton_water_clicked() {
-  sendDataToComDevice("w\n");
+void SpectraSynthesizer::copy_spectr_to_clipboard() {
+  copy_data_plot_to_clipboard(ui->widget_plot->graph(0)->data());
 }
 
-void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1)
-{
-    if(!m_is_stm_spectrometr_connected)return;
-    auto expo_command = QString("e%1\n").arg(arg1*1000);
-    m_serial_stm_spectrometr->write(expo_command.toLatin1());
-    m_serial_stm_spectrometr->waitForBytesWritten(1000);
+void SpectraSynthesizer::copy_etalon_to_clipboard() {
+  copy_data_plot_to_clipboard(ui->widget_plot->graph(1)->data());
+}
+
+void SpectraSynthesizer::copy_data_plot_to_clipboard(QSharedPointer<QCPGraphDataContainer> data) {
+  auto size = data->size();
+  QString values;
+  for (int i = 0; i < size; i++) {
+    values.append(QString::number(data->at(i)->value));
+    values.append("\n");
+  }
+  QClipboard* clipboard = QGuiApplication::clipboard();
+  clipboard->setText(values);
+}
+
+void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1) {
+  Q_UNUSED(arg1)
+  if (!m_is_stm_spectrometr_connected)
+    return;
+  m_is_stm_exposition_changed = true;
+
+}
+
+void SpectraSynthesizer::on_pushButton_stop_start_update_stm_spectr_toggled(bool checked) {
+  m_is_stm_spectr_update = checked;
+  if (m_is_stm_spectr_update) {
+    ui->pushButton_stop_start_update_stm_spectr->setText("пауза");
+    update_stm_spectr_clicked();
+  } else {
+    ui->pushButton_stop_start_update_stm_spectr->setText("обновлять");
+  }
 }
