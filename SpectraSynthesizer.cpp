@@ -16,6 +16,7 @@
 #include "QDir"
 #include "QClipboard"
 
+
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 const char power_dir[] = "diods_tracker";
@@ -26,11 +27,15 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
   ui->setupUi(this);
+  m_view = view::PVD_SPEYA;
   m_is_show_etalon = false;
   m_is_stm_spectr_update = true;
   m_is_stm_spectrometr_connected = false;
   m_is_diods_arduino_connected = false;
   QrcFilesRestorer::restoreFilesFromQrc(":/");
+  db_json::getJsonObjectFromFile("etalons.json", m_etalons);
+  loadEtalons();
+  load_pvd_calibr();
   QDir dir;
   if (!dir.exists(power_dir)) {
     dir.mkdir(power_dir);
@@ -49,8 +54,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->setBackground(QBrush(QColor(64, 66, 68)));
   ui->widget_plot->addGraph(); // 0 - спектрометр
   ui->widget_plot->addGraph(); // 1 - эталон
-  db_json::getJsonObjectFromFile("etalons.json", m_etalons);
-  loadEtalons();
+
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
   QPen graphPen(QColor(13, 160, 5));
@@ -192,7 +196,7 @@ void SpectraSynthesizer::readStmData() {
     auto expo = m_serial_stm_spectrometr->readAll();
     m_is_stm_exposition_changed = false;
     if (m_is_stm_spectr_update) {
-      update_stm_spectr_clicked();
+      update_stm_spectr();
     }
     m_debug_console->add_message("expo packet recieved from stm: " + QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
     return;
@@ -201,7 +205,7 @@ void SpectraSynthesizer::readStmData() {
     if (m_serial_stm_spectrometr->bytesAvailable() > spectr_packet_size) {
       qDebug() << "BAD CASE ----> data will never be processing";
       m_serial_stm_spectrometr->readAll();
-      update_stm_spectr_clicked();
+      update_stm_spectr();
     }
     return;
   }
@@ -213,15 +217,48 @@ void SpectraSynthesizer::readStmData() {
   memcpy(&spectrumData, ba, sizeof(spectrumData));
   QVector<double> values;
   QVector<double> channels;
-  int max = 0;
-  for (size_t i = 0; i < spectr_values_size; ++i) {
-    channels.push_back(i + 1);
-    values.push_back(spectrumData.spectrum[i]);
-    if (max < spectrumData.spectrum[i])
-      max = spectrumData.spectrum[i];
-  };
+  double max = 0;
+
+  switch(m_view){
+  case view::PVD_AZP:
+      // PVD_AZP case
+      for (size_t i = 0; i < spectr_values_size; ++i) {
+        channels.push_back(i + 1);
+        values.push_back(spectrumData.spectrum[i]);
+        if (max < spectrumData.spectrum[i])
+          max = spectrumData.spectrum[i];
+      };
+      break;
+  case view::PVD_SPEYA:
+      // PVD_SPEYA case
+      for (size_t i = 0; i < spectr_values_size; ++i) {
+        auto wave = m_pvd_calibr["wave"].toArray()[i].toDouble();
+        if(wave<400)continue;
+        auto value = m_pvd_calibr["bright"].toArray()[i].toDouble() * spectrumData.spectrum[i];
+        channels.push_back(wave);
+        values.push_back(value);
+        if (max < value){
+          max = value;
+        }
+        if(wave>=900.0)break;
+      };
+      break;
+  case view::ETALON_PVD:
+      for (size_t i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
+        auto index = m_short_pvd_grid_indexes[i];
+        auto wave = m_pvd_calibr["wave"].toArray()[index].toDouble();
+        auto value = m_pvd_calibr["bright"].toArray()[index].toDouble() * spectrumData.spectrum[index];
+        channels.push_back(wave);
+        values.push_back(value);
+        if (max < value){
+          max = value;
+        }
+      };
+      break;
+  }
+
   if (!m_is_stm_exposition_changed) {
-    show_stm_spectr(values, max);
+    show_stm_spectr(channels,values, max);
   } else {
     auto expo_command = QString("e%1\n").arg(ui->spinBox_exposition->value() * 1000);
     m_serial_stm_spectrometr->write(expo_command.toLatin1());
@@ -549,15 +586,12 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString& arg
   ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
 }
 
-void SpectraSynthesizer::show_stm_spectr(QVector<double> data, double max) {
-  QVector<double> waves(spectr_values_size);
-  for (int i = 0; i < spectr_values_size; ++i)
-    waves[i] = i + 1;
-  ui->widget_plot->graph(0)->setData(waves, data);
-  ui->widget_plot->xAxis->setRange(1, spectr_values_size);
+void SpectraSynthesizer::show_stm_spectr(QVector<double> channels,QVector<double> data, double max) {
+  ui->widget_plot->graph(0)->setData(channels, data);
+  ui->widget_plot->xAxis->setRange(channels[0], channels[channels.size()-1]);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
-  QTimer::singleShot(100, this, SLOT(update_stm_spectr_clicked()));
+  QTimer::singleShot(100, this, SLOT(update_stm_spectr()));
 }
 
 void SpectraSynthesizer::changeWidgetState() {
@@ -573,7 +607,7 @@ void SpectraSynthesizer::changeWidgetState() {
   ui->centralwidget->update();
 }
 
-void SpectraSynthesizer::update_stm_spectr_clicked() {
+void SpectraSynthesizer::update_stm_spectr() {
   if (!m_is_stm_spectrometr_connected)
     return;
   m_serial_stm_spectrometr->write("r\n");
@@ -600,6 +634,29 @@ void SpectraSynthesizer::copy_data_plot_to_clipboard(QSharedPointer<QCPGraphData
   clipboard->setText(values);
 }
 
+void SpectraSynthesizer::load_pvd_calibr() {
+
+  db_json::getJsonObjectFromFile("pvd_calibr.json", m_pvd_calibr);
+  auto wave_array = m_pvd_calibr["wave"].toArray();
+  auto bright_array = m_pvd_calibr["bright"].toArray();
+  int counter = 0;
+  Q_ASSERT(wave_array.size()==bright_array.size());
+  for(int i=1;i<wave_array.size();++i){
+      if(m_etalons_grid[counter]>900)break;
+      auto prev_delta = m_etalons_grid[counter] - wave_array[i-1].toDouble();
+      auto new_delta = m_etalons_grid[counter] - wave_array[i].toDouble();
+if(new_delta > 0){
+
+   continue;
+
+}else{
+    ++counter;
+    m_short_pvd_grid_indexes.push_back(i);
+    qDebug()<<wave_array[i].toDouble();
+}
+  }
+}
+
 void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1) {
   Q_UNUSED(arg1)
   if (!m_is_stm_spectrometr_connected)
@@ -612,7 +669,7 @@ void SpectraSynthesizer::on_pushButton_stop_start_update_stm_spectr_toggled(bool
   m_is_stm_spectr_update = checked;
   if (m_is_stm_spectr_update) {
     ui->pushButton_stop_start_update_stm_spectr->setText("пауза");
-    update_stm_spectr_clicked();
+    update_stm_spectr();
   } else {
     ui->pushButton_stop_start_update_stm_spectr->setText("обновлять");
   }

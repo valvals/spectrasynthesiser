@@ -28,10 +28,10 @@ struct SpectrumData {
 Q_DECLARE_METATYPE(SpectrumData)
 #pragma pack(pop)
 
-enum class view{
-    PVD_AZP,
-    PVD_SPEYA,
-    ETALON_PVD
+enum class view {
+  PVD_AZP,
+  PVD_SPEYA,
+  ETALON_PVD
 };
 
 QT_BEGIN_NAMESPACE
@@ -51,17 +51,18 @@ class SpectraSynthesizer : public QMainWindow {
  private slots:
   void readDiodsData();
   void readStmData();
-  void show_stm_spectr(QVector<double> data, double max);
+  void show_stm_spectr(QVector<double> channels, QVector<double> data, double max);
   void changeWidgetState();
   void updatePowerStat();
   void copyPowerStatToClipboard();
   void createSamplesJson();
   void reset_all_diods_to_zero();
   void mayBeHideEtalon(bool isHide);
-  void update_stm_spectr_clicked();
+  void update_stm_spectr();
   void copy_spectr_to_clipboard();
   void copy_etalon_to_clipboard();
   void copy_data_plot_to_clipboard(QSharedPointer<QCPGraphDataContainer>data);
+  void load_pvd_calibr();
 
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
@@ -76,8 +77,10 @@ class SpectraSynthesizer : public QMainWindow {
   bool m_is_stm_exposition_changed;
   bool m_is_stm_spectrometr_connected;
   bool m_is_diods_arduino_connected;
+  view m_view;
   DebugConsole* m_debug_console;
   QJsonObject m_etalons;
+  QJsonObject m_pvd_calibr;
   QJsonObject m_json_config;
   QJsonArray m_power_tracker;
   QJsonArray m_pins_json_array;
@@ -85,6 +88,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
   QVector<double> m_etalons_grid;
+  QVector<int> m_short_pvd_grid_indexes;
   QHash<QString, int> lambdas_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
