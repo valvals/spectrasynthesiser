@@ -475,7 +475,7 @@ void SpectraSynthesizer::showCurrentEtalon() {
     current_etalon.push_back(value);
   }
   ui->widget_plot->graph(1)->setData(m_etalons_grid, current_etalon);
-  ui->widget_plot->xAxis->setRange(400, 2500);
+  ui->widget_plot->xAxis->setRange(400, 900);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
 }
