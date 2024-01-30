@@ -28,6 +28,11 @@ struct SpectrumData {
 Q_DECLARE_METATYPE(SpectrumData)
 #pragma pack(pop)
 
+enum class view{
+    PVD_AZP,
+    PVD_SPEYA,
+    ETALON_PVD
+};
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class SpectraSynthesizer; }

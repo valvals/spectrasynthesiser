@@ -239,11 +239,20 @@ color: rgb(0, 170, 0);</string>
     </property>
     <addaction name="action_set_all_diods_to_zero"/>
    </widget>
+   <widget class="QMenu" name="menu_6">
+    <property name="title">
+     <string>Вид</string>
+    </property>
+    <addaction name="action_azp_pvd"/>
+    <addaction name="action_speya_pvd"/>
+    <addaction name="action_etalon_pvd"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menu_4"/>
    <addaction name="menu_3"/>
    <addaction name="menu_2"/>
    <addaction name="menu_5"/>
+   <addaction name="menu_6"/>
   </widget>
   <action name="action_show_debug_console">
    <property name="text">
@@ -292,6 +301,30 @@ color: rgb(0, 170, 0);</string>
    </property>
    <property name="text">
     <string>Скрыть эталон</string>
+   </property>
+  </action>
+  <action name="action_azp_pvd">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>АЦП ПВД</string>
+   </property>
+  </action>
+  <action name="action_speya_pvd">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>СПЭЯ ПВД</string>
+   </property>
+  </action>
+  <action name="action_etalon_pvd">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Эталон - ПВД</string>
    </property>
   </action>
  </widget>
