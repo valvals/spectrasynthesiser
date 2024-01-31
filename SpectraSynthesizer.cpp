@@ -27,7 +27,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
   ui->setupUi(this);
-  m_view = view::PVD_SPEYA;
+
   m_is_show_etalon = false;
   m_is_stm_spectr_update = true;
   m_is_stm_spectrometr_connected = false;
@@ -52,6 +52,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(copy_stm_spectr, SIGNAL(triggered()), SLOT(copy_spectr_to_clipboard()));
   connect(copy_etalon_spectr, SIGNAL(triggered()), SLOT(copy_etalon_to_clipboard()));
   ui->widget_plot->setBackground(QBrush(QColor(64, 66, 68)));
+  ui->widget_plot->yAxis->setTickLabelColor(Qt::white);
+  ui->widget_plot->xAxis->setTickLabelColor(Qt::white);
+  ui->widget_plot->xAxis->setLabelColor(Qt::white);
+  ui->widget_plot->yAxis->setLabelColor(Qt::white);
   ui->widget_plot->addGraph(); // 0 - спектрометр
   ui->widget_plot->addGraph(); // 1 - эталон
 
@@ -59,7 +63,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_hours_stat_plot = new QCustomPlot;
   QPen graphPen(QColor(13, 160, 5));
   ui->widget_plot->graph(0)->setPen(graphPen);
-  QPen graphPenEtalon(QColor(130, 255, 5));
+  QPen graphPenEtalon(QColor(255, 255, 0));
   ui->widget_plot->graph(1)->setPen(graphPenEtalon);
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
@@ -175,6 +179,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_add_etalon, SIGNAL(triggered()), SLOT(createSamplesJson()));
   connect(ui->action_set_all_diods_to_zero, SIGNAL(triggered()), SLOT(reset_all_diods_to_zero()));
   connect(ui->action_hide_etalon, SIGNAL(triggered(bool)), SLOT(mayBeHideEtalon(bool)));
+  connect(ui->action_etalon_pvd, SIGNAL(triggered()), SLOT(switchSpeyaEtalon_pvd()));
+  connect(ui->action_azp_pvd, SIGNAL(triggered()), SLOT(switchAZP_pvd()));
+  connect(ui->action_speya_pvd, SIGNAL(triggered()), SLOT(switchSpeya_pvd()));
+  ui->action_azp_pvd->setChecked(true);
+  switchAZP_pvd();
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -219,8 +228,8 @@ void SpectraSynthesizer::readStmData() {
   QVector<double> channels;
   double max = 0;
 
-  switch(m_view){
-  case view::PVD_AZP:
+  switch (m_view) {
+    case view::PVD_AZP:
       // PVD_AZP case
       for (size_t i = 0; i < spectr_values_size; ++i) {
         channels.push_back(i + 1);
@@ -229,28 +238,30 @@ void SpectraSynthesizer::readStmData() {
           max = spectrumData.spectrum[i];
       };
       break;
-  case view::PVD_SPEYA:
+    case view::PVD_SPEYA:
       // PVD_SPEYA case
       for (size_t i = 0; i < spectr_values_size; ++i) {
         auto wave = m_pvd_calibr["wave"].toArray()[i].toDouble();
-        if(wave<400)continue;
+        if (wave < 400)
+          continue;
         auto value = m_pvd_calibr["bright"].toArray()[i].toDouble() * spectrumData.spectrum[i];
         channels.push_back(wave);
         values.push_back(value);
-        if (max < value){
+        if (max < value) {
           max = value;
         }
-        if(wave>=900.0)break;
+        if (wave >= 900.0)
+          break;
       };
       break;
-  case view::ETALON_PVD:
-      for (size_t i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
+    case view::ETALON_PVD:
+      for (int i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
         auto index = m_short_pvd_grid_indexes[i];
         auto wave = m_pvd_calibr["wave"].toArray()[index].toDouble();
         auto value = m_pvd_calibr["bright"].toArray()[index].toDouble() * spectrumData.spectrum[index];
         channels.push_back(wave);
         values.push_back(value);
-        if (max < value){
+        if (max < value) {
           max = value;
         }
       };
@@ -258,7 +269,7 @@ void SpectraSynthesizer::readStmData() {
   }
 
   if (!m_is_stm_exposition_changed) {
-    show_stm_spectr(channels,values, max);
+    show_stm_spectr(channels, values, max);
   } else {
     auto expo_command = QString("e%1\n").arg(ui->spinBox_exposition->value() * 1000);
     m_serial_stm_spectrometr->write(expo_command.toLatin1());
@@ -586,9 +597,9 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString& arg
   ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
 }
 
-void SpectraSynthesizer::show_stm_spectr(QVector<double> channels,QVector<double> data, double max) {
+void SpectraSynthesizer::show_stm_spectr(QVector<double> channels, QVector<double> data, double max) {
   ui->widget_plot->graph(0)->setData(channels, data);
-  ui->widget_plot->xAxis->setRange(channels[0], channels[channels.size()-1]);
+  ui->widget_plot->xAxis->setRange(channels[0], channels[channels.size() - 1]);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
   QTimer::singleShot(100, this, SLOT(update_stm_spectr()));
@@ -640,21 +651,50 @@ void SpectraSynthesizer::load_pvd_calibr() {
   auto wave_array = m_pvd_calibr["wave"].toArray();
   auto bright_array = m_pvd_calibr["bright"].toArray();
   int counter = 0;
-  Q_ASSERT(wave_array.size()==bright_array.size());
-  for(int i=1;i<wave_array.size();++i){
-      if(m_etalons_grid[counter]>900)break;
-      auto prev_delta = m_etalons_grid[counter] - wave_array[i-1].toDouble();
-      auto new_delta = m_etalons_grid[counter] - wave_array[i].toDouble();
-if(new_delta > 0){
+  Q_ASSERT(wave_array.size() == bright_array.size());
+  for (int i = 1; i < wave_array.size(); ++i) {
+    if (m_etalons_grid[counter] > 900)
+      break;
+    auto prev_delta = m_etalons_grid[counter] - wave_array[i - 1].toDouble();
+    auto new_delta = m_etalons_grid[counter] - wave_array[i].toDouble();
+    if (new_delta > 0) {
 
-   continue;
+      continue;
 
-}else{
-    ++counter;
-    m_short_pvd_grid_indexes.push_back(i);
-    qDebug()<<wave_array[i].toDouble();
-}
+    } else {
+      ++counter;
+      m_short_pvd_grid_indexes.push_back(i);
+      qDebug() << wave_array[i].toDouble();
+    }
   }
+}
+
+void SpectraSynthesizer::switchAZP_pvd() {
+  m_view = view::PVD_AZP;
+  ui->action_speya_pvd->setChecked(false);
+  ui->action_etalon_pvd->setChecked(false);
+  mayBeHideEtalon(true);
+  ui->action_hide_etalon->setChecked(true);
+  ui->widget_plot->yAxis->setLabel("отсчёты АЦП");
+  ui->widget_plot->xAxis->setLabel("номер канала");
+}
+
+void SpectraSynthesizer::switchSpeya_pvd() {
+  m_view = view::PVD_SPEYA;
+  ui->action_etalon_pvd->setChecked(false);
+  ui->action_azp_pvd->setChecked(false);
+  ui->widget_plot->yAxis->setLabel("СПЭЯ (Вт/(м3 * ср))");
+  ui->widget_plot->xAxis->setLabel("длина волны (нм)");
+}
+
+void SpectraSynthesizer::switchSpeyaEtalon_pvd() {
+  m_view = view::ETALON_PVD;
+  ui->action_azp_pvd->setChecked(false);
+  ui->action_speya_pvd->setChecked(false);
+  mayBeHideEtalon(false);
+  ui->action_hide_etalon->setChecked(false);
+  ui->widget_plot->yAxis->setLabel("СПЭЯ (Вт/(м3 * ср))");
+  ui->widget_plot->xAxis->setLabel("длина волны (нм)");
 }
 
 void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1) {
