@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>config.json</file>
         <file>etalons.json</file>
+        <file>pvd_calibr.json</file>
     </qresource>
 </RCC>

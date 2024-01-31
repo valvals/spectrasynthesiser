@@ -83,6 +83,7 @@ class SpectraSynthesizer : public QMainWindow {
   view m_view;
   DebugConsole* m_debug_console;
   QJsonObject m_etalons;
+  QHash<QString,double> m_etalons_maximums;
   QJsonObject m_pvd_calibr;
   QJsonObject m_json_config;
   QJsonArray m_power_tracker;

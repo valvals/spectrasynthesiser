@@ -227,7 +227,7 @@ void SpectraSynthesizer::readStmData() {
   QVector<double> values;
   QVector<double> channels;
   double max = 0;
-
+  auto current_etalon_max = m_etalons_maximums[ui->comboBox_etalons->currentText()];
   switch (m_view) {
     case view::PVD_AZP:
       // PVD_AZP case
@@ -253,6 +253,10 @@ void SpectraSynthesizer::readStmData() {
         if (wave >= 900.0)
           break;
       };
+
+      /*if(max<current_etalon_max){
+          max=current_etalon_max;
+      }*/
       break;
     case view::ETALON_PVD:
       for (int i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
@@ -265,6 +269,9 @@ void SpectraSynthesizer::readStmData() {
           max = value;
         }
       };
+      if(max<current_etalon_max){
+          max=current_etalon_max;
+      }
       break;
   }
 
@@ -462,13 +469,23 @@ void SpectraSynthesizer::createSamplesJson() {
 }
 
 void SpectraSynthesizer::loadEtalons() {
-  auto objcts = m_etalons["_objects"].toArray();
+  auto objects = m_etalons["_objects"].toArray();
   auto grid = m_etalons["_grid"].toArray();
   for (int i = 0; i < grid.size(); ++i) {
     m_etalons_grid.push_back(grid[i].toDouble());
   }
-  for (int i = 0; i < objcts.size(); ++i) {
-    ui->comboBox_etalons->addItem(objcts[i].toString());
+  for (int i = 0; i < objects.size(); ++i) {
+    const QString object_name = objects[i].toString();
+    ui->comboBox_etalons->addItem(object_name);
+    auto etalon = m_etalons[object_name].toArray();
+    double max = 0;
+    for(int j=0;j<etalon.size();++j){
+       if(etalon[j].toDouble()>max){
+          max =  etalon[j].toDouble();
+       }
+    }
+    m_etalons_maximums.insert(object_name,max);
+    qDebug()<<object_name<<max;
   }
   showCurrentEtalon();
 }
