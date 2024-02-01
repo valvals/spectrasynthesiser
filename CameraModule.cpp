@@ -8,33 +8,38 @@
 #include <QDebug>
 #include <QTimer>
 #include <QBuffer>
+#include <QAction>
+#include "QClipboard"
+#include "QGuiApplication"
 
-CameraModule::CameraModule(QLabel* label_observationVideo, QString recordFolder, QString format, FieldOfViewJustCoord fov): camera(nullptr) {
-  m_labelVideo = label_observationVideo;
-  m_sharedViewFinder = new QSharedViewFinder(640, 480, 28, recordFolder, format, fov);
-  m_sharedViewFinder->moveToThread(&m_viewFinderThread);
-  m_viewFinderThread.start();
+CameraModule::CameraModule(): camera(nullptr) {
+  m_view_finder = new CameraViewfinder;
+  m_view_finder->setWindowFlags(Qt::WindowStaysOnTopHint);
+  m_view_finder->setMinimumSize(QSize(200, 200));
+  m_view_finder->setContextMenuPolicy(Qt::ActionsContextMenu);
+  QAction* action_capture = new QAction;
+  action_capture->setText("копировать снимок в буфер обмена");
+  m_view_finder->addAction(action_capture);
   setCamera(QCameraInfo::defaultCamera());
   startCamera();
-  qRegisterMetaType<SpectrPosition>();
-  connect(this, SIGNAL(necessarySaveFrame(SpectrPosition)), m_sharedViewFinder, SLOT(saveJustNecessaryImage(SpectrPosition)), Qt::DirectConnection);
+  connect(m_view_finder,SIGNAL(camera_window_closed()),SIGNAL(cameraWindowClosed()));
+  connect(action_capture,SIGNAL(triggered()),m_image_capture,SLOT(capture()));
+  connect(m_image_capture,SIGNAL(imageCaptured(int, const QImage&)),SLOT(imageWasCaptured(int, const QImage&)));
 }
 
 CameraModule::~CameraModule() {
-
-
   delete camera;
 }
 
 void CameraModule::setCamera(const QCameraInfo& cameraInfo) {
-  delete camera;
+  if (camera)
+    delete camera;
   camera = new QCamera(cameraInfo);
+  camera->setViewfinder(m_view_finder);
+  m_image_capture = new QCameraImageCapture(camera);
   QCameraViewfinderSettings settings = camera->viewfinderSettings();
-  settings.setResolution(QSize(1280, 720));
   camera->setViewfinderSettings(settings);
   camera->setCaptureMode(QCamera::CaptureStillImage);
-  camera->setViewfinder(m_sharedViewFinder);
-  QObject::connect(m_sharedViewFinder, SIGNAL(frameReady(QImage)), this, SLOT(showVedeoFrame(QImage)));
 
 }
 
@@ -44,47 +49,22 @@ void CameraModule::startCamera() {
 
 void CameraModule::stopCamera() {
   camera->stop();
-  disconnect(m_sharedViewFinder, SIGNAL(frameReady(QImage)), this, SLOT(showVedeoFrame(QImage)));
 }
 
-void CameraModule::captureJustNecessaryImage(SpectrPosition specPos) {
-  m_sharedViewFinder->setIsSaveNecessaryImage(true);
-  //emit necessarySaveFrame(specPos);
+void CameraModule::mayBeShowCamera(bool is_show) {
+  if (is_show) {
+    m_view_finder->show();
+  } else {
+    m_view_finder->hide();
+  }
+}
+
+void CameraModule::imageWasCaptured(int id, const QImage &preview)
+{
+    qDebug()<<"image size:"<<preview.size();
+    auto clip = QGuiApplication::clipboard();
+    clip->setImage(preview);
 }
 
 
-void CameraModule::showVedeoFrame(QImage vframe) {
-  m_labelVideo->setPixmap(QPixmap::fromImage(vframe));
-}
 
-void CameraModule::changeGpsStamp(QString gpsCoordinate) {
-  m_sharedViewFinder->setGpsCoordinate(gpsCoordinate);
-}
-
-void CameraModule::setRecordFormat(const QString& value) {
-  m_sharedViewFinder->setSaveFormat(value);
-}
-
-void CameraModule::setFieldOfView(FieldOfViewJustCoord fov) {
-  m_sharedViewFinder->setFieldOfView(fov);
-}
-
-void CameraModule::setSleepDuration(int value) {
-  frameSleep = value;
-}
-
-void CameraModule::setRecordingFolder(QString value) {
-  QString cameraFolder = value;
-  cameraFolder.append("/camera");
-  QDir dir(value);
-  dir.mkdir(cameraFolder);
-  m_sharedViewFinder->setRecordingFolder(cameraFolder);
-}
-
-void CameraModule::setIsSave(bool value) {
-  if (m_sharedViewFinder->getSaveFormat().contains("AVI") && value)
-    m_sharedViewFinder->startMakingAviFile();
-  if (m_sharedViewFinder->getSaveFormat().contains("AVI") && !value)
-    m_sharedViewFinder->stopMakingAviFile();
-  m_sharedViewFinder->setIsSave(value);
-}

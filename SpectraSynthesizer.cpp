@@ -17,6 +17,7 @@
 #include "QClipboard"
 
 
+
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 const char power_dir[] = "diods_tracker";
@@ -32,6 +33,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_is_stm_spectr_update = true;
   m_is_stm_spectrometr_connected = false;
   m_is_diods_arduino_connected = false;
+  m_camera_module = new CameraModule;
+  connect(ui->action_show_camera,SIGNAL(triggered(bool)),m_camera_module,SLOT(mayBeShowCamera(bool)));
+  connect(m_camera_module,&CameraModule::cameraWindowClosed,[this](){ui->action_show_camera->setChecked(false);});
   QrcFilesRestorer::restoreFilesFromQrc(":/");
   db_json::getJsonObjectFromFile("etalons.json", m_etalons);
   loadEtalons();
@@ -228,12 +232,19 @@ void SpectraSynthesizer::readStmData() {
   QVector<double> channels;
   double max = 0;
   auto current_etalon_max = m_etalons_maximums[ui->comboBox_etalons->currentText()];
+  double average_black = 0.0;
+  int black_sum = 0;
+  int black_array_size = sizeof(spectrumData.black1);
+  for (int i = 0; i < black_array_size; ++i) {
+    black_sum += spectrumData.black1[i];
+  }
+  average_black = (double)black_sum / (double)black_array_size;
   switch (m_view) {
     case view::PVD_AZP:
       // PVD_AZP case
       for (size_t i = 0; i < spectr_values_size; ++i) {
         channels.push_back(i + 1);
-        values.push_back(spectrumData.spectrum[i]);
+        values.push_back(spectrumData.spectrum[i] - average_black);
         if (max < spectrumData.spectrum[i])
           max = spectrumData.spectrum[i];
       };
@@ -244,7 +255,7 @@ void SpectraSynthesizer::readStmData() {
         auto wave = m_pvd_calibr["wave"].toArray()[i].toDouble();
         if (wave < 400)
           continue;
-        auto value = m_pvd_calibr["bright"].toArray()[i].toDouble() * spectrumData.spectrum[i];
+        auto value = m_pvd_calibr["bright"].toArray()[i].toDouble() * (spectrumData.spectrum[i] - average_black);
         channels.push_back(wave);
         values.push_back(value);
         if (max < value) {
@@ -262,7 +273,7 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
         auto index = m_short_pvd_grid_indexes[i];
         auto wave = m_pvd_calibr["wave"].toArray()[index].toDouble();
-        auto value = m_pvd_calibr["bright"].toArray()[index].toDouble() * spectrumData.spectrum[index];
+        auto value = m_pvd_calibr["bright"].toArray()[index].toDouble() * (spectrumData.spectrum[index] - average_black);
         channels.push_back(wave);
         values.push_back(value);
         if (max < value) {

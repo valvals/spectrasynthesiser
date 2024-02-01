@@ -12,47 +12,46 @@
 #include <QImage>
 #include <Windows.h>
 #include <QThread>
-#include "QSharedViewfinder.h"
+#include <QCloseEvent>
 
+class CameraViewfinder:public QCameraViewfinder{
+   Q_OBJECT
+protected:
+    void closeEvent(QCloseEvent *event) override{
+    emit camera_window_closed();
+    event->accept();
+    };
+signals:
+    void camera_window_closed();
+};
 
 
 class CameraModule: public QObject {
   Q_OBJECT
  public:
-  CameraModule(QLabel* obzorVideo, QString recordFolder, QString format, FieldOfViewJustCoord fov);
+  CameraModule();
   ~CameraModule();
 
   void setIsSave(bool value);
   void setRecordingFolder(QString value);
   void setSleepDuration(int value);
   void setRecordFormat(const QString& value);
-  void setFieldOfView(FieldOfViewJustCoord fov);
   void changeGpsStamp(QString gpsCoordinate);
 
- public slots:
+ private slots:
   void setCamera(const QCameraInfo& cameraInfo);
   void startCamera();
   void stopCamera();
-  void captureJustNecessaryImage(SpectrPosition);
+  void mayBeShowCamera(bool is_show);
+  void imageWasCaptured(int id, const QImage &preview);
 
- private slots:
-  void showVedeoFrame(QImage vframe);
-
-
- signals:
-  void send_image(const QImage&);
-  void request_next_frame_from_gui();
-  void necessarySaveFrame(SpectrPosition);
+signals:
+  void cameraWindowClosed();
 
  private:
-  QFile* file;
-  QDir default_dir;
   QCamera* camera;
-  QLabel* m_labelVideo;
-  QThread m_viewFinderThread;
-  QSharedViewFinder* m_sharedViewFinder;                    //!< Объект для обработки изображения с камеры
-  QString path_for_saving_camera_data;
-  int frameSleep;
+  CameraViewfinder* m_view_finder;
+  QCameraImageCapture* m_image_capture;
 
 };
 

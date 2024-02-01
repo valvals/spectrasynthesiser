@@ -6,6 +6,7 @@ RC_FILE = recource.rc
 TARGET = spectrasynthesizer
 
 SOURCES += \
+    CameraModule.cpp \
     DBJson.cpp \
     QrcFilesRestorer.cpp \
     debug_console.cpp \
@@ -15,6 +16,7 @@ SOURCES += \
     style_sheets.cpp
 
 HEADERS += \
+    CameraModule.h \
     DBJson.h \
     QrcFilesRestorer.h \
     SpectraSynthesizer.h \

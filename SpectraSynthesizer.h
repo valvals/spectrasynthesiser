@@ -11,6 +11,7 @@
 #include "debug_console.h"
 #include "QElapsedTimer"
 #include "qcustomplot.h"
+#include "CameraModule.h"
 
 
 const uint16_t spectr_values_size = 3648;
@@ -104,6 +105,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<double> m_power_ticks;
   QVector<QString> m_power_labels;
   QCustomPlot* m_hours_stat_plot;
+  CameraModule* m_camera_module;
   void sendDataToComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);
