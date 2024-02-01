@@ -14,15 +14,15 @@
 #include <QThread>
 #include <QCloseEvent>
 
-class CameraViewfinder:public QCameraViewfinder{
-   Q_OBJECT
-protected:
-    void closeEvent(QCloseEvent *event) override{
+class CameraViewfinder: public QCameraViewfinder {
+  Q_OBJECT
+ protected:
+  void closeEvent(QCloseEvent* event) override {
     emit camera_window_closed();
     event->accept();
-    };
-signals:
-    void camera_window_closed();
+  };
+ signals:
+  void camera_window_closed();
 };
 
 
@@ -43,9 +43,9 @@ class CameraModule: public QObject {
   void startCamera();
   void stopCamera();
   void mayBeShowCamera(bool is_show);
-  void imageWasCaptured(int id, const QImage &preview);
+  void imageWasCaptured(int id, const QImage& preview);
 
-signals:
+ signals:
   void cameraWindowClosed();
 
  private:

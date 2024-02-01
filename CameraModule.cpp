@@ -22,9 +22,9 @@ CameraModule::CameraModule(): camera(nullptr) {
   m_view_finder->addAction(action_capture);
   setCamera(QCameraInfo::defaultCamera());
   startCamera();
-  connect(m_view_finder,SIGNAL(camera_window_closed()),SIGNAL(cameraWindowClosed()));
-  connect(action_capture,SIGNAL(triggered()),m_image_capture,SLOT(capture()));
-  connect(m_image_capture,SIGNAL(imageCaptured(int, const QImage&)),SLOT(imageWasCaptured(int, const QImage&)));
+  connect(m_view_finder, SIGNAL(camera_window_closed()), SIGNAL(cameraWindowClosed()));
+  connect(action_capture, SIGNAL(triggered()), m_image_capture, SLOT(capture()));
+  connect(m_image_capture, SIGNAL(imageCaptured(int, const QImage&)), SLOT(imageWasCaptured(int, const QImage&)));
 }
 
 CameraModule::~CameraModule() {
@@ -59,11 +59,10 @@ void CameraModule::mayBeShowCamera(bool is_show) {
   }
 }
 
-void CameraModule::imageWasCaptured(int id, const QImage &preview)
-{
-    qDebug()<<"image size:"<<preview.size();
-    auto clip = QGuiApplication::clipboard();
-    clip->setImage(preview);
+void CameraModule::imageWasCaptured(int id, const QImage& preview) {
+  qDebug() << "image size:" << preview.size();
+  auto clip = QGuiApplication::clipboard();
+  clip->setImage(preview);
 }
 
 

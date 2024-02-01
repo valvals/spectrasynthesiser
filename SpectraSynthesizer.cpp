@@ -34,8 +34,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_is_stm_spectrometr_connected = false;
   m_is_diods_arduino_connected = false;
   m_camera_module = new CameraModule;
-  connect(ui->action_show_camera,SIGNAL(triggered(bool)),m_camera_module,SLOT(mayBeShowCamera(bool)));
-  connect(m_camera_module,&CameraModule::cameraWindowClosed,[this](){ui->action_show_camera->setChecked(false);});
+  connect(ui->action_show_camera, SIGNAL(triggered(bool)), m_camera_module, SLOT(mayBeShowCamera(bool)));
+  connect(m_camera_module, &CameraModule::cameraWindowClosed, [this]() {ui->action_show_camera->setChecked(false);});
   QrcFilesRestorer::restoreFilesFromQrc(":/");
   db_json::getJsonObjectFromFile("etalons.json", m_etalons);
   loadEtalons();
