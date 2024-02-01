@@ -1,4 +1,4 @@
-QT += core gui serialport printsupport widgets
+QT += core gui serialport printsupport widgets multimedia multimediawidgets
 
 CONFIG += c++17
 

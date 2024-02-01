@@ -269,8 +269,8 @@ void SpectraSynthesizer::readStmData() {
           max = value;
         }
       };
-      if(max<current_etalon_max){
-          max=current_etalon_max;
+      if (max < current_etalon_max) {
+        max = current_etalon_max;
       }
       break;
   }
@@ -479,13 +479,13 @@ void SpectraSynthesizer::loadEtalons() {
     ui->comboBox_etalons->addItem(object_name);
     auto etalon = m_etalons[object_name].toArray();
     double max = 0;
-    for(int j=0;j<etalon.size();++j){
-       if(etalon[j].toDouble()>max){
-          max =  etalon[j].toDouble();
-       }
+    for (int j = 0; j < etalon.size(); ++j) {
+      if (etalon[j].toDouble() > max) {
+        max =  etalon[j].toDouble();
+      }
     }
-    m_etalons_maximums.insert(object_name,max);
-    qDebug()<<object_name<<max;
+    m_etalons_maximums.insert(object_name, max);
+    qDebug() << object_name << max;
   }
   showCurrentEtalon();
 }
