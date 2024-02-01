@@ -71,7 +71,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->graph(1)->setPen(graphPenEtalon);
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
-
+  m_serial_mira = new QSerialPort;
   if (!db_json::getJsonObjectFromFile("config.json", m_json_config)) {
     qDebug() << "Config file was not found on the disk...";
     db_json::getJsonObjectFromFile(":/config.json", m_json_config);
@@ -98,6 +98,13 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_serial_stm_spectrometr->waitForBytesWritten(1000);
       m_is_stm_spectrometr_connected = true;
     }
+    if(available_ports[i].description() == "USB-SERIAL CH340"){
+
+        m_serial_mira->setPort(available_ports[i]);
+        m_serial_mira->open(QIODevice::ReadWrite);
+        qDebug() << available_ports[i].description() << available_ports[i].portName();
+    }
+
   }
   m_sliders_previous_values.reserve(m_pins_json_array.size());
   m_elapsed_timers.reserve(m_pins_json_array.size());

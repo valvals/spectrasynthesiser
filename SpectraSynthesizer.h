@@ -97,6 +97,7 @@ class SpectraSynthesizer : public QMainWindow {
   QHash<QString, int> lambdas_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
+  QSerialPort* m_serial_mira;
   QSerialPortInfo m_serial_port_info;
   QTimer m_timer_water_cooler_warning;
   QCustomPlot* m_power_stat_plot;
