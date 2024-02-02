@@ -100,9 +100,10 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     }
     if(available_ports[i].description() == "USB-SERIAL CH340"){
 
-        m_serial_mira->setPort(available_ports[i]);
-        m_serial_mira->open(QIODevice::ReadWrite);
-        qDebug() << available_ports[i].description() << available_ports[i].portName();
+        m_serial_mira->setBaudRate(9600);
+        m_serial_mira->setPortName("COM4");
+        bool isMira = m_serial_mira->open(QIODevice::ReadWrite);
+        qDebug() << "is Mira: "<<isMira;
     }
 
   }
@@ -195,6 +196,21 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_speya_pvd, SIGNAL(triggered()), SLOT(switchSpeya_pvd()));
   ui->action_azp_pvd->setChecked(true);
   switchAZP_pvd();
+
+  /*uchar packet[8] = {0xA5,'b',0,0,0,0,0x5A,97};
+  QByteArray ba;
+  ba.append(static_cast<char>(packet[0]));
+  ba.append(static_cast<char>(packet[1]));
+  ba.append(static_cast<char>(packet[2]));
+  ba.append(static_cast<char>(packet[3]));
+  ba.append(static_cast<char>(packet[4]));
+  ba.append(static_cast<char>(packet[5]));
+  ba.append(static_cast<char>(packet[6]));
+  ba.append(static_cast<char>(packet[7]));
+
+  qDebug()<<"send result: "<<m_serial_mira->write(ba);*/
+  connect(m_serial_mira,SIGNAL(readyRead()),SLOT(readAnswer()));
+  //m_serial_mi
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -748,4 +764,27 @@ void SpectraSynthesizer::on_pushButton_stop_start_update_stm_spectr_toggled(bool
   } else {
     ui->pushButton_stop_start_update_stm_spectr->setText("обновлять");
   }
+}
+
+void SpectraSynthesizer::on_pushButton_clicked()
+{
+    uchar packet[8] = {0xA5,'b',0,0,0,0,0x5A,97};//b-97 f-101
+    QByteArray ba;
+    ba.append(static_cast<char>(packet[0]));
+    ba.append(static_cast<char>(packet[1]));
+    ba.append(static_cast<char>(packet[2]));
+    ba.append(static_cast<char>(packet[3]));
+    ba.append(static_cast<char>(packet[4]));
+    ba.append(static_cast<char>(packet[5]));
+    ba.append(static_cast<char>(packet[6]));
+    ba.append(static_cast<char>(packet[7]));
+
+    qDebug()<<"send result: "<<m_serial_mira->write(ba);
+    m_serial_mira->write(ba);
+}
+
+void SpectraSynthesizer::readAnswer()
+{
+    auto resp = m_serial_mira->readAll();
+    qDebug()<<"response: "<<resp<<resp.size();
 }

@@ -74,7 +74,11 @@ class SpectraSynthesizer : public QMainWindow {
   void on_spinBox_exposition_valueChanged(int arg1);
   void on_pushButton_stop_start_update_stm_spectr_toggled(bool checked);
 
- private:
+  void on_pushButton_clicked();
+
+  void readAnswer();
+
+private:
   Ui::SpectraSynthesizer* ui;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;
