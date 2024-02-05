@@ -67,7 +67,8 @@ class SpectraSynthesizer : public QMainWindow {
   void switchAZP_pvd();
   void switchSpeya_pvd();
   void switchSpeyaEtalon_pvd();
-
+  void mayBeStartCycleMovingMira();
+  void sendDataToMiraComDevice(const uchar* packet, int size);
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
@@ -75,8 +76,9 @@ class SpectraSynthesizer : public QMainWindow {
   void on_pushButton_stop_start_update_stm_spectr_toggled(bool checked);
 
   void on_pushButton_clicked();
+  void readMiraAnswer();
 
-  void readAnswer();
+  void on_pushButton_back_clicked();
 
 private:
   Ui::SpectraSynthesizer* ui;
@@ -111,7 +113,8 @@ private:
   QVector<QString> m_power_labels;
   QCustomPlot* m_hours_stat_plot;
   CameraModule* m_camera_module;
-  void sendDataToComDevice(const QString& command);
+  void sendDataToDiodsComDevice(const QString& command);
+
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);
   void setupPowerStatPlot();

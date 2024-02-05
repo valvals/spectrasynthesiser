@@ -17,11 +17,15 @@
 #include "QClipboard"
 
 
-
+const int mira_packet_size = 8;
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 const char power_dir[] = "diods_tracker";
 const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
+const uchar packetBack[mira_packet_size] = {0xA5,'b',0,0,0,0,0x5A,97};
+const uchar packetForward[mira_packet_size] = {0xA5,'f',0,0,0,0,0x5A,101};
+const uchar packetGetPosition[mira_packet_size] = {0xA5,'l',0,0,0,0,0x5A,107};
+const uchar packetStop[mira_packet_size] = {0xA5,'_',0,0,0,0,0x5A,0};
 
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
@@ -101,7 +105,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     if(available_ports[i].description() == "USB-SERIAL CH340"){
 
         m_serial_mira->setBaudRate(9600);
-        m_serial_mira->setPortName("COM4");
+        m_serial_mira->setPort(available_ports[i]);
         bool isMira = m_serial_mira->open(QIODevice::ReadWrite);
         qDebug() << "is Mira: "<<isMira;
     }
@@ -153,7 +157,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_sliders.push_back(slider);
       connect(slider, &QSlider::sliderReleased, [i, slider, this]() {
         setTooltipForSlider(i, slider->value());
-        sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
+        sendDataToDiodsComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
         ui->comboBox_waves->setCurrentIndex(i);
         ui->spinBox_bright_value->setValue(slider->value());
         savePowerParams(i, slider->value());
@@ -172,9 +176,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_water_cooler_warning, &QAction::triggered, [this]() {
     if (ui->action_water_cooler_warning->isChecked()) {
       m_timer_water_cooler_warning.start(1000);
-      sendDataToComDevice("m\n");
+      sendDataToDiodsComDevice("m\n");
     } else {
-      sendDataToComDevice("u\n");
+      sendDataToDiodsComDevice("u\n");
       m_timer_water_cooler_warning.stop();
       ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
     }
@@ -196,21 +200,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_speya_pvd, SIGNAL(triggered()), SLOT(switchSpeya_pvd()));
   ui->action_azp_pvd->setChecked(true);
   switchAZP_pvd();
-
-  /*uchar packet[8] = {0xA5,'b',0,0,0,0,0x5A,97};
-  QByteArray ba;
-  ba.append(static_cast<char>(packet[0]));
-  ba.append(static_cast<char>(packet[1]));
-  ba.append(static_cast<char>(packet[2]));
-  ba.append(static_cast<char>(packet[3]));
-  ba.append(static_cast<char>(packet[4]));
-  ba.append(static_cast<char>(packet[5]));
-  ba.append(static_cast<char>(packet[6]));
-  ba.append(static_cast<char>(packet[7]));
-
-  qDebug()<<"send result: "<<m_serial_mira->write(ba);*/
-  connect(m_serial_mira,SIGNAL(readyRead()),SLOT(readAnswer()));
-  //m_serial_mi
+  //mayBeStartCycleMovingMira
+  connect(ui->action_cycleMoveMira,SIGNAL(triggered()),SLOT(mayBeStartCycleMovingMira()));
+  connect(m_serial_mira,SIGNAL(readyRead()),SLOT(readMiraAnswer()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -318,7 +310,7 @@ void SpectraSynthesizer::readStmData() {
   }
 }
 
-void SpectraSynthesizer::sendDataToComDevice(const QString& command) {
+void SpectraSynthesizer::sendDataToDiodsComDevice(const QString& command) {
   m_debug_console->add_message("send to diods controller: " + command.toLatin1(), dbg::DIODS_CONTROLLER);
   if (m_serial_diods_controller->isOpen()) {
     m_serial_diods_controller->write(command.toLatin1());
@@ -620,7 +612,7 @@ void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
 
 void SpectraSynthesizer::reset_all_diods_to_zero() {
 
-  sendDataToComDevice("f\n");
+  sendDataToDiodsComDevice("f\n");
   for (int i = 0; i < m_sliders.size(); ++i) {
     if (m_sliders[i]->value() > 1) {
       savePowerParams(i, 1);
@@ -638,7 +630,7 @@ void SpectraSynthesizer::on_pushButton_apply_clicked() {
   auto value = ui->spinBox_bright_value->value();
   m_sliders[index]->setValue(value);
   setTooltipForSlider(index, value);
-  sendDataToComDevice(QString("a%1_%2\n").arg(QString::number(index + 1), QString::number(value)));
+  sendDataToDiodsComDevice(QString("a%1_%2\n").arg(QString::number(index + 1), QString::number(value)));
 }
 
 void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString& arg1) {
@@ -748,6 +740,8 @@ void SpectraSynthesizer::switchSpeyaEtalon_pvd() {
   ui->widget_plot->xAxis->setLabel("длина волны (нм)");
 }
 
+
+
 void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1) {
   Q_UNUSED(arg1)
   if (!m_is_stm_spectrometr_connected)
@@ -766,25 +760,68 @@ void SpectraSynthesizer::on_pushButton_stop_start_update_stm_spectr_toggled(bool
   }
 }
 
-void SpectraSynthesizer::on_pushButton_clicked()
-{
-    uchar packet[8] = {0xA5,'b',0,0,0,0,0x5A,97};//b-97 f-101
-    QByteArray ba;
-    ba.append(static_cast<char>(packet[0]));
-    ba.append(static_cast<char>(packet[1]));
-    ba.append(static_cast<char>(packet[2]));
-    ba.append(static_cast<char>(packet[3]));
-    ba.append(static_cast<char>(packet[4]));
-    ba.append(static_cast<char>(packet[5]));
-    ba.append(static_cast<char>(packet[6]));
-    ba.append(static_cast<char>(packet[7]));
-
-    qDebug()<<"send result: "<<m_serial_mira->write(ba);
-    m_serial_mira->write(ba);
+namespace{
+uchar getCS(const uchar* data,int size){
+ uchar CS = 0;
+    for(int i=0;i<size-1;++i){
+   CS+=data[i];
+ }
+    return CS;
+}
 }
 
-void SpectraSynthesizer::readAnswer()
+void SpectraSynthesizer::sendDataToMiraComDevice(const uchar *packet, int size)
+{
+    QByteArray ba;
+    for(int i=0;i<size;++i){
+      ba.append(static_cast<char>(packet[i]));
+    }
+    m_serial_mira->write(ba);
+    m_serial_mira->waitForBytesWritten();
+}
+
+void SpectraSynthesizer::readMiraAnswer()
 {
     auto resp = m_serial_mira->readAll();
     qDebug()<<"response: "<<resp<<resp.size();
+    Q_ASSERT(resp.size() >= 8);
+    if(resp[1] == 'l'){
+        QByteArray value;
+        value.append(resp[2]);
+        byte flag = value[0];
+        qDebug()<<"flag: "<<flag;
+        if(ui->action_cycleMoveMira->isChecked()){
+           if(flag==2){
+               sendDataToMiraComDevice(packetForward,mira_packet_size);
+           }else if(flag==1){
+               sendDataToMiraComDevice(packetForward,mira_packet_size);
+           }else if(flag==0){
+               sendDataToMiraComDevice(packetBack,mira_packet_size);
+           }else if(flag==3){
+           // TODO warning Switches were broken
+           }
+        }
+    }
+}
+
+void SpectraSynthesizer::mayBeStartCycleMovingMira()
+{
+  auto isMiraChecked = ui->action_cycleMoveMira->isChecked();
+  qDebug()<<"Mira is checked: "<<isMiraChecked;
+  if(!m_serial_mira->isOpen()){return;}
+  if(!isMiraChecked){
+      sendDataToMiraComDevice(packetStop,mira_packet_size);
+      return;
+  }
+  sendDataToMiraComDevice(packetGetPosition,mira_packet_size);
+}
+
+void SpectraSynthesizer::on_pushButton_back_clicked()
+{
+    sendDataToMiraComDevice(packetBack,mira_packet_size);
+}
+
+void SpectraSynthesizer::on_pushButton_clicked()
+{
+    sendDataToMiraComDevice(packetForward,mira_packet_size);
 }

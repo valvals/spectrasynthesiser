@@ -195,7 +195,14 @@ color: rgb(0, 170, 0);</string>
       <item row="0" column="3">
        <widget class="QPushButton" name="pushButton">
         <property name="text">
-         <string>PushButton</string>
+         <string>Forward</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QPushButton" name="pushButton_back">
+        <property name="text">
+         <string>Back</string>
         </property>
        </widget>
       </item>
@@ -260,6 +267,12 @@ color: rgb(0, 170, 0);</string>
     </property>
     <addaction name="action_show_camera"/>
    </widget>
+   <widget class="QMenu" name="menu_8">
+    <property name="title">
+     <string>Мира</string>
+    </property>
+    <addaction name="action_cycleMoveMira"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menu_4"/>
    <addaction name="menu_3"/>
@@ -267,6 +280,7 @@ color: rgb(0, 170, 0);</string>
    <addaction name="menu_5"/>
    <addaction name="menu_6"/>
    <addaction name="menu_7"/>
+   <addaction name="menu_8"/>
   </widget>
   <action name="action_show_debug_console">
    <property name="text">
@@ -347,6 +361,14 @@ color: rgb(0, 170, 0);</string>
    </property>
    <property name="text">
     <string>Показать окно камеры</string>
+   </property>
+  </action>
+  <action name="action_cycleMoveMira">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Непрерывное движение</string>
    </property>
   </action>
  </widget>
