@@ -46,24 +46,8 @@ color: rgb(0, 170, 0);</string>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="4" rowspan="2">
-       <widget class="QLabel" name="label">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>длина волны</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="6" rowspan="3">
-       <widget class="QPushButton" name="pushButton_apply">
+      <item row="0" column="1" rowspan="3">
+       <widget class="QPushButton" name="pushButton_stop_start_update_stm_spectr">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -71,11 +55,33 @@ color: rgb(0, 170, 0);</string>
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Применить</string>
+         <string>пауза</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="0" column="1" rowspan="3">
+      <item row="0" column="4" rowspan="3">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>228</width>
+          <height>17</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="2" rowspan="3">
        <widget class="QSpinBox" name="spinBox_exposition">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -102,7 +108,36 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="4">
+      <item row="0" column="5" rowspan="2">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>длина волны</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7" rowspan="3">
+       <widget class="QPushButton" name="pushButton_apply">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Применить</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="5">
        <widget class="QComboBox" name="comboBox_waves">
         <property name="minimumSize">
          <size>
@@ -112,52 +147,7 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="2" rowspan="3">
-       <widget class="QComboBox" name="comboBox_etalons">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5" rowspan="2">
-       <widget class="QLabel" name="label_value">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>значение</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" rowspan="3">
-       <widget class="QPushButton" name="pushButton_stop_start_update_stm_spectr">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>пауза</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="5">
+      <item row="2" column="6">
        <widget class="QSpinBox" name="spinBox_bright_value">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -176,21 +166,41 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
+      <item row="0" column="6" rowspan="2">
+       <widget class="QLabel" name="label_value">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>значение</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="3" rowspan="3">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+       <widget class="QComboBox" name="comboBox_etalons">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="3">
+       <widget class="QComboBox" name="comboBox_spectrometr_type">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>228</width>
-          <height>17</height>
-         </size>
-        </property>
-       </spacer>
+       </widget>
       </item>
      </layout>
     </item>
@@ -322,7 +332,7 @@ color: rgb(0, 170, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>АЦП ПВД</string>
+    <string>АЦП</string>
    </property>
   </action>
   <action name="action_speya_pvd">
@@ -330,7 +340,7 @@ color: rgb(0, 170, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>СПЭЯ ПВД</string>
+    <string>СПЭЯ</string>
    </property>
   </action>
   <action name="action_etalon_pvd">
@@ -338,7 +348,7 @@ color: rgb(0, 170, 0);</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Эталон - ПВД</string>
+    <string>Эталон</string>
    </property>
   </action>
   <action name="action_show_camera">

@@ -8,6 +8,8 @@ TARGET = spectrasynthesizer
 SOURCES += \
     CameraModule.cpp \
     DBJson.cpp \
+    HamamatsuApi.cpp \
+    OrminDevice.cpp \
     QrcFilesRestorer.cpp \
     debug_console.cpp \
     main.cpp \
@@ -18,6 +20,8 @@ SOURCES += \
 HEADERS += \
     CameraModule.h \
     DBJson.h \
+    HamamatsuApi.h \
+    OrminDevice.h \
     QrcFilesRestorer.h \
     SpectraSynthesizer.h \
     Version.h \
