@@ -49,6 +49,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     dir.mkdir(power_dir);
   }
   this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
+  ui->comboBox_spectrometr_type->addItems({"ПВД","ПИК"});
   QAction* copy_stm_spectr = new QAction;
   copy_stm_spectr->setText("копировать в буфер спектр");
   QAction* copy_etalon_spectr = new QAction;
@@ -200,9 +201,16 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_speya_pvd, SIGNAL(triggered()), SLOT(switchSpeya_pvd()));
   ui->action_azp_pvd->setChecked(true);
   switchAZP_pvd();
-  //mayBeStartCycleMovingMira
+
   connect(ui->action_cycleMoveMira, SIGNAL(triggered()), SLOT(mayBeStartCycleMovingMira()));
   connect(m_serial_mira, SIGNAL(readyRead()), SLOT(readMiraAnswer()));
+
+  m_ormin_device = new OrminDevice(0);
+  connect(m_ormin_device,
+          SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
+          SLOT(recieveIrData(QVector<double>, double, double)));
+  emit m_ormin_device->requestSpectr();
+
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -220,6 +228,12 @@ void SpectraSynthesizer::readDiodsData() {
 }
 
 void SpectraSynthesizer::readStmData() {
+
+  if(ui->comboBox_spectrometr_type->currentText()!="ПВД"){
+      m_serial_stm_spectrometr->readAll();
+      return;
+  }
+
   if (m_serial_stm_spectrometr->bytesAvailable() == expo_packet_size) {
     auto expo = m_serial_stm_spectrometr->readAll();
     m_is_stm_exposition_changed = false;
@@ -647,7 +661,11 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> channels,
   ui->widget_plot->xAxis->setRange(channels[0], channels[channels.size() - 1]);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
+  if(ui->comboBox_spectrometr_type->currentText()=="ПВД"){
   QTimer::singleShot(100, this, SLOT(update_stm_spectr()));
+  }else{
+  QTimer::singleShot(100, m_ormin_device, SIGNAL(requestSpectr()));
+  }
 }
 
 void SpectraSynthesizer::changeWidgetState() {
@@ -698,18 +716,15 @@ void SpectraSynthesizer::load_pvd_calibr() {
   int counter = 0;
   Q_ASSERT(wave_array.size() == bright_array.size());
   for (int i = 1; i < wave_array.size(); ++i) {
-    if (m_etalons_grid[counter] > 900)
+    if (m_etalons_grid[counter] > 900){
       break;
-    auto prev_delta = m_etalons_grid[counter] - wave_array[i - 1].toDouble();
+    }
     auto new_delta = m_etalons_grid[counter] - wave_array[i].toDouble();
     if (new_delta > 0) {
-
       continue;
-
     } else {
       ++counter;
       m_short_pvd_grid_indexes.push_back(i);
-      qDebug() << wave_array[i].toDouble();
     }
   }
 }
@@ -798,6 +813,17 @@ void SpectraSynthesizer::readMiraAnswer() {
   }
 }
 
+void SpectraSynthesizer::recieveIrData(QVector<double> sumSpectr,
+                                       double maxValue,
+                                       double minValue) {
+  qDebug() << sumSpectr.size();
+  QVector<double>channels;
+  for(int i=0;i<sumSpectr.size();++i){
+      channels.push_back(i);
+  }
+  show_stm_spectr(channels,sumSpectr,maxValue);
+}
+
 void SpectraSynthesizer::mayBeStartCycleMovingMira() {
   auto isMiraChecked = ui->action_cycleMoveMira->isChecked();
   qDebug() << "Mira is checked: " << isMiraChecked;
@@ -812,3 +838,12 @@ void SpectraSynthesizer::mayBeStartCycleMovingMira() {
 }
 
 
+void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const QString &arg1)
+{
+
+  if(arg1 == "ПВД"){
+      update_stm_spectr();
+  }else{
+      m_ormin_device->requestSpectr();
+  }
+}

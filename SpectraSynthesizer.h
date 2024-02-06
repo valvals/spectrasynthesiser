@@ -12,6 +12,7 @@
 #include "QElapsedTimer"
 #include "qcustomplot.h"
 #include "CameraModule.h"
+#include "OrminDevice.h"
 
 
 const uint16_t spectr_values_size = 3648;
@@ -52,7 +53,9 @@ class SpectraSynthesizer : public QMainWindow {
  private slots:
   void readDiodsData();
   void readStmData();
-  void show_stm_spectr(QVector<double> channels, QVector<double> data, double max);
+  void show_stm_spectr(QVector<double> channels,
+                       QVector<double> data,
+                       double max);
   void changeWidgetState();
   void updatePowerStat();
   void copyPowerStatToClipboard();
@@ -70,14 +73,18 @@ class SpectraSynthesizer : public QMainWindow {
   void mayBeStartCycleMovingMira();
   void sendDataToMiraComDevice(const uchar* packet, int size);
   void readMiraAnswer();
+  void recieveIrData(QVector<double> sumSpectr,
+                     double maxValue,
+                     double minValue);
+
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
   void on_spinBox_exposition_valueChanged(int arg1);
   void on_pushButton_stop_start_update_stm_spectr_toggled(bool checked);
+  void on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1);
 
-
- private:
+private:
   Ui::SpectraSynthesizer* ui;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;
@@ -89,6 +96,7 @@ class SpectraSynthesizer : public QMainWindow {
   QJsonObject m_etalons;
   QHash<QString, double> m_etalons_maximums;
   QJsonObject m_pvd_calibr;
+  QJsonObject m_pir_calibr;
   QJsonObject m_json_config;
   QJsonArray m_power_tracker;
   QJsonArray m_pins_json_array;
@@ -102,6 +110,7 @@ class SpectraSynthesizer : public QMainWindow {
   QSerialPort* m_serial_stm_spectrometr;
   QSerialPort* m_serial_mira;
   QSerialPortInfo m_serial_port_info;
+  OrminDevice* m_ormin_device;
   QTimer m_timer_water_cooler_warning;
   QCustomPlot* m_power_stat_plot;
   QVector<QCPBars*> m_power_bars;
