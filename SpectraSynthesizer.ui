@@ -46,13 +46,32 @@ color: rgb(0, 170, 0);</string>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="2" rowspan="3">
-       <widget class="QComboBox" name="comboBox_etalons">
+      <item row="0" column="4" rowspan="2">
+       <widget class="QLabel" name="label">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="text">
+         <string>длина волны</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="6" rowspan="3">
+       <widget class="QPushButton" name="pushButton_apply">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Применить</string>
         </property>
        </widget>
       </item>
@@ -83,42 +102,27 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="6">
-       <widget class="QSpinBox" name="spinBox_bright_value">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+      <item row="2" column="4">
+       <widget class="QComboBox" name="comboBox_waves">
         <property name="minimumSize">
          <size>
           <width>100</width>
           <height>0</height>
          </size>
         </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
        </widget>
       </item>
-      <item row="0" column="5" rowspan="2">
-       <widget class="QLabel" name="label">
+      <item row="0" column="2" rowspan="3">
+       <widget class="QComboBox" name="comboBox_etalons">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="text">
-         <string>длина волны</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
        </widget>
       </item>
-      <item row="0" column="6" rowspan="2">
+      <item row="0" column="5" rowspan="2">
        <widget class="QLabel" name="label_value">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -131,45 +135,6 @@ color: rgb(0, 170, 0);</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4" rowspan="3">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>228</width>
-          <height>17</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="7" rowspan="3">
-       <widget class="QPushButton" name="pushButton_apply">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Применить</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="5">
-       <widget class="QComboBox" name="comboBox_waves">
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
         </property>
        </widget>
       </item>
@@ -192,19 +157,40 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>Forward</string>
+      <item row="2" column="5">
+       <widget class="QSpinBox" name="spinBox_bright_value">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="minimum">
+         <number>1</number>
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
-       <widget class="QPushButton" name="pushButton_back">
-        <property name="text">
-         <string>Back</string>
+      <item row="0" column="3" rowspan="3">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-       </widget>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>228</width>
+          <height>17</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </item>

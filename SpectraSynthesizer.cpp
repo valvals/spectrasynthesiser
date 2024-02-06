@@ -22,10 +22,10 @@ const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
 const char power_dir[] = "diods_tracker";
 const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
-const uchar packetBack[mira_packet_size] = {0xA5,'b',0,0,0,0,0x5A,97};
-const uchar packetForward[mira_packet_size] = {0xA5,'f',0,0,0,0,0x5A,101};
-const uchar packetGetPosition[mira_packet_size] = {0xA5,'l',0,0,0,0,0x5A,107};
-const uchar packetStop[mira_packet_size] = {0xA5,'_',0,0,0,0,0x5A,0};
+const uchar packetBack[mira_packet_size] = {0xA5, 'b', 0, 0, 0, 0, 0x5A, 97};
+const uchar packetForward[mira_packet_size] = {0xA5, 'f', 0, 0, 0, 0, 0x5A, 101};
+const uchar packetGetPosition[mira_packet_size] = {0xA5, 'l', 0, 0, 0, 0, 0x5A, 107};
+const uchar packetStop[mira_packet_size] = {0xA5, '_', 0, 0, 0, 0, 0x5A, 0};
 
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
@@ -102,12 +102,12 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_serial_stm_spectrometr->waitForBytesWritten(1000);
       m_is_stm_spectrometr_connected = true;
     }
-    if(available_ports[i].description() == "USB-SERIAL CH340"){
+    if (available_ports[i].description() == "USB-SERIAL CH340") {
 
-        m_serial_mira->setBaudRate(9600);
-        m_serial_mira->setPort(available_ports[i]);
-        bool isMira = m_serial_mira->open(QIODevice::ReadWrite);
-        qDebug() << "is Mira: "<<isMira;
+      m_serial_mira->setBaudRate(9600);
+      m_serial_mira->setPort(available_ports[i]);
+      bool isMira = m_serial_mira->open(QIODevice::ReadWrite);
+      qDebug() << "is Mira: " << isMira;
     }
 
   }
@@ -201,8 +201,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->action_azp_pvd->setChecked(true);
   switchAZP_pvd();
   //mayBeStartCycleMovingMira
-  connect(ui->action_cycleMoveMira,SIGNAL(triggered()),SLOT(mayBeStartCycleMovingMira()));
-  connect(m_serial_mira,SIGNAL(readyRead()),SLOT(readMiraAnswer()));
+  connect(ui->action_cycleMoveMira, SIGNAL(triggered()), SLOT(mayBeStartCycleMovingMira()));
+  connect(m_serial_mira, SIGNAL(readyRead()), SLOT(readMiraAnswer()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -640,7 +640,9 @@ void SpectraSynthesizer::on_comboBox_waves_currentTextChanged(const QString& arg
   ui->label_value->setToolTip(QString("макс: %1").arg(QString::number(max)));
 }
 
-void SpectraSynthesizer::show_stm_spectr(QVector<double> channels, QVector<double> data, double max) {
+void SpectraSynthesizer::show_stm_spectr(QVector<double> channels,
+                                         QVector<double> data,
+                                         double max) {
   ui->widget_plot->graph(0)->setData(channels, data);
   ui->widget_plot->xAxis->setRange(channels[0], channels[channels.size() - 1]);
   ui->widget_plot->yAxis->setRange(0, max);
@@ -740,8 +742,6 @@ void SpectraSynthesizer::switchSpeyaEtalon_pvd() {
   ui->widget_plot->xAxis->setLabel("длина волны (нм)");
 }
 
-
-
 void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1) {
   Q_UNUSED(arg1)
   if (!m_is_stm_spectrometr_connected)
@@ -760,68 +760,55 @@ void SpectraSynthesizer::on_pushButton_stop_start_update_stm_spectr_toggled(bool
   }
 }
 
-namespace{
-uchar getCS(const uchar* data,int size){
- uchar CS = 0;
-    for(int i=0;i<size-1;++i){
-   CS+=data[i];
- }
-    return CS;
-}
-}
-
-void SpectraSynthesizer::sendDataToMiraComDevice(const uchar *packet, int size)
-{
-    QByteArray ba;
-    for(int i=0;i<size;++i){
-      ba.append(static_cast<char>(packet[i]));
-    }
-    m_serial_mira->write(ba);
-    m_serial_mira->waitForBytesWritten();
-}
-
-void SpectraSynthesizer::readMiraAnswer()
-{
-    auto resp = m_serial_mira->readAll();
-    qDebug()<<"response: "<<resp<<resp.size();
-    Q_ASSERT(resp.size() >= 8);
-    if(resp[1] == 'l'){
-        QByteArray value;
-        value.append(resp[2]);
-        byte flag = value[0];
-        qDebug()<<"flag: "<<flag;
-        if(ui->action_cycleMoveMira->isChecked()){
-           if(flag==2){
-               sendDataToMiraComDevice(packetForward,mira_packet_size);
-           }else if(flag==1){
-               sendDataToMiraComDevice(packetForward,mira_packet_size);
-           }else if(flag==0){
-               sendDataToMiraComDevice(packetBack,mira_packet_size);
-           }else if(flag==3){
-           // TODO warning Switches were broken
-           }
-        }
-    }
-}
-
-void SpectraSynthesizer::mayBeStartCycleMovingMira()
-{
-  auto isMiraChecked = ui->action_cycleMoveMira->isChecked();
-  qDebug()<<"Mira is checked: "<<isMiraChecked;
-  if(!m_serial_mira->isOpen()){return;}
-  if(!isMiraChecked){
-      sendDataToMiraComDevice(packetStop,mira_packet_size);
-      return;
+uchar SpectraSynthesizer::getCS(const uchar* data, int size) {
+  uchar CS = 0;
+  for (int i = 0; i < size - 1; ++i) {
+    CS += data[i];
   }
-  sendDataToMiraComDevice(packetGetPosition,mira_packet_size);
+  return CS;
 }
 
-void SpectraSynthesizer::on_pushButton_back_clicked()
-{
-    sendDataToMiraComDevice(packetBack,mira_packet_size);
+void SpectraSynthesizer::sendDataToMiraComDevice(const uchar* packet, int size) {
+  QByteArray ba;
+  for (int i = 0; i < size; ++i) {
+    ba.append(static_cast<char>(packet[i]));
+  }
+  m_serial_mira->write(ba);
+  m_serial_mira->waitForBytesWritten();
 }
 
-void SpectraSynthesizer::on_pushButton_clicked()
-{
-    sendDataToMiraComDevice(packetForward,mira_packet_size);
+void SpectraSynthesizer::readMiraAnswer() {
+  auto resp = m_serial_mira->readAll();
+  Q_ASSERT(resp.size() >= 8);
+  if (resp[1] == 'l') {
+    QByteArray value;
+    value.append(resp[2]);
+    byte flag = value[0];
+    if (ui->action_cycleMoveMira->isChecked()) {
+      if (flag == 2) {
+        sendDataToMiraComDevice(packetForward, mira_packet_size);
+      } else if (flag == 1) {
+        sendDataToMiraComDevice(packetForward, mira_packet_size);
+      } else if (flag == 0) {
+        sendDataToMiraComDevice(packetBack, mira_packet_size);
+      } else if (flag == 3) {
+        // TODO warning Switches were broken
+      }
+    }
+  }
 }
+
+void SpectraSynthesizer::mayBeStartCycleMovingMira() {
+  auto isMiraChecked = ui->action_cycleMoveMira->isChecked();
+  qDebug() << "Mira is checked: " << isMiraChecked;
+  if (!m_serial_mira->isOpen()) {
+    return;
+  }
+  if (!isMiraChecked) {
+    sendDataToMiraComDevice(packetStop, mira_packet_size);
+    return;
+  }
+  sendDataToMiraComDevice(packetGetPosition, mira_packet_size);
+}
+
+
