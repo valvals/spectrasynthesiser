@@ -76,6 +76,7 @@ class SpectraSynthesizer : public QMainWindow {
   void recieveIrData(QVector<double> sumSpectr,
                      double maxValue,
                      double minValue);
+  void showDiodModels();
 
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
@@ -118,6 +119,7 @@ private:
   QVector<double> m_power_ticks;
   QVector<QString> m_power_labels;
   QCustomPlot* m_hours_stat_plot;
+  QCustomPlot* m_diod_models;
   CameraModule* m_camera_module;
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);

@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QDir>
 
 
 namespace {
@@ -39,6 +40,65 @@ bool getJsonObjectFromFile(const QString& path,
     return false;
   }
   file.close();
+
+  // ADD BRIGHT DEPS from file (I will use this code like a draft for creating update module)
+  /*file.setFileName("bright_deps.txt");
+  file.open(QIODevice::ReadOnly|QIODevice::Text);
+  QTextStream qts(&file);
+  QString line;
+  QStringList list;
+  while(qts.readLineInto(&line)){
+     list.append(line);
+  }
+  qDebug()<<"List size: "<<list.size();
+  QStringList waves = list[0].split('\t');
+  QStringList c_coeff = list[1].split('\t');
+  QStringList b_coeff = list[2].split('\t');
+  QStringList a_coeff = list[3].split('\t');
+  auto obj = object["pins_array"].toArray();
+  for(int i=0;i<obj.size();++i){
+      auto element = obj[i].toObject();
+      auto coeffs = obj[i].toObject()["bright_deps"].toObject();
+      element["wave"] = waves[i].toDouble();
+      coeffs["c"] = c_coeff[i].toDouble();
+      coeffs["b"] = b_coeff[i].toDouble();
+      coeffs["a"] = a_coeff[i].toDouble();
+      element["bright_deps"] = coeffs;
+      obj[i] = element;
+  }
+  object["pins_array"] = obj;
+  db_json::saveJsonObjectToFile("test.json",object,QJsonDocument::Indented);*/
+
+  // ADD DIOD MODELS from files (I will use this code like a draft for creating update module)
+  /*QDir dir("diod_models");
+  QStringList models;
+  models = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+  qDebug()<<"models_size: "<<models.size();
+  auto obj = object["pins_array"].toArray();
+  for(int i=0;i<obj.size();++i){
+      auto element = obj[i].toObject();
+      QFile file("diod_models/"+models[i]);
+      file.open(QIODevice::ReadOnly|QIODevice::Text);
+      QTextStream qts(&file);
+      QString line;
+      QStringList values;
+      QJsonObject model;
+      QJsonArray bright_values;
+      QJsonArray model_waves;
+      while(qts.readLineInto(&line)){
+         values = line.split('\t');
+         model_waves.push_back(values[0].toDouble());
+         bright_values.push_back(values[1].toDouble());
+      }
+      model["waves"] = model_waves;
+      model["values"]= bright_values;
+      element["model"] = model;
+      obj[i] = element;
+  }
+  object["pins_array"] = obj;
+  db_json::saveJsonObjectToFile("test.json",object,QJsonDocument::Indented);*/
+
+
   return true;
 }
 

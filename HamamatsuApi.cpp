@@ -57,10 +57,9 @@ BOOL HamamatsuApi::InitInstance() {
 
   m_hCCDdll =::LoadLibrary(L"CCDUSBDCOM01.dll");
   if (m_hCCDdll == nullptr)
-
   {
     DWORD errorMessage = GetLastError();
-    qDebug() << errorMessage;
+    qDebug()<<"Load library error: " << errorMessage;
     return FALSE;
   } else {
 

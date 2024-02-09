@@ -70,6 +70,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
+  m_diod_models = new QCustomPlot;
+
   QPen graphPen(QColor(13, 160, 5));
   ui->widget_plot->graph(0)->setPen(graphPen);
   QPen graphPenEtalon(QColor(255, 255, 0));
@@ -129,7 +131,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       slider->setMaximumHeight(200);
       m_sliders_previous_values[i] = 1;
       QVBoxLayout* vbl = new QVBoxLayout;
-      auto wave = m_pins_json_array[i].toObject().value("wave").toString();
+      auto waveValue = m_pins_json_array[i].toObject().value("wave").toDouble();
+      auto wave = QString::number(qCeil(waveValue));
       ui->comboBox_waves->addItem(wave);
       lambdas_indexes.insert(wave, i);
       auto label = new QLabel(wave);
@@ -204,12 +207,12 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
   connect(ui->action_cycleMoveMira, SIGNAL(triggered()), SLOT(mayBeStartCycleMovingMira()));
   connect(m_serial_mira, SIGNAL(readyRead()), SLOT(readMiraAnswer()));
-
-  m_ormin_device = new OrminDevice(0);
+  connect(ui->action_show_diod_models,SIGNAL(triggered()),SLOT(showDiodModels()));
+  /*m_ormin_device = new OrminDevice(0);
   connect(m_ormin_device,
           SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
-          SLOT(recieveIrData(QVector<double>, double, double)));
-  emit m_ormin_device->requestSpectr();
+          SLOT(recieveIrData(QVector<double>, double, double)));*/
+  //emit m_ormin_device->requestSpectr();
 
 }
 
@@ -846,4 +849,36 @@ void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const 
   }else{
       m_ormin_device->requestSpectr();
   }
+}
+
+void SpectraSynthesizer::showDiodModels()
+{
+    m_diod_models->setMinimumSize(QSize(500,500));
+auto arr = m_json_config["pins_array"].toArray();
+qDebug()<<"show diod models...";
+double max = 0;
+for(int i=0;i<arr.size();++i){
+    m_diod_models->addGraph();
+    auto model = arr[i].toObject()["model"].toObject();
+    auto values = model["values"].toArray();
+    auto waves = model["waves"].toArray();
+    QVector<double>d_values;
+    QVector<double>d_waves;
+
+    Q_ASSERT(values.size() == waves.size());
+    for(int j=0;j<values.size();++j){
+        auto value = values[j].toDouble();
+        if(max<value){
+            max = value;
+        }
+        d_values.push_back(value);
+        d_waves.push_back(waves[j].toDouble());
+    }
+    m_diod_models->graph(i)->setData(d_waves,d_values);
+
+
+}
+m_diod_models->xAxis->setRange(0,1100);
+m_diod_models->yAxis->setRange(0,max);
+m_diod_models->show();
 }

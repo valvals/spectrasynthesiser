@@ -213,7 +213,7 @@ color: rgb(0, 170, 0);</string>
      <x>0</x>
      <y>0</y>
      <width>1478</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -229,6 +229,7 @@ color: rgb(0, 170, 0);</string>
     <addaction name="action_show_power_stat"/>
     <addaction name="action_hours_stat"/>
     <addaction name="action_copy_power_stat_to_buffer"/>
+    <addaction name="action_show_diod_models"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -365,6 +366,11 @@ color: rgb(0, 170, 0);</string>
    </property>
    <property name="text">
     <string>Непрерывное движение</string>
+   </property>
+  </action>
+  <action name="action_show_diod_models">
+   <property name="text">
+    <string>График апаратных функций</string>
    </property>
   </action>
  </widget>
