@@ -56,10 +56,9 @@ void HamamatsuApi::setSensorMode(sensorMode sensorMode) {
 BOOL HamamatsuApi::InitInstance() {
 
   m_hCCDdll =::LoadLibrary(L"CCDUSBDCOM01.dll");
-  if (m_hCCDdll == nullptr)
-  {
+  if (m_hCCDdll == nullptr) {
     DWORD errorMessage = GetLastError();
-    qDebug()<<"Load library error: " << errorMessage;
+    qDebug() << "Load library error: " << errorMessage;
     return FALSE;
   } else {
 

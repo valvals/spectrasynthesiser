@@ -15,6 +15,7 @@
 #include "QFile"
 #include "QDir"
 #include "QClipboard"
+#include "limits"
 
 
 const int mira_packet_size = 8;
@@ -49,7 +50,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     dir.mkdir(power_dir);
   }
   this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
-  ui->comboBox_spectrometr_type->addItems({"ПВД","ПИК"});
+  ui->comboBox_spectrometr_type->addItems({"ПВД", "ПИК"});
   QAction* copy_stm_spectr = new QAction;
   copy_stm_spectr->setText("копировать в буфер спектр");
   QAction* copy_etalon_spectr = new QAction;
@@ -207,7 +208,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
   connect(ui->action_cycleMoveMira, SIGNAL(triggered()), SLOT(mayBeStartCycleMovingMira()));
   connect(m_serial_mira, SIGNAL(readyRead()), SLOT(readMiraAnswer()));
-  connect(ui->action_show_diod_models,SIGNAL(triggered()),SLOT(showDiodModels()));
+  prepareDiodModels();
+  connect(ui->action_show_diod_models, SIGNAL(triggered()), m_diod_models, SLOT(show()));
   /*m_ormin_device = new OrminDevice(0);
   connect(m_ormin_device,
           SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
@@ -232,9 +234,9 @@ void SpectraSynthesizer::readDiodsData() {
 
 void SpectraSynthesizer::readStmData() {
 
-  if(ui->comboBox_spectrometr_type->currentText()!="ПВД"){
-      m_serial_stm_spectrometr->readAll();
-      return;
+  if (ui->comboBox_spectrometr_type->currentText() != "ПВД") {
+    m_serial_stm_spectrometr->readAll();
+    return;
   }
 
   if (m_serial_stm_spectrometr->bytesAvailable() == expo_packet_size) {
@@ -533,6 +535,8 @@ void SpectraSynthesizer::loadEtalons() {
   showCurrentEtalon();
 }
 
+
+
 void SpectraSynthesizer::showCurrentEtalon() {
   if (!m_is_show_etalon)
     return;
@@ -664,10 +668,10 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> channels,
   ui->widget_plot->xAxis->setRange(channels[0], channels[channels.size() - 1]);
   ui->widget_plot->yAxis->setRange(0, max);
   ui->widget_plot->replot();
-  if(ui->comboBox_spectrometr_type->currentText()=="ПВД"){
-  QTimer::singleShot(100, this, SLOT(update_stm_spectr()));
-  }else{
-  QTimer::singleShot(100, m_ormin_device, SIGNAL(requestSpectr()));
+  if (ui->comboBox_spectrometr_type->currentText() == "ПВД") {
+    QTimer::singleShot(100, this, SLOT(update_stm_spectr()));
+  } else {
+    QTimer::singleShot(100, m_ormin_device, SIGNAL(requestSpectr()));
   }
 }
 
@@ -719,7 +723,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
   int counter = 0;
   Q_ASSERT(wave_array.size() == bright_array.size());
   for (int i = 1; i < wave_array.size(); ++i) {
-    if (m_etalons_grid[counter] > 900){
+    if (m_etalons_grid[counter] > 900) {
       break;
     }
     auto new_delta = m_etalons_grid[counter] - wave_array[i].toDouble();
@@ -821,10 +825,10 @@ void SpectraSynthesizer::recieveIrData(QVector<double> sumSpectr,
                                        double minValue) {
   qDebug() << sumSpectr.size();
   QVector<double>channels;
-  for(int i=0;i<sumSpectr.size();++i){
-      channels.push_back(i);
+  for (int i = 0; i < sumSpectr.size(); ++i) {
+    channels.push_back(i);
   }
-  show_stm_spectr(channels,sumSpectr,maxValue);
+  show_stm_spectr(channels, sumSpectr, maxValue);
 }
 
 void SpectraSynthesizer::mayBeStartCycleMovingMira() {
@@ -841,44 +845,63 @@ void SpectraSynthesizer::mayBeStartCycleMovingMira() {
 }
 
 
-void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const QString &arg1)
-{
+void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1) {
 
-  if(arg1 == "ПВД"){
-      update_stm_spectr();
-  }else{
-      m_ormin_device->requestSpectr();
+  if (arg1 == "ПВД") {
+    update_stm_spectr();
+  } else {
+    emit m_ormin_device->requestSpectr();
   }
 }
 
-void SpectraSynthesizer::showDiodModels()
-{
-    m_diod_models->setMinimumSize(QSize(500,500));
-auto arr = m_json_config["pins_array"].toArray();
-qDebug()<<"show diod models...";
-double max = 0;
-for(int i=0;i<arr.size();++i){
+void SpectraSynthesizer::prepareDiodModels() {
+  m_diod_models->setMinimumSize(QSize(500, 500));
+  QLinearGradient gradient(0, 0, 0, 400);
+  gradient.setColorAt(0, QColor(90, 90, 90));
+  gradient.setColorAt(0.38, QColor(105, 105, 105));
+  gradient.setColorAt(1, QColor(70, 70, 70));
+  m_diod_models->setBackground(QBrush(gradient));
+  //m_diod_models->setBackground(QBrush(QColor(64, 66, 68)));
+  auto arr = m_json_config["pins_array"].toArray();
+  double max = 0;
+  double wave_start = MAXUINT;
+  double wave_end = 0;
+  for (int i = 0; i < arr.size(); ++i) {
     m_diod_models->addGraph();
     auto model = arr[i].toObject()["model"].toObject();
     auto values = model["values"].toArray();
     auto waves = model["waves"].toArray();
+    auto color = QColor(arr[i].toObject()["color"].toString());
+    QPen graphPen(color);
+    graphPen.setWidth(2);
+    m_diod_models->graph(i)->setPen(graphPen);
     QVector<double>d_values;
     QVector<double>d_waves;
-
     Q_ASSERT(values.size() == waves.size());
-    for(int j=0;j<values.size();++j){
-        auto value = values[j].toDouble();
-        if(max<value){
-            max = value;
-        }
-        d_values.push_back(value);
-        d_waves.push_back(waves[j].toDouble());
+    for (int j = 0; j < values.size(); ++j) {
+      auto value = values[j].toDouble();
+      if (max < value) {
+        max = value;
+      }
+      d_values.push_back(value);
+      auto wave = waves[j].toDouble();
+      if (wave_start > wave && wave != 0) {
+        wave_start = wave;
+      }
+      if (wave_end < wave) {
+        wave_end = wave;
+      }
+      d_waves.push_back(wave);
     }
-    m_diod_models->graph(i)->setData(d_waves,d_values);
-
-
-}
-m_diod_models->xAxis->setRange(0,1100);
-m_diod_models->yAxis->setRange(0,max);
-m_diod_models->show();
+    m_diod_models->graph(i)->setData(d_waves, d_values);
+  }
+  qDebug() << wave_start << wave_end;
+  m_diod_models->xAxis->setRange(200, 1200);//200 - 1200 looks better then wave_start wave_end
+  m_diod_models->yAxis->setRange(0, max);
+  m_diod_models->yAxis->setLabel("СПЭЯ (Вт/(м3 * ср))");
+  m_diod_models->xAxis->setLabel("длина волны (нм)");
+  m_diod_models->yAxis->setTickLabelColor(Qt::white);
+  m_diod_models->xAxis->setTickLabelColor(Qt::white);
+  m_diod_models->xAxis->setLabelColor(Qt::white);
+  m_diod_models->yAxis->setLabelColor(Qt::white);
 }
