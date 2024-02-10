@@ -31,9 +31,12 @@ QVector<double> fillCenterLines(const QVector<lampInfo>& lamps) {
 }
 
 //! Функция создания эталонного спектра с длинами волн только такими, как длины волн светодиодов
-void createShortEtalon(const QVector<double>& wavesEtalon, const QVector<double>& speyaEtalon,
-                       const QVector<double>& lampCenterWaves, QVector<double>& out_wavesEtalonShort,
-                       QVector<double>& out_speyaEtalonShort,  QVector<double>& out_indexesOfWavesEtalonShort) {
+void createShortEtalon(const QVector<double>& wavesEtalon,
+                       const QVector<double>& speyaEtalon,
+                       const QVector<double>& lampCenterWaves,
+                       QVector<double>& out_wavesEtalonShort,
+                       QVector<double>& out_speyaEtalonShort,
+                       QVector<double>& out_indexesOfWavesEtalonShort) {
   out_wavesEtalonShort.clear();
   out_speyaEtalonShort.clear();
   out_indexesOfWavesEtalonShort.clear();
@@ -49,7 +52,10 @@ void createShortEtalon(const QVector<double>& wavesEtalon, const QVector<double>
 }
 
 //! Эта функция суммирует независимые спектры светодиодов в один спектр
-QVector<double> emuleFullSpectr(double* params, const QVector<lampInfo>& lamps, const QVector<double>& wavesEtalon, double wavesStep) {
+QVector<double> emuleFullSpectr(double* params,
+                                const QVector<lampInfo>& lamps,
+                                const QVector<double>& wavesEtalon,
+                                double wavesStep) {
   QVector<double> spectr(wavesEtalon.size(), 0);
 
   for (int i = 0; i < lamps.size(); ++i) {
