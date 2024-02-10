@@ -1,6 +1,6 @@
 #ifndef FITSPECTR_H
 #define FITSPECTR_H
-#include "dataStructs.h"
+#include "fitting/dataStructs.h"
 
 // Функция подгонки спектра сферы к спектру эталона.
 // Возвращает вектор с параметрами слайдеров ламп от 0 до 1

@@ -1,8 +1,8 @@
+#include "fitting/fitSpectr.h"
+
+#include "fitting/mpfit.h"
 #include <algorithm>
 #include <QDebug>
-#include "fitSpectr.h"
-#include "mpfit.h"
-#include <algorithm>
 
 //! структура с данными для передачи в fitFunct
 struct vars_struct {

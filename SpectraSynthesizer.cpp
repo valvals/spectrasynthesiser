@@ -16,6 +16,7 @@
 #include "QDir"
 #include "QClipboard"
 #include "limits"
+#include "fitting/fitSpectr.h"
 
 
 const int mira_packet_size = 8;
