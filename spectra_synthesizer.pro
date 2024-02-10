@@ -12,6 +12,8 @@ SOURCES += \
     OrminDevice.cpp \
     QrcFilesRestorer.cpp \
     debug_console.cpp \
+    fitting/fitSpectr.cpp \
+    fitting/mpfit.c \
     main.cpp \
     SpectraSynthesizer.cpp \
     qcustomplot.cpp \
@@ -26,6 +28,9 @@ HEADERS += \
     SpectraSynthesizer.h \
     Version.h \
     debug_console.h \
+    fitting/dataStructs.h \
+    fitting/fitSpectr.h \
+    fitting/mpfit.h \
     qcustomplot.h \
     style_sheets.h
 
