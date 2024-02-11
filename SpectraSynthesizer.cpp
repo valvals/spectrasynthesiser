@@ -216,6 +216,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
           SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
           SLOT(recieveIrData(QVector<double>, double, double)));*/
   //emit m_ormin_device->requestSpectr();
+connect(ui->action_start_fitting,SIGNAL(triggered()),SLOT(fitSignalToEtalon()));
 
 }
 
@@ -905,4 +906,57 @@ void SpectraSynthesizer::prepareDiodModels() {
   m_diod_models->xAxis->setTickLabelColor(Qt::white);
   m_diod_models->xAxis->setLabelColor(Qt::white);
   m_diod_models->yAxis->setLabelColor(Qt::white);
+}
+
+void SpectraSynthesizer::fitSignalToEtalon()
+{
+  qDebug()<<"fit signal to etalon process have been started....";
+  double wavesStep = 1;
+  FitSettings emuleSettings = FitSettings::FIT_BY_MAXIMUMS;
+  QVector<lampInfo> diods(m_pins_json_array.size());
+  QVector<double> waves_etalon;
+  QVector<double> speya_etalon;
+  for(int i=0;i<m_pins_json_array.size();++i){
+      //bright_deps
+      auto bright_deps = m_pins_json_array[i].toObject()["bright_deps"].toObject();
+      diods[i].a = bright_deps["a"].toDouble();
+      diods[i].b = bright_deps["b"].toDouble();
+      diods[i].c = bright_deps["c"].toDouble();
+
+      //qDebug()<<"a: "<<diods[i].a;
+
+      auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
+      auto waves = m_pins_json_array[i].toObject()["model"].toObject()["waves"].toArray();
+      Q_ASSERT(values.size() == waves.size());
+      for(int j=0;j<values.size();++j){
+        diods[i].waves.push_back(waves[j].toDouble());
+        diods[i].speya.push_back(values[j].toDouble());
+      }
+
+  }
+
+  QVector<double>etalon_speya;
+  QVector<double>etalon_grid;
+  auto sample = m_etalons[ui->comboBox_etalons->currentText()].toArray();
+  auto grid = m_etalons["_grid"].toArray();
+
+  for (int i = 0; i < sample.size(); ++i) {
+    auto wave = grid[i].toDouble();
+    qDebug()<<"---"<<wave;
+    if(wave>900)break;
+    if(wave>=400){
+       auto speya = sample[i].toDouble();
+       etalon_speya.push_back(sample[i].toDouble());
+       etalon_grid.push_back(wave);
+    }
+  }
+
+
+  QVector<double> diod_spea_coefs = find_diod_spea_coefs(etalon_grid,
+                                                         etalon_speya,
+                                                         wavesStep,
+                                                         diods,
+                                                         emuleSettings);
+
+  QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 }

@@ -76,6 +76,7 @@ class SpectraSynthesizer : public QMainWindow {
   void recieveIrData(QVector<double> sumSpectr,
                      double maxValue,
                      double minValue);
+  void fitSignalToEtalon();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);

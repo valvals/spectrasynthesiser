@@ -249,6 +249,7 @@ color: rgb(0, 170, 0);</string>
      <string>Управление светодиодами</string>
     </property>
     <addaction name="action_set_all_diods_to_zero"/>
+    <addaction name="action_start_fitting"/>
    </widget>
    <widget class="QMenu" name="menu_6">
     <property name="title">
@@ -371,6 +372,11 @@ color: rgb(0, 170, 0);</string>
   <action name="action_show_diod_models">
    <property name="text">
     <string>График апаратных функций</string>
+   </property>
+  </action>
+  <action name="action_start_fitting">
+   <property name="text">
+    <string>Подогнать под эталон</string>
    </property>
   </action>
  </widget>
