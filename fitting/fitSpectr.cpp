@@ -109,8 +109,11 @@ int fitFunct(int m, int /*n*/, double* p, double* dy, double** /*dvec*/, void* v
 }
 
 
-QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon, const QVector<double>& speyaEtalon,
-                                     double waveStep, const QVector<lampInfo>& lampsAll, const FitSettings& settings) {
+QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
+                                     const QVector<double>& speyaEtalon,
+                                     double waveStep,
+                                     const QVector<lampInfo>& lampsAll,
+                                     const FitSettings& settings) {
   QVector<lampInfo> lamps;
   QVector<bool> usedLampsAll; // использована лампа или нет
   if (settings == FitSettings::FIT_BY_MAXIMUMS) {
@@ -130,7 +133,7 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon, const Q
   } else if (settings == FitSettings::FIT_ALL) {
     lamps = lampsAll;
   }
-
+  qDebug() << "lampsAll:  " << lampsAll.size();
   int specChannels = wavesEtalon.size();
   int lampNums = lamps.size();
   Q_ASSERT(lampNums > 0);
@@ -203,11 +206,16 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon, const Q
       else
         diodSPEAcoefs.append(0);
     }
+    for (int  i = 0; i < usedLampsAll.size(); ++i) {
+      qDebug() << "коэффициент при СПЭЯ светодиодов" << i << " = " << diodSPEAcoefs[i];
+    }
+  } else if (settings == FitSettings::FIT_ALL) {
+    for (int  i = 0; i < lampsAll.size(); ++i) {
+      qDebug() << "коэффициент при СПЭЯ светодиодов" << i << " = " << diodSPEAcoefs[i];
+    }
   }
 
-  for (int  i = 0; i < usedLampsAll.size(); ++i) {
-    qDebug() << "коэффициент при СПЭЯ светодиодов" << i << " = " << diodSPEAcoefs[i];
-  }
+
   delete[] pars;
   delete[] params;
   delete[] ey;
@@ -215,7 +223,8 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon, const Q
   return diodSPEAcoefs;
 }
 
-QVector<double> find_sliders_from_coefs(const QVector<double>& speyaCoefs, const QVector<lampInfo>& lamps) {
+QVector<double> find_sliders_from_coefs(const QVector<double>& speyaCoefs,
+                                        const QVector<lampInfo>& lamps) {
   Q_ASSERT(speyaCoefs.size() == lamps.size());
   QVector<double> sliderVals(speyaCoefs.size(), -1);
   for (int i = 0; i < lamps.size(); ++i) {
@@ -238,9 +247,10 @@ QVector<double> find_sliders_from_coefs(const QVector<double>& speyaCoefs, const
 
 
       double sliderVal = 0;
-      if (root1 >= 0 && root1 <= 1)
+      // TODO!!!!
+      if (root1 >= 0 && root1 <= lamps.at(i).max_slider_value)
         sliderVal = root1;
-      else if (root2 >= 0 && root2 <= 1)
+      else if (root2 >= 0 && root2 <= lamps.at(i).max_slider_value)
         sliderVal = root2;
       qDebug() << "для светодиода " << i << " найдено 2 корня: " << root1 << " и " << root2 << ". Установили значение " << sliderVal;
       sliderVals[i] = sliderVal;

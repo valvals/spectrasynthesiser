@@ -8,6 +8,7 @@ struct lampInfo {
   QVector<double> waves;
   QVector<double> speya;
   double a, b, c; // калибровочные коэффициенты квадратичной зависимости яркости (СПЭЯ) от значения слайдера (0-1)
+  int max_slider_value;
 };
 
 //FIT_ALL - подгоняем по минимуму СКО для всег оспектра

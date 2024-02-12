@@ -216,8 +216,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
           SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
           SLOT(recieveIrData(QVector<double>, double, double)));*/
   //emit m_ormin_device->requestSpectr();
-connect(ui->action_start_fitting,SIGNAL(triggered()),SLOT(fitSignalToEtalon()));
-
+  connect(ui->action_start_fitting, SIGNAL(triggered()), SLOT(fitSignalToEtalonALL()));
+//fitSignalToEtalonMAX()
+  connect(ui->action_fit_etalon_max, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX()));
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -319,11 +320,12 @@ void SpectraSynthesizer::readStmData() {
       if (max < current_etalon_max) {
         max = current_etalon_max;
       }
+
       break;
   }
 
   if (!m_is_stm_exposition_changed) {
-    show_stm_spectr(channels, values, max);
+    show_stm_spectr(channels, values, current_etalon_max*1.1);
   } else {
     auto expo_command = QString("e%1\n").arg(ui->spinBox_exposition->value() * 1000);
     m_serial_stm_spectrometr->write(expo_command.toLatin1());
@@ -340,7 +342,7 @@ void SpectraSynthesizer::sendDataToDiodsComDevice(const QString& command) {
 }
 
 void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value) {
-  QString waveStr = m_pins_json_array[index].toObject().value("wave").toString();
+  QString waveStr = QString::number(m_pins_json_array[index].toObject().value("wave").toDouble());
   QString valueStr = (QString::number(value));
   m_sliders[index]->setToolTip(QString(styles::tooltip).arg(waveStr, valueStr));
 }
@@ -792,6 +794,8 @@ uchar SpectraSynthesizer::getCS(const uchar* data, int size) {
   return CS;
 }
 
+
+
 void SpectraSynthesizer::sendDataToMiraComDevice(const uchar* packet, int size) {
   QByteArray ba;
   for (int i = 0; i < size; ++i) {
@@ -908,30 +912,39 @@ void SpectraSynthesizer::prepareDiodModels() {
   m_diod_models->yAxis->setLabelColor(Qt::white);
 }
 
-void SpectraSynthesizer::fitSignalToEtalon()
-{
-  qDebug()<<"fit signal to etalon process have been started....";
+void SpectraSynthesizer::fitSignalToEtalonALL() {
+
+  fitSignalToEtalon(FitSettings::FIT_ALL);
+}
+
+void SpectraSynthesizer::fitSignalToEtalonMAX() {
+  fitSignalToEtalon(FitSettings::FIT_BY_MAXIMUMS);
+}
+
+
+void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
+  qDebug() << "fit signal to etalon process have been started....";
   double wavesStep = 1;
-  FitSettings emuleSettings = FitSettings::FIT_BY_MAXIMUMS;
+  FitSettings emuleSettings = fitSet;
   QVector<lampInfo> diods(m_pins_json_array.size());
   QVector<double> waves_etalon;
   QVector<double> speya_etalon;
-  for(int i=0;i<m_pins_json_array.size();++i){
-      //bright_deps
-      auto bright_deps = m_pins_json_array[i].toObject()["bright_deps"].toObject();
-      diods[i].a = bright_deps["a"].toDouble();
-      diods[i].b = bright_deps["b"].toDouble();
-      diods[i].c = bright_deps["c"].toDouble();
+  for (int i = 0; i < m_pins_json_array.size(); ++i) {
+    //bright_deps
+    auto bright_deps = m_pins_json_array[i].toObject()["bright_deps"].toObject();
+    diods[i].a = bright_deps["a"].toDouble();
+    diods[i].b = bright_deps["b"].toDouble();
+    diods[i].c = bright_deps["c"].toDouble();
+    diods[i].max_slider_value = m_pins_json_array[i].toObject()["max_value"].toDouble();
 
-      //qDebug()<<"a: "<<diods[i].a;
-
-      auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
-      auto waves = m_pins_json_array[i].toObject()["model"].toObject()["waves"].toArray();
-      Q_ASSERT(values.size() == waves.size());
-      for(int j=0;j<values.size();++j){
-        diods[i].waves.push_back(waves[j].toDouble());
-        diods[i].speya.push_back(values[j].toDouble());
-      }
+    //qDebug()<<"a: "<<diods[i].a;
+    auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
+    auto waves = m_pins_json_array[i].toObject()["model"].toObject()["waves"].toArray();
+    Q_ASSERT(values.size() == waves.size());
+    for (int j = 0; j < values.size(); ++j) {
+      diods[i].waves.push_back(waves[j].toDouble());
+      diods[i].speya.push_back(values[j].toDouble());
+    }
 
   }
 
@@ -942,12 +955,12 @@ void SpectraSynthesizer::fitSignalToEtalon()
 
   for (int i = 0; i < sample.size(); ++i) {
     auto wave = grid[i].toDouble();
-    qDebug()<<"---"<<wave;
-    if(wave>900)break;
-    if(wave>=400){
-       auto speya = sample[i].toDouble();
-       etalon_speya.push_back(sample[i].toDouble());
-       etalon_grid.push_back(wave);
+    if (wave > 900)
+      break;
+    if (wave >= 400) {
+      auto speya = sample[i].toDouble();
+      etalon_speya.push_back(speya);
+      etalon_grid.push_back(wave);
     }
   }
 
@@ -959,4 +972,13 @@ void SpectraSynthesizer::fitSignalToEtalon()
                                                          emuleSettings);
 
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
+
+
+  for (int i = 0; i < diod_sliders.size(); ++i) {
+
+    QTimer::singleShot(500 * (i + 1), this, [diod_sliders, i, this]() {
+      m_sliders[i]->setValue(diod_sliders[i]);
+      m_sliders[i]->sliderReleased();
+    });
+  }
 }

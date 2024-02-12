@@ -13,7 +13,7 @@
 #include "qcustomplot.h"
 #include "CameraModule.h"
 #include "OrminDevice.h"
-
+#include "fitting/dataStructs.h"
 
 const uint16_t spectr_values_size = 3648;
 
@@ -76,7 +76,8 @@ class SpectraSynthesizer : public QMainWindow {
   void recieveIrData(QVector<double> sumSpectr,
                      double maxValue,
                      double minValue);
-  void fitSignalToEtalon();
+  void fitSignalToEtalonALL();
+  void fitSignalToEtalonMAX();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
@@ -129,7 +130,7 @@ class SpectraSynthesizer : public QMainWindow {
   void loadEtalons();
   void prepareDiodModels();
   uchar getCS(const uchar* data, int size);
-
+  void fitSignalToEtalon(const FitSettings& fitSet);
   // QWidget interface
  protected:
   void closeEvent(QCloseEvent* event) override;

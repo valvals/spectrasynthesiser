@@ -213,7 +213,7 @@ color: rgb(0, 170, 0);</string>
      <x>0</x>
      <y>0</y>
      <width>1478</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -250,6 +250,7 @@ color: rgb(0, 170, 0);</string>
     </property>
     <addaction name="action_set_all_diods_to_zero"/>
     <addaction name="action_start_fitting"/>
+    <addaction name="action_fit_etalon_max"/>
    </widget>
    <widget class="QMenu" name="menu_6">
     <property name="title">
@@ -376,7 +377,12 @@ color: rgb(0, 170, 0);</string>
   </action>
   <action name="action_start_fitting">
    <property name="text">
-    <string>Подогнать под эталон</string>
+    <string>Подогнать под эталон (ALL)</string>
+   </property>
+  </action>
+  <action name="action_fit_etalon_max">
+   <property name="text">
+    <string>Подогнать под эталон (MAКС)</string>
    </property>
   </action>
  </widget>
