@@ -37,7 +37,8 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 }
 
 int main(int argc, char* argv[]) {
-  //qInstallMessageHandler(myMessageOutput);
+  // TODO create some logic to switch on off logger
+  qInstallMessageHandler(myMessageOutput);
   QApplication a(argc, argv);
   SpectraSynthesizer w;
   w.show();
