@@ -240,14 +240,17 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   //-------------- Фитируем и находим параметры коэффициентов при СПЭЯ светодиодов -------
   int status = mpfit(fitFunct, specChannels, lampNums, params, pars,
                      &config, (void*) &mydata, &result);
+  qDebug() << "----------------------  РЕЗУЛЬТАТЫ mpfit  ----------------------";
   qDebug() << "status code: " << status;
   qDebug() << "число итераций: "<< result.niter;
   qDebug() << "число вызовов fitFunct: "<< result.nfev;
+  qDebug() << "стартовый chi2: "<< result.orignorm;
+  qDebug() << "финальный chi2: "<< result.bestnorm;
   QVector<double> xerror(result.xerror, result.xerror + result.npar);
   qDebug() << "НЕОПРЕДЕЛЕННОСТИ : "<< xerror;
   QVector<double> resid(result.resid, result.resid + result.nfunc);
   qDebug() << "ОСТАТКИ : "<< resid;
-
+  qDebug() << "-----------------------------------------------------------------";
   QVector<double> diodSPEAcoefs(params, params + lampNums);
 
   if (settings == FitSettings::FIT_BY_MAXIMUMS) {
