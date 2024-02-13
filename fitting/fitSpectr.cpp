@@ -79,8 +79,9 @@ QVector<double> emuleFullSpectr(double* params,
   return spectr;
 }
 
+
 //! Функция подгонки моделированного спектра к эталонному
-int fitFunct(int m, int /*n*/, double* p, double* dy, double** /*dvec*/, void* vars) {
+int fitFunct(int m, int n, double* p, double* dy, double** /*dvec*/, void* vars) {
   vars_struct* mydata = static_cast<vars_struct*>(vars);
   const QVector<double>& x = mydata->wavesEtalon;
   const QVector<double>& y = mydata->speyaEtalon;
@@ -104,8 +105,8 @@ int fitFunct(int m, int /*n*/, double* p, double* dy, double** /*dvec*/, void* v
       dy[i] = (mydata->speyaEtalonShort[i] - emulatedSpectrShort[i]) / ey[i];
     }
   }
-
-  return 0;
+  QVector<double> pVec(p, p+n); // только для дебага нужен
+   return 0;
 }
 
 
@@ -141,18 +142,56 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   Q_ASSERT(specChannels > 0);
   Q_ASSERT(specChannels > lampNums); //требования метода оптимизации по МНК
   Q_ASSERT((wavesEtalon.last() - wavesEtalon.first()) / (specChannels - 1) == waveStep); //проверяем на константный шаг
+
+  int ii = 0;
   for (const auto& lamp : lamps) {
     Q_ASSERT(lamp.waves.size() > 0);
     Q_ASSERT(lamp.waves.size() == lamp.speya.size());
-    Q_ASSERT((lamp.waves.last() - lamp.waves.first()) / (lamp.waves.size() - 1) == waveStep);
+    double lampStep = (lamp.waves.last() - lamp.waves.first()) / (lamp.waves.size() - 1);
+    Q_ASSERT(lampStep == waveStep);
+    if(lampStep != waveStep){
+        qDebug()<<"Сообщение ниже актуально только для настройки FitSettings::FIT_ALL.";
+        qDebug()<< "ERROR! для лампы "<<ii<<" шаг по длинам волн не равен "<<waveStep<< ", а равен "<< lampStep;
+    }
+    ii++;
   }
 
   //-------------- Заполняем параметры для mpfit() -------
 
   //-params
   double* params = new double[lampNums];
-  double defValSlider = 0.7;
+  double defValSlider = 0.5;
   std::fill_n(params, lampNums, defValSlider); // default values
+//  params[0] = 0.0481095;
+//  params[1] = 0;
+//  params[2] = 0.1;
+//  params[3] = 0;
+//  params[4] = 0;
+//  params[5] = 0.01;
+//  params[6] = 0.001;
+//  params[7] = 0;
+//  params[8] = 0.01;
+//  params[9] = 0.06;
+//  params[10] = 0.09;
+//  params[11] = 0;
+//  params[12] = 0.5;
+//  params[13] = 0.094;
+//  params[14] = 0.01;
+//  params[15] = 0.05;
+//  params[16] = 0.03;
+//  params[17] = 0.04;
+//  params[18] = 0.014;
+//  params[19] = 0.02;
+//  params[20] = 0.01;
+//  params[21] = 0.15;
+//  params[22] = 0.13;
+//  params[23] = 0.24;
+//  params[24] = 0.44;
+//  params[25] = 0.12;
+//  params[26] = 0.1;
+//  params[27] = 1;
+//  params[28] = 0;
+//  params[29] = 0.1;
 
   //-pars
   mp_par* pars = new mp_par[lampNums]; // это коэффициенты при СПЭЯ светодиода.
@@ -190,12 +229,28 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   memset(&result, 0, sizeof(result));
   double* perror = new double[lampNums];
   result.xerror = perror;
+  double* presid = new double[specChannels];
+  result.resid = presid;
+
+  //-config
+  mp_config config;
+  memset(&config, 0, sizeof(config));
+  config.epsfcn = 0.05;
 
   //-------------- Фитируем и находим параметры коэффициентов при СПЭЯ светодиодов -------
   int status = mpfit(fitFunct, specChannels, lampNums, params, pars,
-                     0, (void*) &mydata, &result);
+                     &config, (void*) &mydata, &result);
+  qDebug() << "----------------------  РЕЗУЛЬТАТЫ mpfit  ----------------------";
   qDebug() << "status code: " << status;
-
+  qDebug() << "число итераций: "<< result.niter;
+  qDebug() << "число вызовов fitFunct: "<< result.nfev;
+  qDebug() << "стартовый chi2: "<< result.orignorm;
+  qDebug() << "финальный chi2: "<< result.bestnorm;
+  QVector<double> xerror(result.xerror, result.xerror + result.npar);
+  qDebug() << "НЕОПРЕДЕЛЕННОСТИ : "<< xerror;
+  QVector<double> resid(result.resid, result.resid + result.nfunc);
+  qDebug() << "ОСТАТКИ : "<< resid;
+  qDebug() << "-----------------------------------------------------------------";
   QVector<double> diodSPEAcoefs(params, params + lampNums);
 
   if (settings == FitSettings::FIT_BY_MAXIMUMS) {
@@ -204,7 +259,7 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
       if (usedLampsAll.at(i) == true)
         diodSPEAcoefs.append(params[i]);
       else
-        diodSPEAcoefs.append(0);
+        diodSPEAcoefs.append(-1);
     }
     for (int  i = 0; i < usedLampsAll.size(); ++i) {
       qDebug() << "коэффициент при СПЭЯ светодиодов" << i << " = " << diodSPEAcoefs[i];
@@ -215,11 +270,11 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
     }
   }
 
-
   delete[] pars;
   delete[] params;
   delete[] ey;
   delete[] perror;
+  delete[] presid;
   return diodSPEAcoefs;
 }
 
@@ -228,7 +283,7 @@ QVector<double> find_sliders_from_coefs(const QVector<double>& speyaCoefs,
   Q_ASSERT(speyaCoefs.size() == lamps.size());
   QVector<double> sliderVals(speyaCoefs.size(), -1);
   for (int i = 0; i < lamps.size(); ++i) {
-    if (speyaCoefs.at(i) == 0) {
+    if (speyaCoefs.at(i) == -1) {
       sliderVals[i] = 0;
       qDebug() << "светодиод " << i << " в подгонке не участвовал";
     } else {
@@ -245,9 +300,7 @@ QVector<double> find_sliders_from_coefs(const QVector<double>& speyaCoefs,
       double root1 = (-b + sqrt(D)) / (2 * a);
       double root2 = (-b - sqrt(D)) / (2 * a);
 
-
       double sliderVal = 0;
-      // TODO!!!!
       if (root1 >= 0 && root1 <= lamps.at(i).max_slider_value)
         sliderVal = root1;
       else if (root2 >= 0 && root2 <= lamps.at(i).max_slider_value)
