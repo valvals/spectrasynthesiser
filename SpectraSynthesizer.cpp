@@ -116,8 +116,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     }
 
   }
-  m_sliders_previous_values.reserve(m_pins_json_array.size());
-  m_elapsed_timers.reserve(m_pins_json_array.size());
+  m_sliders_previous_values.resize(m_pins_json_array.size());
+  m_elapsed_timers.resize(m_pins_json_array.size());
   bool isInitialTrackerFileExists = QFile(tracker_full_path).exists();
   if (isInitialTrackerFileExists)
     db_json::getJsonArrayFromFile(tracker_full_path, m_power_tracker);
@@ -237,6 +237,11 @@ void SpectraSynthesizer::readDiodsData() {
 
 void SpectraSynthesizer::readStmData() {
 
+  static double prev_azp_max = 0;
+  const double azp_delta_max =100.0;
+  static double prev_speya_max = 0;
+  const double speya_delta_max = 100.0;
+
   if (ui->comboBox_spectrometr_type->currentText() != "ПВД") {
     m_serial_stm_spectrometr->readAll();
     return;
@@ -279,15 +284,24 @@ void SpectraSynthesizer::readStmData() {
   switch (m_view) {
     case view::PVD_AZP:
       // PVD_AZP case
+      prev_speya_max = 0;
       for (size_t i = 0; i < spectr_values_size; ++i) {
         channels.push_back(i + 1);
         values.push_back(spectrumData.spectrum[i] - average_black);
         if (max < spectrumData.spectrum[i])
           max = spectrumData.spectrum[i];
       };
+      if(max<azp_delta_max){prev_azp_max = max;}
+      if(qAbs(max-prev_azp_max)>azp_delta_max){
+         prev_azp_max = max;
+      }else{
+         max = prev_azp_max;
+      }
+      max = max*1.1;
       break;
     case view::PVD_SPEYA:
       // PVD_SPEYA case
+      prev_azp_max = 0;
       for (size_t i = 0; i < spectr_values_size; ++i) {
         auto wave = m_pvd_calibr["wave"].toArray()[i].toDouble();
         if (wave < 400)
@@ -298,14 +312,17 @@ void SpectraSynthesizer::readStmData() {
         if (max < value) {
           max = value;
         }
-        if (wave >= 900.0)
+        if (wave >= 900.0){
+            if(qAbs(max-prev_speya_max)>speya_delta_max){
+               prev_speya_max = max;
+            }else{
+               max = prev_speya_max;
+            }
           break;
+        }
       };
-
-      /*if(max<current_etalon_max){
-          max=current_etalon_max;
-      }*/
       break;
+
     case view::ETALON_PVD:
       for (int i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
         auto index = m_short_pvd_grid_indexes[i];
@@ -317,15 +334,13 @@ void SpectraSynthesizer::readStmData() {
           max = value;
         }
       };
-      if (max < current_etalon_max) {
-        max = current_etalon_max;
-      }
 
+      max = current_etalon_max*1.1;
       break;
   }
 
   if (!m_is_stm_exposition_changed) {
-    show_stm_spectr(channels, values, current_etalon_max*1.1);
+    show_stm_spectr(channels, values, max);
   } else {
     auto expo_command = QString("e%1\n").arg(ui->spinBox_exposition->value() * 1000);
     m_serial_stm_spectrometr->write(expo_command.toLatin1());
@@ -348,7 +363,7 @@ void SpectraSynthesizer::setTooltipForSlider(const int& index, const int& value)
 }
 
 QString SpectraSynthesizer::getGroupID(const double& value) {
-  Q_ASSERT(value < 0 || value > 100);
+  Q_ASSERT(value > 0 || value < 100);
   if (value >= 0 && value <= 10)
     return "10";
   if (value > 10 && value <= 20)
@@ -741,6 +756,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
 }
 
 void SpectraSynthesizer::switchAZP_pvd() {
+  qDebug()<<"AЦП режим.....";
   m_view = view::PVD_AZP;
   ui->action_speya_pvd->setChecked(false);
   ui->action_etalon_pvd->setChecked(false);
@@ -793,8 +809,6 @@ uchar SpectraSynthesizer::getCS(const uchar* data, int size) {
   }
   return CS;
 }
-
-
 
 void SpectraSynthesizer::sendDataToMiraComDevice(const uchar* packet, int size) {
   QByteArray ba;
@@ -912,6 +926,8 @@ void SpectraSynthesizer::prepareDiodModels() {
   m_diod_models->yAxis->setLabelColor(Qt::white);
 }
 
+// Fitting module
+
 void SpectraSynthesizer::fitSignalToEtalonALL() {
 
   fitSignalToEtalon(FitSettings::FIT_ALL);
@@ -920,7 +936,6 @@ void SpectraSynthesizer::fitSignalToEtalonALL() {
 void SpectraSynthesizer::fitSignalToEtalonMAX() {
   fitSignalToEtalon(FitSettings::FIT_BY_MAXIMUMS);
 }
-
 
 void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
   qDebug() << "fit signal to etalon process have been started....";
@@ -964,7 +979,6 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
     }
   }
 
-
   QVector<double> diod_spea_coefs = find_diod_spea_coefs(etalon_grid,
                                                          etalon_speya,
                                                          wavesStep,
@@ -973,10 +987,8 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
 
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 
-
   for (int i = 0; i < diod_sliders.size(); ++i) {
-
-    QTimer::singleShot(500 * (i + 1), this, [diod_sliders, i, this]() {
+    QTimer::singleShot(200 * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       m_sliders[i]->sliderReleased();
     });
