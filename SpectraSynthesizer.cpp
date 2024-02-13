@@ -988,7 +988,8 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 
   for (int i = 0; i < diod_sliders.size(); ++i) {
-    QTimer::singleShot(200 * (i + 1), this, [diod_sliders, i, this]() {
+
+    QTimer::singleShot(100 * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       m_sliders[i]->sliderReleased();
     });
