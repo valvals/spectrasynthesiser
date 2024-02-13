@@ -219,6 +219,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_start_fitting, SIGNAL(triggered()), SLOT(fitSignalToEtalonALL()));
 //fitSignalToEtalonMAX()
   connect(ui->action_fit_etalon_max, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX()));
+  sendDataToDiodsComDevice("u\n");
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -240,7 +241,8 @@ void SpectraSynthesizer::readStmData() {
   static double prev_azp_max = 0;
   const double azp_delta_max =100.0;
   static double prev_speya_max = 0;
-  const double speya_delta_max = 100.0;
+  const double speya_delta_max = 1e7;
+  const double TOP_MARGIN_COEFF = 1.1;
 
   if (ui->comboBox_spectrometr_type->currentText() != "ПВД") {
     m_serial_stm_spectrometr->readAll();
@@ -297,7 +299,7 @@ void SpectraSynthesizer::readStmData() {
       }else{
          max = prev_azp_max;
       }
-      max = max*1.1;
+      max = max*TOP_MARGIN_COEFF;
       break;
     case view::PVD_SPEYA:
       // PVD_SPEYA case
@@ -316,7 +318,7 @@ void SpectraSynthesizer::readStmData() {
             if(qAbs(max-prev_speya_max)>speya_delta_max){
                prev_speya_max = max;
             }else{
-               max = prev_speya_max;
+               max = prev_speya_max*TOP_MARGIN_COEFF;
             }
           break;
         }
@@ -335,7 +337,7 @@ void SpectraSynthesizer::readStmData() {
         }
       };
 
-      max = current_etalon_max*1.1;
+      max = current_etalon_max*TOP_MARGIN_COEFF;
       break;
   }
 
@@ -644,8 +646,9 @@ void SpectraSynthesizer::updatePowerStat() {
   m_hours_stat_plot->replot();
 }
 
-void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
+void SpectraSynthesizer::closeEvent(QCloseEvent* event) { 
   event->ignore();
+  sendDataToDiodsComDevice("u\n");
   reset_all_diods_to_zero();
   event->accept();
 }
