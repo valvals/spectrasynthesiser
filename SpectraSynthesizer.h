@@ -83,9 +83,10 @@ class SpectraSynthesizer : public QMainWindow {
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
   void on_spinBox_exposition_valueChanged(int arg1);
   void on_pushButton_stop_start_update_stm_spectr_toggled(bool checked);
-  void on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1);
+  void on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1);  
+  void on_comboBox_expositions_currentIndexChanged(int index);
 
- private:
+private:
   Ui::SpectraSynthesizer* ui;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;

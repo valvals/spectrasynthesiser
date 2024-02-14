@@ -219,7 +219,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   sendDataToDiodsComDevice("u\n");
 
 
-
+  // DRAFT this code will be used to update calibr_lists
 
   /*
     QDir dir_calibrs("calibrs");
@@ -343,10 +343,10 @@ void SpectraSynthesizer::readStmData() {
       // PVD_SPEYA case
       prev_azp_max = 0;
       for (size_t i = 0; i < spectr_values_size; ++i) {
-        auto wave = m_pvd_calibr["wave"].toArray()[i].toDouble();
+        auto wave = m_pvd_calibr["waves"].toArray()[i].toDouble();
         if (wave < 400)
           continue;
-        auto value = m_pvd_calibr["bright"].toArray()[i].toDouble() * (spectrumData.spectrum[i] - average_black);
+        auto value = m_pvd_calibr["values"].toArray()[i].toDouble() * (spectrumData.spectrum[i] - average_black);
         channels.push_back(wave);
         values.push_back(value);
         if (max < value) {
@@ -366,8 +366,8 @@ void SpectraSynthesizer::readStmData() {
     case view::ETALON_PVD:
       for (int i = 0; i < m_short_pvd_grid_indexes.size(); ++i) {
         auto index = m_short_pvd_grid_indexes[i];
-        auto wave = m_pvd_calibr["wave"].toArray()[index].toDouble();
-        auto value = m_pvd_calibr["bright"].toArray()[index].toDouble() * (spectrumData.spectrum[index] - average_black);
+        auto wave = m_pvd_calibr["waves"].toArray()[index].toDouble();
+        auto value = m_pvd_calibr["values"].toArray()[index].toDouble() * (spectrumData.spectrum[index] - average_black);
         channels.push_back(wave);
         values.push_back(value);
         if (max < value) {
@@ -382,7 +382,8 @@ void SpectraSynthesizer::readStmData() {
   if (!m_is_stm_exposition_changed) {
     show_stm_spectr(channels, values, max);
   } else {
-    auto expo_command = QString("e%1\n").arg(ui->spinBox_exposition->value() * 1000);
+    auto expo_value = ui->comboBox_expositions->currentText().toDouble();
+    auto expo_command = QString("e%1\n").arg(expo_value * 1000);
     m_serial_stm_spectrometr->write(expo_command.toLatin1());
     m_serial_stm_spectrometr->waitForBytesWritten(1000);
   }
@@ -780,7 +781,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
   // DRAFT expositions lists for vis and ir sensors
   QJsonArray arr;
   db_json::getJsonArrayFromFile("pvd_calibr_list.json",arr);
-
+  Q_ASSERT(arr.size()>0);
   m_pvd_calibr = arr[0].toObject();
   auto wave_array = m_pvd_calibr["waves"].toArray();
   auto bright_array = m_pvd_calibr["values"].toArray();
@@ -902,6 +903,7 @@ void SpectraSynthesizer::recieveIrData(QVector<double> sumSpectr,
                                        double maxValue,
                                        double minValue) {
   qDebug() << sumSpectr.size();
+  Q_UNUSED(minValue);
   QVector<double>channels;
   for (int i = 0; i < sumSpectr.size(); ++i) {
     channels.push_back(i);
@@ -1049,7 +1051,19 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
 
     QTimer::singleShot(100 * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
-      m_sliders[i]->sliderReleased();
+      emit m_sliders[i]->sliderReleased();
     });
   }
+}
+
+void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index)
+{
+    if (!m_is_stm_spectrometr_connected)
+      return;
+    QJsonArray arr;
+    db_json::getJsonArrayFromFile("pvd_calibr_list.json",arr);
+    Q_ASSERT(arr.size()>0);
+    m_pvd_calibr = arr[index].toObject();
+    qDebug()<<"*** EXPO *** --> "<<m_pvd_calibr["expo"].toString();
+    m_is_stm_exposition_changed = true;
 }
