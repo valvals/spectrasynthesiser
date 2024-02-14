@@ -8,7 +8,7 @@
 #include "QDebug"
 #include "QMessageBox"
 #include "DBJson.h"
-#include "QrcFilesRestorer.h"
+
 #include "style_sheets.h"
 #include "windows.h"
 #include "Version.h"
@@ -42,7 +42,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_camera_module = new CameraModule;
   connect(ui->action_show_camera, SIGNAL(triggered(bool)), m_camera_module, SLOT(mayBeShowCamera(bool)));
   connect(m_camera_module, &CameraModule::cameraWindowClosed, [this]() {ui->action_show_camera->setChecked(false);});
-  QrcFilesRestorer::restoreFilesFromQrc(":/");
+
   db_json::getJsonObjectFromFile("etalons.json", m_etalons);
   loadEtalons();
   load_pvd_calibr();
@@ -220,6 +220,45 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 //fitSignalToEtalonMAX()
   connect(ui->action_fit_etalon_max, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX()));
   sendDataToDiodsComDevice("u\n");
+
+
+
+
+/*
+  QDir dir_calibrs("calibrs");
+  QStringList file_names = dir_calibrs.entryList(QDir::NoDotAndDotDot | QDir::Files);
+  //qDebug()<<file_names;
+  QJsonArray pvd_clibrs;
+
+  for(int i=0;i<file_names.size();++i){
+      auto fn = file_names[i];
+      fn.remove(".txt");
+      QString expo = QString::number(fn.toInt());
+      qDebug()<<expo;
+      QJsonObject obj;
+      obj["expo"] = expo;
+      QFile file("calibrs/"+file_names[i]);
+      file.open(QIODevice::ReadOnly);
+      QString line;
+      QJsonArray jarr_waves;
+      QJsonArray jarr_values;
+      QTextStream ts(&file);
+      while(ts.readLineInto(&line)){
+      QStringList values = line.split("\t");
+      if(values.size()==2){
+      jarr_waves.append(values[0].toDouble());
+      jarr_values.append(values[1].toDouble());
+      }
+      }
+      obj["waves"] = jarr_waves;
+      obj["values"] = jarr_values;
+      pvd_clibrs.append(obj);
+  }
+
+  db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
+*/
+
+
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {

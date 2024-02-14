@@ -1,8 +1,9 @@
 <RCC>
     <qresource prefix="/">
-        <file>config.json</file>
-        <file>etalons.json</file>
-        <file>pvd_calibr.json</file>
-        <file>pik_calibr.json</file>
+        <file>jsons/pvd_calibr_list.json</file>
+        <file>jsons/config.json</file>
+        <file>jsons/etalons.json</file>
+        <file>jsons/pik_calibr.json</file>
+        <file>jsons/pvd_calibr.json</file>
     </qresource>
 </RCC>
