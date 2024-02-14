@@ -8,7 +8,6 @@
 #include "QDebug"
 #include "QMessageBox"
 #include "DBJson.h"
-
 #include "style_sheets.h"
 #include "windows.h"
 #include "Version.h"
@@ -224,39 +223,39 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
 
 
-/*
-  QDir dir_calibrs("calibrs");
-  QStringList file_names = dir_calibrs.entryList(QDir::NoDotAndDotDot | QDir::Files);
-  //qDebug()<<file_names;
-  QJsonArray pvd_clibrs;
+  /*
+    QDir dir_calibrs("calibrs");
+    QStringList file_names = dir_calibrs.entryList(QDir::NoDotAndDotDot | QDir::Files);
+    //qDebug()<<file_names;
+    QJsonArray pvd_clibrs;
 
-  for(int i=0;i<file_names.size();++i){
-      auto fn = file_names[i];
-      fn.remove(".txt");
-      QString expo = QString::number(fn.toInt());
-      qDebug()<<expo;
-      QJsonObject obj;
-      obj["expo"] = expo;
-      QFile file("calibrs/"+file_names[i]);
-      file.open(QIODevice::ReadOnly);
-      QString line;
-      QJsonArray jarr_waves;
-      QJsonArray jarr_values;
-      QTextStream ts(&file);
-      while(ts.readLineInto(&line)){
-      QStringList values = line.split("\t");
-      if(values.size()==2){
-      jarr_waves.append(values[0].toDouble());
-      jarr_values.append(values[1].toDouble());
-      }
-      }
-      obj["waves"] = jarr_waves;
-      obj["values"] = jarr_values;
-      pvd_clibrs.append(obj);
-  }
+    for(int i=0;i<file_names.size();++i){
+        auto fn = file_names[i];
+        fn.remove(".txt");
+        QString expo = QString::number(fn.toInt());
+        qDebug()<<expo;
+        QJsonObject obj;
+        obj["expo"] = expo;
+        QFile file("calibrs/"+file_names[i]);
+        file.open(QIODevice::ReadOnly);
+        QString line;
+        QJsonArray jarr_waves;
+        QJsonArray jarr_values;
+        QTextStream ts(&file);
+        while(ts.readLineInto(&line)){
+        QStringList values = line.split("\t");
+        if(values.size()==2){
+        jarr_waves.append(values[0].toDouble());
+        jarr_values.append(values[1].toDouble());
+        }
+        }
+        obj["waves"] = jarr_waves;
+        obj["values"] = jarr_values;
+        pvd_clibrs.append(obj);
+    }
 
-  db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
-*/
+    db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
+  */
 
 
 }
@@ -278,7 +277,7 @@ void SpectraSynthesizer::readDiodsData() {
 void SpectraSynthesizer::readStmData() {
 
   static double prev_azp_max = 0;
-  const double azp_delta_max =100.0;
+  const double azp_delta_max = 100.0;
   static double prev_speya_max = 0;
   const double speya_delta_max = 1e7;
   const double TOP_MARGIN_COEFF = 1.1;
@@ -332,13 +331,15 @@ void SpectraSynthesizer::readStmData() {
         if (max < spectrumData.spectrum[i])
           max = spectrumData.spectrum[i];
       };
-      if(max<azp_delta_max){prev_azp_max = max;}
-      if(qAbs(max-prev_azp_max)>azp_delta_max){
-         prev_azp_max = max;
-      }else{
-         max = prev_azp_max;
+      if (max < azp_delta_max) {
+        prev_azp_max = max;
       }
-      max = max*TOP_MARGIN_COEFF;
+      if (qAbs(max - prev_azp_max) > azp_delta_max) {
+        prev_azp_max = max;
+      } else {
+        max = prev_azp_max;
+      }
+      max = max * TOP_MARGIN_COEFF;
       break;
     case view::PVD_SPEYA:
       // PVD_SPEYA case
@@ -353,12 +354,12 @@ void SpectraSynthesizer::readStmData() {
         if (max < value) {
           max = value;
         }
-        if (wave >= 900.0){
-            if(qAbs(max-prev_speya_max)>speya_delta_max){
-               prev_speya_max = max;
-            }else{
-               max = prev_speya_max*TOP_MARGIN_COEFF;
-            }
+        if (wave >= 900.0) {
+          if (qAbs(max - prev_speya_max) > speya_delta_max) {
+            prev_speya_max = max;
+          } else {
+            max = prev_speya_max * TOP_MARGIN_COEFF;
+          }
           break;
         }
       };
@@ -376,7 +377,7 @@ void SpectraSynthesizer::readStmData() {
         }
       };
 
-      max = current_etalon_max*TOP_MARGIN_COEFF;
+      max = current_etalon_max * TOP_MARGIN_COEFF;
       break;
   }
 
@@ -685,7 +686,7 @@ void SpectraSynthesizer::updatePowerStat() {
   m_hours_stat_plot->replot();
 }
 
-void SpectraSynthesizer::closeEvent(QCloseEvent* event) { 
+void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
   event->ignore();
   sendDataToDiodsComDevice("u\n");
   reset_all_diods_to_zero();
@@ -798,7 +799,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
 }
 
 void SpectraSynthesizer::switchAZP_pvd() {
-  qDebug()<<"AЦП режим.....";
+  qDebug() << "AЦП режим.....";
   m_view = view::PVD_AZP;
   ui->action_speya_pvd->setChecked(false);
   ui->action_etalon_pvd->setChecked(false);

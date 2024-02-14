@@ -105,8 +105,8 @@ int fitFunct(int m, int n, double* p, double* dy, double** /*dvec*/, void* vars)
       dy[i] = (mydata->speyaEtalonShort[i] - emulatedSpectrShort[i]) / ey[i];
     }
   }
-  QVector<double> pVec(p, p+n); // только для дебага нужен
-   return 0;
+  QVector<double> pVec(p, p + n); // только для дебага нужен
+  return 0;
 }
 
 
@@ -149,9 +149,9 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
     Q_ASSERT(lamp.waves.size() == lamp.speya.size());
     double lampStep = (lamp.waves.last() - lamp.waves.first()) / (lamp.waves.size() - 1);
     Q_ASSERT(lampStep == waveStep);
-    if(lampStep != waveStep){
-        qDebug()<<"Сообщение ниже актуально только для настройки FitSettings::FIT_ALL.";
-        qDebug()<< "ERROR! для лампы "<<ii<<" шаг по длинам волн не равен "<<waveStep<< ", а равен "<< lampStep;
+    if (lampStep != waveStep) {
+      qDebug() << "Сообщение ниже актуально только для настройки FitSettings::FIT_ALL.";
+      qDebug() << "ERROR! для лампы " << ii << " шаг по длинам волн не равен " << waveStep << ", а равен " << lampStep;
     }
     ii++;
   }
@@ -242,14 +242,14 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
                      &config, (void*) &mydata, &result);
   qDebug() << "----------------------  РЕЗУЛЬТАТЫ mpfit  ----------------------";
   qDebug() << "status code: " << status;
-  qDebug() << "число итераций: "<< result.niter;
-  qDebug() << "число вызовов fitFunct: "<< result.nfev;
-  qDebug() << "стартовый chi2: "<< result.orignorm;
-  qDebug() << "финальный chi2: "<< result.bestnorm;
+  qDebug() << "число итераций: " << result.niter;
+  qDebug() << "число вызовов fitFunct: " << result.nfev;
+  qDebug() << "стартовый chi2: " << result.orignorm;
+  qDebug() << "финальный chi2: " << result.bestnorm;
   QVector<double> xerror(result.xerror, result.xerror + result.npar);
-  qDebug() << "НЕОПРЕДЕЛЕННОСТИ : "<< xerror;
+  qDebug() << "НЕОПРЕДЕЛЕННОСТИ : " << xerror;
   QVector<double> resid(result.resid, result.resid + result.nfunc);
-  qDebug() << "ОСТАТКИ : "<< resid;
+  qDebug() << "ОСТАТКИ : " << resid;
   qDebug() << "-----------------------------------------------------------------";
   QVector<double> diodSPEAcoefs(params, params + lampNums);
 
