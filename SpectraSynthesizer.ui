@@ -46,6 +46,34 @@ color: rgb(0, 170, 0);</string>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="2" rowspan="3">
+       <widget class="QSpinBox" name="spinBox_exposition">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="suffix">
+         <string> ms</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>50000</number>
+        </property>
+        <property name="value">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1" rowspan="3">
        <widget class="QPushButton" name="pushButton_stop_start_update_stm_spectr">
         <property name="sizePolicy">
@@ -65,50 +93,23 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="4" rowspan="3">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Expanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>228</width>
-          <height>17</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="0" column="2" rowspan="3">
-       <widget class="QSpinBox" name="spinBox_exposition">
+      <item row="0" column="7" rowspan="2">
+       <widget class="QLabel" name="label_value">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="font">
-         <font>
-          <pointsize>16</pointsize>
-         </font>
+        <property name="text">
+         <string>значение</string>
         </property>
-        <property name="suffix">
-         <string> ms</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>50000</number>
-        </property>
-        <property name="value">
-         <number>15</number>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="0" column="5" rowspan="2">
+      <item row="0" column="6" rowspan="2">
        <widget class="QLabel" name="label">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -124,7 +125,37 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="7" rowspan="3">
+      <item row="0" column="4" rowspan="3">
+       <widget class="QComboBox" name="comboBox_etalons">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="6">
+       <widget class="QComboBox" name="comboBox_waves">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="3">
+       <widget class="QComboBox" name="comboBox_spectrometr_type">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="8" rowspan="3">
        <widget class="QPushButton" name="pushButton_apply">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -137,17 +168,7 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="5">
-       <widget class="QComboBox" name="comboBox_waves">
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="6">
+      <item row="2" column="7">
        <widget class="QSpinBox" name="spinBox_bright_value">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -166,39 +187,35 @@ color: rgb(0, 170, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="6" rowspan="2">
-       <widget class="QLabel" name="label_value">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+      <item row="0" column="5" rowspan="3">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-        <property name="text">
-         <string>значение</string>
+        <property name="sizeType">
+         <enum>QSizePolicy::Expanding</enum>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>228</width>
+          <height>17</height>
+         </size>
         </property>
-       </widget>
+       </spacer>
       </item>
       <item row="0" column="3" rowspan="3">
-       <widget class="QComboBox" name="comboBox_etalons">
+       <widget class="QComboBox" name="comboBox_expositions">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-       </widget>
-      </item>
-      <item row="0" column="0" rowspan="3">
-       <widget class="QComboBox" name="comboBox_spectrometr_type">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
         </property>
        </widget>
       </item>

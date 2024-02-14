@@ -28,8 +28,6 @@ HamamatsuApi::HamamatsuApi()
   m_pixelsInMatrix = 0;
   m_sensorMode = MATRIX;
   params = new TCCDUSBExtendParams;
-
-
 }
 
 HamamatsuApi::~HamamatsuApi() {
@@ -92,6 +90,7 @@ bool HamamatsuApi::attach() {
 }
 
 bool HamamatsuApi::attach(int id) {
+
   m_isAttached = m_fCCD_HitTest(id);
   if (m_isAttached)
     m_ID = id;

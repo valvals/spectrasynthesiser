@@ -8,7 +8,7 @@
 
 OrminDevice::OrminDevice(int id) {
   m_sensor = new HamamatsuApi;
-  m_sensor->InitInstance();
+  bool isAlive = m_sensor->InitInstance();
   m_isNeedSave = false;
   m_isNeedSaveBlackSpectr = false;
   m_isNeedMinusBlackFromSpectr = false;
@@ -26,6 +26,7 @@ OrminDevice::OrminDevice(int id) {
   isNeedToChangeSensorMode = true;
   m_modeToChange = SPECTROSCOPE;
   m_isConnected = false;
+  if(!isAlive)return;
   m_isConnected = m_sensor->attach(id);
   qDebug() << "Подключение к сенсору: " << id << m_isConnected;
 

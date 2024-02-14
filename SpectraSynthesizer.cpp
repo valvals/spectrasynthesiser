@@ -102,7 +102,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_serial_stm_spectrometr->setPort(available_ports[i]);
       m_serial_stm_spectrometr->open(QIODevice::ReadWrite);
       connect(m_serial_stm_spectrometr, SIGNAL(readyRead()), this, SLOT(readStmData()));
-      m_serial_stm_spectrometr->write("e15000\n");
+      m_serial_stm_spectrometr->write("e5000\n");
       m_serial_stm_spectrometr->waitForBytesWritten(1000);
       m_is_stm_spectrometr_connected = true;
     }
@@ -210,13 +210,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(m_serial_mira, SIGNAL(readyRead()), SLOT(readMiraAnswer()));
   prepareDiodModels();
   connect(ui->action_show_diod_models, SIGNAL(triggered()), m_diod_models, SLOT(show()));
-  /*m_ormin_device = new OrminDevice(0);
+  m_ormin_device = new OrminDevice(0);
   connect(m_ormin_device,
           SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
-          SLOT(recieveIrData(QVector<double>, double, double)));*/
-  //emit m_ormin_device->requestSpectr();
+          SLOT(recieveIrData(QVector<double>, double, double)));
   connect(ui->action_start_fitting, SIGNAL(triggered()), SLOT(fitSignalToEtalonALL()));
-//fitSignalToEtalonMAX()
   connect(ui->action_fit_etalon_max, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX()));
   sendDataToDiodsComDevice("u\n");
 
@@ -779,11 +777,23 @@ void SpectraSynthesizer::copy_data_plot_to_clipboard(QSharedPointer<QCPGraphData
 
 void SpectraSynthesizer::load_pvd_calibr() {
 
-  db_json::getJsonObjectFromFile("pvd_calibr.json", m_pvd_calibr);
-  auto wave_array = m_pvd_calibr["wave"].toArray();
-  auto bright_array = m_pvd_calibr["bright"].toArray();
+  // DRAFT expositions lists for vis and ir sensors
+  QJsonArray arr;
+  db_json::getJsonArrayFromFile("pvd_calibr_list.json",arr);
+
+  m_pvd_calibr = arr[0].toObject();
+  auto wave_array = m_pvd_calibr["waves"].toArray();
+  auto bright_array = m_pvd_calibr["values"].toArray();
   int counter = 0;
+  for(int i=0;i<arr.size();++i){
+  auto temp = arr[i].toObject();
+  auto wave_array = temp["waves"].toArray();
+  auto bright_array = temp["values"].toArray();
+  qDebug()<<i<<wave_array.size()<<bright_array.size();
   Q_ASSERT(wave_array.size() == bright_array.size());
+  Q_ASSERT(wave_array.size() == spectr_values_size);
+
+  }
   for (int i = 1; i < wave_array.size(); ++i) {
     if (m_etalons_grid[counter] > 900) {
       break;
@@ -795,6 +805,11 @@ void SpectraSynthesizer::load_pvd_calibr() {
       ++counter;
       m_short_pvd_grid_indexes.push_back(i);
     }
+  }
+
+
+  for(int i=0;i<arr.size();++i){
+      ui->comboBox_expositions->addItem(arr[i].toObject()["expo"].toString());
   }
 }
 
