@@ -277,7 +277,7 @@ void SpectraSynthesizer::readStmData() {
   static double prev_azp_max = 0;
   const double azp_delta_max = 100.0;
   static double prev_speya_max = 0;
-  const double speya_delta_max = 1e7;
+  const double speya_delta_max = 2e7;
   const double TOP_MARGIN_COEFF = 1.1;
 
   if (ui->comboBox_spectrometr_type->currentText() != "ПВД") {
@@ -778,22 +778,22 @@ void SpectraSynthesizer::copy_data_plot_to_clipboard(QSharedPointer<QCPGraphData
 
 void SpectraSynthesizer::load_pvd_calibr() {
 
-  // DRAFT expositions lists for vis and ir sensors
+  QJsonObject jo;
   QJsonArray arr;
-  db_json::getJsonArrayFromFile("pvd_calibr_list.json",arr);
+  db_json::getJsonObjectFromFile("pvd_calibr_list.json",jo);
+  arr = jo["calibrs"].toArray();
   Q_ASSERT(arr.size()>0);
   m_pvd_calibr = arr[0].toObject();
-  auto wave_array = m_pvd_calibr["waves"].toArray();
+  m_pvd_calibr["waves"] = jo["waves"].toArray();
+  auto wave_array = jo["waves"].toArray();
   auto bright_array = m_pvd_calibr["values"].toArray();
   int counter = 0;
+
   for(int i=0;i<arr.size();++i){
   auto temp = arr[i].toObject();
-  auto wave_array = temp["waves"].toArray();
   auto bright_array = temp["values"].toArray();
-  qDebug()<<i<<wave_array.size()<<bright_array.size();
-  Q_ASSERT(wave_array.size() == bright_array.size());
-  Q_ASSERT(wave_array.size() == spectr_values_size);
-
+  qDebug()<<i<<bright_array.size();
+  Q_ASSERT(bright_array.size() == spectr_values_size);
   }
   for (int i = 1; i < wave_array.size(); ++i) {
     if (m_etalons_grid[counter] > 900) {
@@ -807,7 +807,6 @@ void SpectraSynthesizer::load_pvd_calibr() {
       m_short_pvd_grid_indexes.push_back(i);
     }
   }
-
 
   for(int i=0;i<arr.size();++i){
       ui->comboBox_expositions->addItem(arr[i].toObject()["expo"].toString());
@@ -1002,8 +1001,6 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
   double wavesStep = 1;
   FitSettings emuleSettings = fitSet;
   QVector<lampInfo> diods(m_pins_json_array.size());
-  QVector<double> waves_etalon;
-  QVector<double> speya_etalon;
   for (int i = 0; i < m_pins_json_array.size(); ++i) {
     //bright_deps
     auto bright_deps = m_pins_json_array[i].toObject()["bright_deps"].toObject();
@@ -1060,10 +1057,10 @@ void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index)
 {
     if (!m_is_stm_spectrometr_connected)
       return;
-    QJsonArray arr;
-    db_json::getJsonArrayFromFile("pvd_calibr_list.json",arr);
-    Q_ASSERT(arr.size()>0);
-    m_pvd_calibr = arr[index].toObject();
+    QJsonObject obj;
+    db_json::getJsonObjectFromFile("pvd_calibr_list.json",obj);
+    m_pvd_calibr = obj["calibrs"].toArray()[index].toObject();
+    m_pvd_calibr["waves"] = obj["waves"].toArray();
     qDebug()<<"*** EXPO *** --> "<<m_pvd_calibr["expo"].toString();
     m_is_stm_exposition_changed = true;
 }

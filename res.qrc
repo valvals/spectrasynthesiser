@@ -4,6 +4,5 @@
         <file>jsons/config.json</file>
         <file>jsons/etalons.json</file>
         <file>jsons/pik_calibr.json</file>
-        <file>jsons/pvd_calibr.json</file>
     </qresource>
 </RCC>
