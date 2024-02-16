@@ -26,7 +26,8 @@ OrminDevice::OrminDevice(int id) {
   isNeedToChangeSensorMode = true;
   m_modeToChange = SPECTROSCOPE;
   m_isConnected = false;
-  if(!isAlive)return;
+  if (!isAlive)
+    return;
   m_isConnected = m_sensor->attach(id);
   qDebug() << "Подключение к сенсору: " << id << m_isConnected;
 

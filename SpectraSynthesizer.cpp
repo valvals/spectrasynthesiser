@@ -780,20 +780,20 @@ void SpectraSynthesizer::load_pvd_calibr() {
 
   QJsonObject jo;
   QJsonArray arr;
-  db_json::getJsonObjectFromFile("pvd_calibr_list.json",jo);
+  db_json::getJsonObjectFromFile("pvd_calibr_list.json", jo);
   arr = jo["calibrs"].toArray();
-  Q_ASSERT(arr.size()>0);
+  Q_ASSERT(arr.size() > 0);
   m_pvd_calibr = arr[0].toObject();
   m_pvd_calibr["waves"] = jo["waves"].toArray();
   auto wave_array = jo["waves"].toArray();
   auto bright_array = m_pvd_calibr["values"].toArray();
   int counter = 0;
 
-  for(int i=0;i<arr.size();++i){
-  auto temp = arr[i].toObject();
-  auto bright_array = temp["values"].toArray();
-  qDebug()<<i<<bright_array.size();
-  Q_ASSERT(bright_array.size() == spectr_values_size);
+  for (int i = 0; i < arr.size(); ++i) {
+    auto temp = arr[i].toObject();
+    auto bright_array = temp["values"].toArray();
+    qDebug() << i << bright_array.size();
+    Q_ASSERT(bright_array.size() == spectr_values_size);
   }
   for (int i = 1; i < wave_array.size(); ++i) {
     if (m_etalons_grid[counter] > 900) {
@@ -808,8 +808,8 @@ void SpectraSynthesizer::load_pvd_calibr() {
     }
   }
 
-  for(int i=0;i<arr.size();++i){
-      ui->comboBox_expositions->addItem(arr[i].toObject()["expo"].toString());
+  for (int i = 0; i < arr.size(); ++i) {
+    ui->comboBox_expositions->addItem(arr[i].toObject()["expo"].toString());
   }
 }
 
@@ -1043,7 +1043,11 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
                                                          emuleSettings);
 
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
+  setValuesForSliders(diod_sliders);
 
+}
+
+void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders) {
   for (int i = 0; i < diod_sliders.size(); ++i) {
 
     QTimer::singleShot(100 * (i + 1), this, [diod_sliders, i, this]() {
@@ -1053,14 +1057,13 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
   }
 }
 
-void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index)
-{
-    if (!m_is_stm_spectrometr_connected)
-      return;
-    QJsonObject obj;
-    db_json::getJsonObjectFromFile("pvd_calibr_list.json",obj);
-    m_pvd_calibr = obj["calibrs"].toArray()[index].toObject();
-    m_pvd_calibr["waves"] = obj["waves"].toArray();
-    qDebug()<<"*** EXPO *** --> "<<m_pvd_calibr["expo"].toString();
-    m_is_stm_exposition_changed = true;
+void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) {
+  if (!m_is_stm_spectrometr_connected)
+    return;
+  QJsonObject obj;
+  db_json::getJsonObjectFromFile("pvd_calibr_list.json", obj);
+  m_pvd_calibr = obj["calibrs"].toArray()[index].toObject();
+  m_pvd_calibr["waves"] = obj["waves"].toArray();
+  qDebug() << "*** EXPO *** --> " << m_pvd_calibr["expo"].toString();
+  m_is_stm_exposition_changed = true;
 }
