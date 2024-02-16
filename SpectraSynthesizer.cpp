@@ -21,6 +21,7 @@
 const int mira_packet_size = 8;
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
+const int SET_SLIDERS_DELAY = 100;
 const char power_dir[] = "diods_tracker";
 const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
 const uchar packetBack[mira_packet_size] = {0xA5, 'b', 0, 0, 0, 0, 0x5A, 97};
@@ -255,7 +256,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
   */
 
-
+  m_isUpdateSpectrForFitter = false;
+  m_isSetValuesForSliders = false;
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -380,6 +382,15 @@ void SpectraSynthesizer::readStmData() {
   }
 
   if (!m_is_stm_exposition_changed) {
+    if(m_isUpdateSpectrForFitter.load()){
+        *m_shared_spectral_data = values;
+        m_isUpdateSpectrForFitter.store(false);
+    }
+    if(m_isSetValuesForSliders.load()){
+       setValuesForSliders(*m_shared_desired_sliders_positions);
+       QTimer::singleShot(SET_SLIDERS_DELAY*m_sliders.size()+1,
+                          this,[this](){m_isSetValuesForSliders.store(false);});
+    }
     show_stm_spectr(channels, values, max);
   } else {
     auto expo_value = ui->comboBox_expositions->currentText().toDouble();
@@ -1047,10 +1058,10 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
 
 }
 
-void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders) {
+void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders) {
   for (int i = 0; i < diod_sliders.size(); ++i) {
 
-    QTimer::singleShot(100 * (i + 1), this, [diod_sliders, i, this]() {
+    QTimer::singleShot(SET_SLIDERS_DELAY * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       emit m_sliders[i]->sliderReleased();
     });

@@ -46,6 +46,10 @@ class SpectraSynthesizer : public QMainWindow {
  public:
   SpectraSynthesizer(QWidget* parent = nullptr);
   ~SpectraSynthesizer();
+  std::atomic<bool> m_isUpdateSpectrForFitter;
+  std::atomic<bool> m_isSetValuesForSliders;
+  QVector<double>* m_shared_spectral_data;
+  QVector<double>* m_shared_desired_sliders_positions;
 
  signals:
   void sendData(QString);
@@ -132,7 +136,7 @@ class SpectraSynthesizer : public QMainWindow {
   void prepareDiodModels();
   uchar getCS(const uchar* data, int size);
   void fitSignalToEtalon(const FitSettings& fitSet);
-  void setValuesForSliders(const QVector<double>& diod_sliders);
+  void setValuesForSliders(const QVector<double> diod_sliders);
   // QWidget interface
  protected:
   void closeEvent(QCloseEvent* event) override;
