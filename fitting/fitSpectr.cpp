@@ -3,6 +3,7 @@
 #include "fitting/mpfit.h"
 #include <algorithm>
 #include <QDebug>
+#include "windows.h"
 
 //! структура с данными для передачи в fitFunct
 struct vars_struct {
@@ -16,6 +17,7 @@ struct vars_struct {
   QVector<double> speyaEtalon;
   QVector<lampInfo> lamps;
   FitSettings settings;
+
 };
 
 // Вычисляем длины волн (центральные) каждого светодиода
@@ -162,36 +164,36 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   double* params = new double[lampNums];
   double defValSlider = 0.5;
   std::fill_n(params, lampNums, defValSlider); // default values
-//  params[0] = 0.0481095;
-//  params[1] = 0;
-//  params[2] = 0.1;
-//  params[3] = 0;
-//  params[4] = 0;
-//  params[5] = 0.01;
-//  params[6] = 0.001;
-//  params[7] = 0;
-//  params[8] = 0.01;
-//  params[9] = 0.06;
-//  params[10] = 0.09;
-//  params[11] = 0;
-//  params[12] = 0.5;
-//  params[13] = 0.094;
-//  params[14] = 0.01;
-//  params[15] = 0.05;
-//  params[16] = 0.03;
-//  params[17] = 0.04;
-//  params[18] = 0.014;
-//  params[19] = 0.02;
-//  params[20] = 0.01;
-//  params[21] = 0.15;
-//  params[22] = 0.13;
-//  params[23] = 0.24;
-//  params[24] = 0.44;
-//  params[25] = 0.12;
-//  params[26] = 0.1;
-//  params[27] = 1;
-//  params[28] = 0;
-//  params[29] = 0.1;
+  //  params[0] = 0.0481095;
+  //  params[1] = 0;
+  //  params[2] = 0.1;
+  //  params[3] = 0;
+  //  params[4] = 0;
+  //  params[5] = 0.01;
+  //  params[6] = 0.001;
+  //  params[7] = 0;
+  //  params[8] = 0.01;
+  //  params[9] = 0.06;
+  //  params[10] = 0.09;
+  //  params[11] = 0;
+  //  params[12] = 0.5;
+  //  params[13] = 0.094;
+  //  params[14] = 0.01;
+  //  params[15] = 0.05;
+  //  params[16] = 0.03;
+  //  params[17] = 0.04;
+  //  params[18] = 0.014;
+  //  params[19] = 0.02;
+  //  params[20] = 0.01;
+  //  params[21] = 0.15;
+  //  params[22] = 0.13;
+  //  params[23] = 0.24;
+  //  params[24] = 0.44;
+  //  params[25] = 0.12;
+  //  params[26] = 0.1;
+  //  params[27] = 1;
+  //  params[28] = 0;
+  //  params[29] = 0.1;
 
   //-pars
   mp_par* pars = new mp_par[lampNums]; // это коэффициенты при СПЭЯ светодиода.
@@ -235,7 +237,7 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   //-config
   mp_config config;
   memset(&config, 0, sizeof(config));
-  config.epsfcn = 0.05;
+
 
   //-------------- Фитируем и находим параметры коэффициентов при СПЭЯ светодиодов -------
   int status = mpfit(fitFunct, specChannels, lampNums, params, pars,
@@ -314,3 +316,196 @@ QVector<double> find_sliders_from_coefs(const QVector<double>& speyaCoefs,
   }
   return sliderVals;
 }
+
+
+std::atomic<bool> fitterBySpectometer::isBlocked(false);
+QVector<double>* fitterBySpectometer::m_realSpectrPtr(nullptr);
+std::atomic<bool>* fitterBySpectometer::m_needNewSpectrPtr(nullptr);
+std::atomic<bool>* fitterBySpectometer::m_needUpdateSlidersPtr(nullptr);
+QVector<double>* fitterBySpectometer::m_optimalSlidersPtr(nullptr);
+
+fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
+                                         const QVector<double>& wavesEtalon,
+                                         const QVector<double>& speyaEtalon,
+                                         double waveStep,
+                                         const QVector<lampInfo>& lampsAll,
+                                         const FitSettings& settings,
+                                         QVector<double>* realSpectrPtr,
+                                         QVector<double>* optimalSlidersPtr,
+                                         std::atomic<bool>* needNewSpectrPtr,
+                                         std::atomic<bool>* needUpdateSlidersPtr) {
+
+  isBlocked = false;
+  this->defaultSliders = defaultSliders;
+  this->wavesEtalon = wavesEtalon;
+  this->speyaEtalon = speyaEtalon;
+  this->waveStep = waveStep;
+  this->lampsAll = lampsAll;
+  this->settings = settings;
+  m_realSpectrPtr = realSpectrPtr;
+  m_needNewSpectrPtr = needNewSpectrPtr;
+  m_needUpdateSlidersPtr = needUpdateSlidersPtr;
+  m_optimalSlidersPtr = optimalSlidersPtr;
+}
+
+void fitterBySpectometer::run() {
+  qDebug() << "";
+  qDebug() << "--------------------------------------------------------";
+  qDebug() << "-----------ПОДГОНКА К РЕАЛЬНОМУ СПЕКТРУ-----------------";
+  qDebug() << "--------------------------------------------------------";
+  qDebug() << "";
+
+  QVector<lampInfo> lamps;
+  QVector<bool> usedLampsAll; // использована лампа или нет
+  if (settings == FitSettings::FIT_BY_MAXIMUMS) {
+    //Здесь анализируем lampsAll и выкидываем те, которые выходят за границу длин волн эталона.
+    //Иначе число переменных будет больше, чем число длин волн и mpfit выкинет с ошибкой
+    QVector<double> allLampCenterWaves = fillCenterLines(lampsAll);
+
+    for (int i = 0; i < allLampCenterWaves.size(); ++i) {
+      // если центр лампы внутри диапазона длин волн эталона
+      if (std::find(wavesEtalon.begin(), wavesEtalon.end(), allLampCenterWaves.at(i)) != wavesEtalon.end()) {
+        lamps.append(lampsAll[i]);
+        usedLampsAll.append(true);
+      } else {
+        usedLampsAll.append(false); // сохранить индексы выкинутых lampsAll, чтобы потом смочь создать выходной массив параметров слайдеров
+      }
+    }
+  } else if (settings == FitSettings::FIT_ALL) {
+    lamps = lampsAll;
+  }
+  qDebug() << "lampsAll:  " << lampsAll.size();
+  int specChannels = wavesEtalon.size();
+  int lampNums = lamps.size();
+  Q_ASSERT(lampNums > 0);
+  Q_ASSERT(specChannels == speyaEtalon.size());
+  Q_ASSERT(specChannels > 0);
+  Q_ASSERT(specChannels > lampNums); //требования метода оптимизации по МНК
+  Q_ASSERT((wavesEtalon.last() - wavesEtalon.first()) / (specChannels - 1) == waveStep); //проверяем на константный шаг
+
+  int ii = 0;
+  for (const auto& lamp : lamps) {
+    Q_ASSERT(lamp.waves.size() > 0);
+    Q_ASSERT(lamp.waves.size() == lamp.speya.size());
+    double lampStep = (lamp.waves.last() - lamp.waves.first()) / (lamp.waves.size() - 1);
+    Q_ASSERT(lampStep == waveStep);
+    if (lampStep != waveStep) {
+      qDebug() << "Сообщение ниже актуально только для настройки FitSettings::FIT_ALL.";
+      qDebug() << "ERROR! для лампы " << ii << " шаг по длинам волн не равен " << waveStep << ", а равен " << lampStep;
+    }
+    ii++;
+  }
+
+  //-------------- Заполняем параметры для mpfit() -------
+
+  //-params
+  double* params = new double[lampNums];
+  for (int i = 0; i < defaultSliders.size(); ++i) {
+    params[i] = defaultSliders.at(i);
+  }
+
+  //-pars
+  mp_par* pars = new mp_par[lampNums]; // это коэффициенты при СПЭЯ светодиода.
+  memset(pars, 0, lampNums * sizeof(mp_par));
+  for (int i = 0; i < lampNums; ++i) {
+    pars[i].limited[0] = 1;
+    pars[i].limited[1] = 1;
+    pars[i].limits[0] = 0; // нижняя граница значения коэффициента при СПЭЯ светодиода
+    pars[i].limits[1] = lamps.at(i).max_slider_value; // верхняя граница значения коэффициента при СПЭЯ светодиода
+  }
+
+  //-mydata
+  vars_struct mydata;
+  double defValError = 0.1;
+
+  // Реализуем здесь вариант с подгонкой спектров только по максимумам.
+  if (settings == FitSettings::FIT_BY_MAXIMUMS) {
+    mydata.wavesOfCentersLampLines = fillCenterLines(lamps);
+    createShortEtalon(wavesEtalon, speyaEtalon, mydata.wavesOfCentersLampLines,
+                      mydata.wavesEtalonShort, mydata.speyaEtalonShort, mydata.indexesOfWavesEtalonShort);
+    specChannels = mydata.wavesEtalonShort.size();
+  }
+
+  double* ey = new double[specChannels];
+  std::fill_n(ey, specChannels, defValError);
+  mydata.ey = ey;
+  mydata.lamps = lamps;
+  mydata.settings = settings;
+  mydata.speyaEtalon = speyaEtalon;
+  mydata.wavesEtalon = wavesEtalon;
+  mydata.waveStep = waveStep;
+
+  //-result
+  mp_result result;
+  memset(&result, 0, sizeof(result));
+  double* perror = new double[lampNums];
+  result.xerror = perror;
+  double* presid = new double[specChannels];
+  result.resid = presid;
+
+  //-config
+  mp_config config;
+  memset(&config, 0, sizeof(config));
+  config.epsfcn = 0.05; // чтобы дерганья спектрометра не влияли на подгонку
+  // -------------- Конец заполнения настроек---------------------
+
+  //-------------- Фитируем и находим значения слайдеров для светодиодов -------
+  int status = mpfit(fitterBySpectometer::fitFunctRealSpectrometer, specChannels, lampNums, params, pars,
+                     &config, (void*) &mydata, &result);
+
+  qDebug() << "----------------------  РЕЗУЛЬТАТЫ mpfit  ----------------------";
+  qDebug() << "status code: " << status;
+  qDebug() << "число итераций: " << result.niter;
+  qDebug() << "число вызовов fitFunct: " << result.nfev;
+  qDebug() << "стартовый chi2: " << result.orignorm;
+  qDebug() << "финальный chi2: " << result.bestnorm;
+  QVector<double> xerror(result.xerror, result.xerror + result.npar);
+  qDebug() << "НЕОПРЕДЕЛЕННОСТИ : " << xerror;
+  QVector<double> resid(result.resid, result.resid + result.nfunc);
+  qDebug() << "ОСТАТКИ : " << resid;
+  qDebug() << "-----------------------------------------------------------------";
+
+
+
+
+}
+int fitterBySpectometer::fitFunctRealSpectrometer(int m, int n, double* p, double* dy, double**, void* vars) {
+  *m_needNewSpectrPtr = true;
+  isBlocked = true;
+  while (isBlocked) {
+    // ждем, пока спектрометр не измерит спектр
+  }
+
+  vars_struct* mydata = static_cast<vars_struct*>(vars);
+  const QVector<double>& x = mydata->wavesEtalon;
+  const QVector<double>& y = mydata->speyaEtalon;
+  Q_ASSERT(x.size() == m_realSpectrPtr->size());
+  double* ey = mydata->ey;
+
+  if (mydata->settings == FitSettings::FIT_ALL) {
+    for (int i = 0; i < m; i++) {
+      dy[i] = (y[i] - m_realSpectrPtr->at(i)) / ey[i];
+    }
+  } else if (mydata->settings == FitSettings::FIT_BY_MAXIMUMS) {
+    Q_ASSERT(m == mydata->wavesEtalonShort.size());
+    //нужен шорт realSpectr. Для этого из realSpectrPtr надо выбрать только нужные значения
+    QVector<double> realSpectrShort(mydata->wavesEtalonShort.size(), -1);
+    for (int i = 0; i < mydata->wavesEtalonShort.size(); ++i) {
+      realSpectrShort[i] = m_realSpectrPtr->at(mydata->indexesOfWavesEtalonShort.at(i));
+    }
+    for (int i = 0; i < m; i++) {
+      dy[i] = (mydata->speyaEtalonShort[i] - realSpectrShort[i]) / ey[i];
+    }
+  }
+  QVector<double> slidersVec(p, p + n);
+  *m_optimalSlidersPtr = slidersVec;
+  Q_ASSERT(m_optimalSlidersPtr->size() == slidersVec.size());
+  *m_needUpdateSlidersPtr = true;
+  isBlocked = true;
+  while (isBlocked) {
+    // ждем, пока установятся слайдеры
+  }
+  return 0;
+}
+
+

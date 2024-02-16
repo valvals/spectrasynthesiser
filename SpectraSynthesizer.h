@@ -2,6 +2,7 @@
 #define SPECTRASYNTHESIZER_H
 
 #include <QMainWindow>
+#include <atomic>
 #include "QSerialPort"
 #include "QSerialPortInfo"
 #include "QTimer"
@@ -14,6 +15,8 @@
 #include "CameraModule.h"
 #include "OrminDevice.h"
 #include "fitting/dataStructs.h"
+
+class fitterBySpectometer;
 
 const uint16_t spectr_values_size = 3648;
 
@@ -46,8 +49,8 @@ class SpectraSynthesizer : public QMainWindow {
  public:
   SpectraSynthesizer(QWidget* parent = nullptr);
   ~SpectraSynthesizer();
-  std::atomic<bool> m_isUpdateSpectrForFitter;
-  std::atomic<bool> m_isSetValuesForSliders;
+  std::atomic<bool>* m_isUpdateSpectrForFitter;
+  std::atomic<bool>* m_isSetValuesForSliders;
   QVector<double>* m_shared_spectral_data;
   QVector<double>* m_shared_desired_sliders_positions;
 
@@ -92,6 +95,7 @@ class SpectraSynthesizer : public QMainWindow {
 
  private:
   Ui::SpectraSynthesizer* ui;
+  bool m_is_sync;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;
   bool m_is_stm_exposition_changed;
@@ -99,6 +103,7 @@ class SpectraSynthesizer : public QMainWindow {
   bool m_is_diods_arduino_connected;
   view m_view;
   DebugConsole* m_debug_console;
+  fitterBySpectometer* m_fitter;
   QJsonObject m_etalons;
   QHash<QString, double> m_etalons_maximums;
   QJsonObject m_pvd_calibr;
@@ -126,6 +131,10 @@ class SpectraSynthesizer : public QMainWindow {
   QCustomPlot* m_hours_stat_plot;
   QCustomPlot* m_diod_models;
   CameraModule* m_camera_module;
+  QVector<double>* m_realSpectrPtr;
+  QVector<double>* m_slidersFromFitter;
+  std::atomic<bool>* m_1;
+  std::atomic<bool>* m_2;
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);

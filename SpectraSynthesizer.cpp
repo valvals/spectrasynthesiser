@@ -34,6 +34,12 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
   ui->setupUi(this);
+  m_isUpdateSpectrForFitter = new std::atomic<bool>();
+  m_isSetValuesForSliders = new std::atomic<bool>();
+  m_isUpdateSpectrForFitter->store(false);
+  m_isSetValuesForSliders->store(false);
+  m_shared_desired_sliders_positions = new QVector<double>();
+  m_shared_spectral_data = new QVector<double>();
 
   m_is_show_etalon = false;
   m_is_stm_spectr_update = true;
@@ -256,8 +262,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
   */
 
-  m_isUpdateSpectrForFitter = false;
-  m_isSetValuesForSliders = false;
+
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
@@ -382,14 +387,18 @@ void SpectraSynthesizer::readStmData() {
   }
 
   if (!m_is_stm_exposition_changed) {
-    if(m_isUpdateSpectrForFitter.load()){
-        *m_shared_spectral_data = values;
-        m_isUpdateSpectrForFitter.store(false);
+    if (m_isUpdateSpectrForFitter->load()) {
+      *m_shared_spectral_data = values;
+      m_isUpdateSpectrForFitter->store(false);
+      m_fitter->isBlocked = false;
     }
-    if(m_isSetValuesForSliders.load()){
-       setValuesForSliders(*m_shared_desired_sliders_positions);
-       QTimer::singleShot(SET_SLIDERS_DELAY*m_sliders.size()+1,
-                          this,[this](){m_isSetValuesForSliders.store(false);});
+    if (m_isSetValuesForSliders->load()) {
+      setValuesForSliders(*m_shared_desired_sliders_positions);
+      QTimer::singleShot(SET_SLIDERS_DELAY * (m_sliders.size() + 5),
+      this, [this]() {
+        m_isSetValuesForSliders->store(false);
+        m_fitter->isBlocked = false;
+      });
     }
     show_stm_spectr(channels, values, max);
   } else {
@@ -522,7 +531,7 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
   auto max_current = m_pins_json_array[index].toObject().value("max_current").toDouble();
   auto x_current = (double)(max_current * prev_value) / max_value;
   auto group = ((double)x_current / max_current) * 100;
-  qDebug() << "group: " << group << x_current;
+  //qDebug() << "group: " << group << x_current;
   QString groupID = getGroupID(group);
   m_sliders_previous_values[index] = value;
   if (prev_value == 1) {
@@ -538,7 +547,7 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
     prev_object["current"] = ampers_hours + prev_current_value;
     prev_object[groupID] = ampers_hours + prev_group_value;
     m_power_tracker[index] = prev_object;
-    qDebug() << "save: " << db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
+    db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
   }
 }
 
@@ -1054,7 +1063,35 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
                                                          emuleSettings);
 
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
+
+  m_is_sync = false;
   setValuesForSliders(diod_sliders);
+
+
+  // delay scenario
+  QTimer::singleShot(SET_SLIDERS_DELAY * (m_sliders.size() + 5),
+                     this, [this, diod_sliders,
+                            etalon_grid, etalon_speya,
+  wavesStep, diods, emuleSettings]() {
+    Q_ASSERT(m_is_sync);
+    m_fitter = new fitterBySpectometer(diod_sliders,
+                                       etalon_grid,
+                                       etalon_speya,
+                                       wavesStep,
+                                       diods,
+                                       emuleSettings,
+                                       m_shared_spectral_data,
+                                       m_shared_desired_sliders_positions,
+                                       m_isUpdateSpectrForFitter,
+                                       m_isSetValuesForSliders);
+
+
+    QThreadPool* thread_pool = QThreadPool::globalInstance();
+    thread_pool->start(m_fitter);
+
+  });
+
+
 
 }
 
@@ -1064,6 +1101,8 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders)
     QTimer::singleShot(SET_SLIDERS_DELAY * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       emit m_sliders[i]->sliderReleased();
+      if (i == diod_sliders.size() - 1)
+        m_is_sync = true;
     });
   }
 }
