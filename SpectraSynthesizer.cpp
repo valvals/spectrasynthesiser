@@ -33,6 +33,7 @@ const uchar packetStop[mira_packet_size] = {0xA5, '_', 0, 0, 0, 0, 0x5A, 0};
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::SpectraSynthesizer) {
+  QCoreApplication::instance()->installEventFilter(this);
   ui->setupUi(this);
   m_isUpdateSpectrForFitter = new std::atomic<bool>();
   m_isSetValuesForSliders = new std::atomic<bool>();
@@ -75,7 +76,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->yAxis->setLabelColor(Qt::white);
   ui->widget_plot->addGraph(); // 0 - спектрометр
   ui->widget_plot->addGraph(); // 1 - эталон
-
+  ui->widget_plot->addGraph(); // 2 - sensor functions
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
   m_diod_models = new QCustomPlot;
@@ -84,6 +85,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->graph(0)->setPen(graphPen);
   QPen graphPenEtalon(QColor(255, 255, 0));
   ui->widget_plot->graph(1)->setPen(graphPenEtalon);
+
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
   m_serial_mira = new QSerialPort;
@@ -131,6 +133,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
     for (int i = 0; i < m_pins_json_array.size(); ++i) {
       auto slider = new QSlider;
+      slider->setCursor(Qt::PointingHandCursor);
       m_power_ticks.push_back(i + 1);
       m_power_labels.push_back(QString::number(i + 1));
       slider->setObjectName(QString("qslider_") + QString::number(i + 1));
@@ -210,8 +213,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_etalon_pvd, SIGNAL(triggered()), SLOT(switchSpeyaEtalon_pvd()));
   connect(ui->action_azp_pvd, SIGNAL(triggered()), SLOT(switchAZP_pvd()));
   connect(ui->action_speya_pvd, SIGNAL(triggered()), SLOT(switchSpeya_pvd()));
-  ui->action_azp_pvd->setChecked(true);
-  switchAZP_pvd();
+  ui->action_etalon_pvd->setChecked(true);
+  switchSpeyaEtalon_pvd();
 
   connect(ui->action_cycleMoveMira, SIGNAL(triggered()), SLOT(mayBeStartCycleMovingMira()));
   connect(m_serial_mira, SIGNAL(readyRead()), SLOT(readMiraAnswer()));
@@ -712,6 +715,52 @@ void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
   event->accept();
 }
 
+bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
+
+    if (watched->objectName().contains("qslider")) {
+    if(m_view == view::ETALON_PVD){
+    if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
+      double max_apparat = 0;
+      if(event->type() == QEvent::HoverEnter){
+
+          auto objName = watched->objectName();
+          auto parts = objName.split("_");
+          objName = parts[1];
+          qDebug() << "---->" << objName;
+          qDebug() << watched->objectName() << event->type();
+          auto arr = m_json_config["pins_array"].toArray();
+          auto model = arr[objName.toInt() - 1].toObject()["model"].toObject();
+          QPen graphPenApparatFunction(QColor(arr[objName.toInt() - 1].toObject()["color"].toString()));
+          graphPenApparatFunction.setWidth(3);
+          ui->widget_plot->graph(2)->setPen(graphPenApparatFunction);
+          auto values = model["values"].toArray();
+          auto waves = model["waves"].toArray();
+          QVector<double> vals;
+          QVector<double> wavs;
+          for(int i=0;i<values.size();++i){
+          auto val = values.at(i).toDouble();
+          if(max_apparat<val)max_apparat = val;
+          vals.push_back(val);
+          wavs.push_back(waves.at(i).toDouble());
+          }
+        qDebug()<<"etalon max: "<<m_etalons_maximums.value(ui->comboBox_etalons->currentText());
+        auto et_max = m_etalons_maximums.value(ui->comboBox_etalons->currentText());
+        qDebug()<<"apparat_max: "<<max_apparat;
+        for(int i=0;i<vals.size();++i){
+            vals[i] = (et_max/max_apparat)*vals[i];
+        }
+        ui->widget_plot->graph(2)->setData(wavs,vals);
+
+      }else{
+          ui->widget_plot->graph(2)->setData({},{});
+      }
+    }
+    }
+  }
+  return false;
+}
+
+
 void SpectraSynthesizer::reset_all_diods_to_zero() {
 
   sendDataToDiodsComDevice("f\n");
@@ -992,6 +1041,7 @@ void SpectraSynthesizer::prepareDiodModels() {
       }
       d_waves.push_back(wave);
     }
+
     m_diod_models->graph(i)->setData(d_waves, d_values);
   }
   qDebug() << wave_start << wave_end;

@@ -149,5 +149,9 @@ class SpectraSynthesizer : public QMainWindow {
   // QWidget interface
  protected:
   void closeEvent(QCloseEvent* event) override;
+
+  // QObject interface
+ public:
+  bool eventFilter(QObject* watched, QEvent* event) override;
 };
 #endif // SPECTRASYNTHESIZER_H
