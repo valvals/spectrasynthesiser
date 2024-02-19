@@ -77,6 +77,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->addGraph(); // 0 - спектрометр
   ui->widget_plot->addGraph(); // 1 - эталон
   ui->widget_plot->addGraph(); // 2 - sensor functions
+  ui->widget_plot->addGraph(); // 3 - sensor functions normal
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
   m_diod_models = new QCustomPlot;
@@ -723,6 +724,12 @@ bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
       double max_apparat = 0;
       if(event->type() == QEvent::HoverEnter){
 
+
+          QPen graphPenApparatNormal(Qt::white);
+          graphPenApparatNormal.setWidth(2);
+          ui->widget_plot->graph(3)->setPen(graphPenApparatNormal);
+          double normal_wave_index = 0;
+
           auto objName = watched->objectName();
           auto parts = objName.split("_");
           objName = parts[1];
@@ -739,7 +746,10 @@ bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
           QVector<double> wavs;
           for(int i=0;i<values.size();++i){
           auto val = values.at(i).toDouble();
-          if(max_apparat<val)max_apparat = val;
+          if(max_apparat<val){
+              max_apparat = val;
+              normal_wave_index = i;
+          }
           vals.push_back(val);
           wavs.push_back(waves.at(i).toDouble());
           }
@@ -750,11 +760,14 @@ bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
             vals[i] = (et_max/max_apparat)*vals[i];
         }
         ui->widget_plot->graph(2)->setData(wavs,vals);
+        ui->widget_plot->graph(3)->setData({wavs[normal_wave_index],wavs[normal_wave_index]},{0,et_max});
 
       }else{
           ui->widget_plot->graph(2)->setData({},{});
+          ui->widget_plot->graph(3)->setData({},{});
       }
     }
+    ui->widget_plot->replot();
     }
   }
   return false;
