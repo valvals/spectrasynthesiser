@@ -41,6 +41,9 @@ class fitterBySpectometer : public QObject, public QRunnable {
 
   static std::atomic<bool> isBlocked;
 
+signals:
+   void workIsFinished();
+
  private:
   static int fitFunctRealSpectrometer(int m, int n, double* p, double* dy, double** /*dvec*/, void* vars);
   static std::atomic<bool>* m_needNewSpectrPtr;

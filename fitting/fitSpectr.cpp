@@ -465,7 +465,7 @@ void fitterBySpectometer::run() {
   qDebug() << "ОСТАТКИ : " << resid;
   qDebug() << "-----------------------------------------------------------------";
 
-
+emit workIsFinished();
 
 
 }

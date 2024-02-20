@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <atomic>
 #include "QSerialPort"
+#include <QMediaPlayer>
 #include "QSerialPortInfo"
 #include "QTimer"
 #include "qjsonarray.h"
@@ -59,6 +60,7 @@ class SpectraSynthesizer : public QMainWindow {
 
  private slots:
   void readDiodsData();
+  void finishFitting();
   void readStmData();
   void show_stm_spectr(QVector<double> channels,
                        QVector<double> data,
@@ -134,6 +136,7 @@ class SpectraSynthesizer : public QMainWindow {
   CameraModule* m_camera_module;
   QVector<double>* m_realSpectrPtr;
   QVector<double>* m_slidersFromFitter;
+  QMediaPlayer *m_player;
 
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);

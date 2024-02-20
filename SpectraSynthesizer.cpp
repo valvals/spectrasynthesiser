@@ -48,6 +48,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_is_stm_spectrometr_connected = false;
   m_is_diods_arduino_connected = false;
   m_camera_module = new CameraModule;
+  m_player = new QMediaPlayer;
   connect(ui->action_show_camera, SIGNAL(triggered(bool)), m_camera_module, SLOT(mayBeShowCamera(bool)));
   connect(m_camera_module, &CameraModule::cameraWindowClosed, [this]() {ui->action_show_camera->setChecked(false);});
 
@@ -286,6 +287,14 @@ void SpectraSynthesizer::readDiodsData() {
     m_debug_console->add_message("recieved from diods controller: " + QString(buffer), dbg::DIODS_CONTROLLER);
     buffer.clear();
   }
+}
+
+void SpectraSynthesizer::finishFitting()
+{
+    ui->widget_video->hide();
+    m_player->stop();
+    this->setEnabled(true);
+    ui->label_info->setText("");
 }
 
 void SpectraSynthesizer::readStmData() {
@@ -713,6 +722,7 @@ void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
   event->ignore();
   sendDataToDiodsComDevice("u\n");
   reset_all_diods_to_zero();
+  m_player->stop();
   event->accept();
 }
 
@@ -1064,7 +1074,32 @@ void SpectraSynthesizer::fitSignalToEtalonMAX() {
 }
 
 void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
-  qDebug() << "fit signal to etalon process have been started....";
+
+    QDir dir(QDir::currentPath() + "/video/");
+    dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
+    int totalFiles = dir.count();
+    int nCommonVideos = totalFiles - 1; //число обычных видео
+    int percentOfRare = 5;
+    srand(time(0));
+    int videoNum = rand() % nCommonVideos + 1;
+
+    bool isRare = ! (rand() % (100/percentOfRare));
+    if(isRare){
+      videoNum = 0;
+    }
+    QString path = QString(QDir::currentPath() + "/video/%1.mp4").arg(videoNum);
+    QMediaPlayer* player = m_player;
+    player->setMedia(QUrl::fromLocalFile(path));
+    player->setVolume(100);
+    QVideoWidget *videoWidget = ui->widget_video;
+    player->setVideoOutput(videoWidget);
+    videoWidget->show();
+    player->play();
+ui->label_info->setText("Процесс автоматического подбора...");
+this->setEnabled(false);
+
+
+    qDebug() << "fit signal to etalon process have been started....";
   double wavesStep = 1;
   FitSettings emuleSettings = fitSet;
   QVector<lampInfo> diods(m_pins_json_array.size());
@@ -1132,10 +1167,9 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
                                        m_isUpdateSpectrForFitter,
                                        m_isSetValuesForSliders);
 
-
+    connect(m_fitter, SIGNAL(workIsFinished()), this, SLOT(finishFitting()));
     QThreadPool* thread_pool = QThreadPool::globalInstance();
     thread_pool->start(m_fitter);
-
   });
 
 
