@@ -108,6 +108,12 @@ color: rgb(0, 170, 0);</string>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>Segoe UI</family>
