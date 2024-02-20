@@ -35,6 +35,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   , ui(new Ui::SpectraSynthesizer) {
   QCoreApplication::instance()->installEventFilter(this);
   ui->setupUi(this);
+  ui->spinBox_exposition->setVisible(false);
   m_isUpdateSpectrForFitter = new std::atomic<bool>();
   m_isSetValuesForSliders = new std::atomic<bool>();
   m_isUpdateSpectrForFitter->store(false);
@@ -86,6 +87,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->graph(0)->setPen(graphPen);
   QPen graphPenEtalon(QColor(255, 255, 0));
   ui->widget_plot->graph(1)->setPen(graphPenEtalon);
+  QPen graphPenApparatNormal(QColor(200, 200, 200));
+  graphPenApparatNormal.setWidth(2);
+  ui->widget_plot->graph(2)->setPen(graphPenApparatNormal);
 
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
@@ -196,7 +200,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     } else {
       sendDataToDiodsComDevice("u\n");
       m_timer_water_cooler_warning.stop();
-      ui->centralwidget->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
+      ui->label_info->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
+      ui->label_info->setText("");
     }
   });
 
@@ -265,7 +270,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
     db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
   */
-
+   findApparatMaximus();
 
 }
 
@@ -322,7 +327,6 @@ void SpectraSynthesizer::readStmData() {
   QVector<double> values;
   QVector<double> channels;
   double max = 0;
-  auto current_etalon_max = m_etalons_maximums[ui->comboBox_etalons->currentText()];
   double average_black = 0.0;
   int black_sum = 0;
   int black_array_size = sizeof(spectrumData.black1);
@@ -381,12 +385,8 @@ void SpectraSynthesizer::readStmData() {
         auto value = m_pvd_calibr["values"].toArray()[index].toDouble() * (spectrumData.spectrum[index] - average_black);
         channels.push_back(wave);
         values.push_back(value);
-        if (max < value) {
-          max = value;
-        }
       };
-
-      max = current_etalon_max * TOP_MARGIN_COEFF;
+      max = m_etalons_maximums[ui->comboBox_etalons->currentText()] * TOP_MARGIN_COEFF;
       break;
   }
 
@@ -721,46 +721,29 @@ bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
     if (watched->objectName().contains("qslider")) {
     if(m_view == view::ETALON_PVD){
     if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
-      double max_apparat = 0;
-      if(event->type() == QEvent::HoverEnter){
-
-
-          QPen graphPenApparatNormal(Qt::white);
-          graphPenApparatNormal.setWidth(2);
-          ui->widget_plot->graph(3)->setPen(graphPenApparatNormal);
-          double normal_wave_index = 0;
-
+      if(event->type() == QEvent::HoverEnter){  
           auto objName = watched->objectName();
           auto parts = objName.split("_");
+          Q_ASSERT(parts.size() == 2);
           objName = parts[1];
-          qDebug() << "---->" << objName;
-          qDebug() << watched->objectName() << event->type();
           auto arr = m_json_config["pins_array"].toArray();
           auto model = arr[objName.toInt() - 1].toObject()["model"].toObject();
           QPen graphPenApparatFunction(QColor(arr[objName.toInt() - 1].toObject()["color"].toString()));
           graphPenApparatFunction.setWidth(3);
-          ui->widget_plot->graph(2)->setPen(graphPenApparatFunction);
+          ui->widget_plot->graph(3)->setPen(graphPenApparatFunction);
           auto values = model["values"].toArray();
           auto waves = model["waves"].toArray();
           QVector<double> vals;
           QVector<double> wavs;
+          auto apparat_maxs = m_apparat_maximus[watched->objectName()];
+          auto et_max = m_etalons_maximums.value(ui->comboBox_etalons->currentText());
           for(int i=0;i<values.size();++i){
-          auto val = values.at(i).toDouble();
-          if(max_apparat<val){
-              max_apparat = val;
-              normal_wave_index = i;
-          }
+          auto val = (et_max/apparat_maxs.second)*values.at(i).toDouble();
           vals.push_back(val);
           wavs.push_back(waves.at(i).toDouble());
           }
-        qDebug()<<"etalon max: "<<m_etalons_maximums.value(ui->comboBox_etalons->currentText());
-        auto et_max = m_etalons_maximums.value(ui->comboBox_etalons->currentText());
-        qDebug()<<"apparat_max: "<<max_apparat;
-        for(int i=0;i<vals.size();++i){
-            vals[i] = (et_max/max_apparat)*vals[i];
-        }
-        ui->widget_plot->graph(2)->setData(wavs,vals);
-        ui->widget_plot->graph(3)->setData({wavs[normal_wave_index],wavs[normal_wave_index]},{0,et_max});
+        ui->widget_plot->graph(3)->setData(wavs,vals);
+        ui->widget_plot->graph(2)->setData({apparat_maxs.first,apparat_maxs.first},{0,et_max});
 
       }else{
           ui->widget_plot->graph(2)->setData({},{});
@@ -821,14 +804,15 @@ void SpectraSynthesizer::show_stm_spectr(QVector<double> channels,
 void SpectraSynthesizer::changeWidgetState() {
   static bool state;
   if (state) {
-    ui->centralwidget->setStyleSheet("background-color:rgb(128, 31, 31)");
+    ui->label_info->setStyleSheet("background-color:rgb(230, 31, 31);color:rgb(255,255,255)");
+    ui->label_info->setText("Предупреждающий сигнал отключен!");
     state = false;
   } else {
-    ui->centralwidget->setStyleSheet("background-color:rgb(31, 31, 31)");
+    ui->label_info->setStyleSheet("background-color:rgb(31, 31, 31)");
     state = true;
   }
-  ui->centralwidget->repaint();
-  ui->centralwidget->update();
+  ui->label_info->repaint();
+  ui->label_info->update();
 }
 
 void SpectraSynthesizer::update_stm_spectr() {
@@ -1168,6 +1152,29 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders)
         m_is_sync = true;
     });
   }
+}
+
+void SpectraSynthesizer::findApparatMaximus()
+{
+    auto arr = m_json_config["pins_array"].toArray();
+    Q_ASSERT(m_sliders.size() == arr.size());
+    for(int i=0;i<m_sliders.size();++i){
+       auto model = arr[i].toObject()["model"].toObject();
+       double maximum = 0;
+       double wave = 0;
+       auto values = model["values"].toArray();
+       auto waves = model["waves"].toArray();
+       for(int j=0;j<values.size();++j){
+           auto value = values[j].toDouble();
+           if(maximum < value){
+               maximum = value;
+               wave = waves[j].toDouble();
+           }
+       }
+       m_apparat_maximus.insert(m_sliders[i]->objectName(),{wave,maximum});
+    }
+    qDebug()<<m_apparat_maximus;
+
 }
 
 void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) {

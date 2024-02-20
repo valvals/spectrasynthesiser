@@ -106,6 +106,7 @@ class SpectraSynthesizer : public QMainWindow {
   fitterBySpectometer* m_fitter;
   QJsonObject m_etalons;
   QHash<QString, double> m_etalons_maximums;
+  QHash<QString, QPair<double,double>> m_apparat_maximus; //first - wave, second - maximum
   QJsonObject m_pvd_calibr;
   QJsonObject m_pir_calibr;
   QJsonObject m_json_config;
@@ -133,8 +134,7 @@ class SpectraSynthesizer : public QMainWindow {
   CameraModule* m_camera_module;
   QVector<double>* m_realSpectrPtr;
   QVector<double>* m_slidersFromFitter;
-  std::atomic<bool>* m_1;
-  std::atomic<bool>* m_2;
+
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
   QString getGroupID(const double& value);
@@ -146,6 +146,8 @@ class SpectraSynthesizer : public QMainWindow {
   uchar getCS(const uchar* data, int size);
   void fitSignalToEtalon(const FitSettings& fitSet);
   void setValuesForSliders(const QVector<double> diod_sliders);
+  void findApparatMaximus();
+
   // QWidget interface
  protected:
   void closeEvent(QCloseEvent* event) override;
