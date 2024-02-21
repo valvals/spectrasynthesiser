@@ -323,8 +323,8 @@ color: rgb(0, 170, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1061</width>
-     <height>20</height>
+     <width>1478</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -360,8 +360,10 @@ color: rgb(0, 170, 0);</string>
      <string>Управление светодиодами</string>
     </property>
     <addaction name="action_set_all_diods_to_zero"/>
-    <addaction name="action_start_fitting"/>
-    <addaction name="action_fit_etalon_max"/>
+    <addaction name="action_start_fitting_analytical"/>
+    <addaction name="action_start_fitting_by_spectrometer"/>
+    <addaction name="action_fit_etalon_max_analytical"/>
+    <addaction name="action_fit_etalon_max_by_spectrometer"/>
    </widget>
    <widget class="QMenu" name="menu_6">
     <property name="title">
@@ -486,14 +488,24 @@ color: rgb(0, 170, 0);</string>
     <string>График апаратных функций</string>
    </property>
   </action>
-  <action name="action_start_fitting">
+  <action name="action_start_fitting_analytical">
    <property name="text">
-    <string>Подогнать под эталон (ALL)</string>
+    <string>Подогнать под эталон (ALL) - аналитически</string>
    </property>
   </action>
-  <action name="action_fit_etalon_max">
+  <action name="action_fit_etalon_max_analytical">
    <property name="text">
-    <string>Подогнать под эталон (MAКС)</string>
+    <string>Подогнать под эталон (MAКС) - аналитически</string>
+   </property>
+  </action>
+  <action name="action_start_fitting_by_spectrometer">
+   <property name="text">
+    <string>Подогнать под эталон (ALL) - по спектрометру</string>
+   </property>
+  </action>
+  <action name="action_fit_etalon_max_by_spectrometer">
+   <property name="text">
+    <string>Подогнать под эталон (MAКС) - по спектрометру</string>
    </property>
   </action>
  </widget>

@@ -231,47 +231,49 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(m_ormin_device,
           SIGNAL(spectralDataRecieved(QVector<double>, double, double)),
           SLOT(recieveIrData(QVector<double>, double, double)));
-  connect(ui->action_start_fitting, SIGNAL(triggered()), SLOT(fitSignalToEtalonALL()));
-  connect(ui->action_fit_etalon_max, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX()));
+  connect(ui->action_start_fitting_analytical, SIGNAL(triggered()), SLOT(fitSignalToEtalonALL_analytical()));
+  connect(ui->action_fit_etalon_max_analytical, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX_analytical()));
+  connect(ui->action_start_fitting_by_spectrometer, SIGNAL(triggered()), SLOT(fitSignalToEtalonALL_bySpectrometer()));
+  connect(ui->action_fit_etalon_max_by_spectrometer, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX_bySpectrometer()));
   sendDataToDiodsComDevice("u\n");
 
 
   // DRAFT this code will be used to update calibr_lists
 
   /*
-    QDir dir_calibrs("calibrs");
-    QStringList file_names = dir_calibrs.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    //qDebug()<<file_names;
-    QJsonArray pvd_clibrs;
+  QDir dir_calibrs("calibrs");
+  QStringList file_names = dir_calibrs.entryList(QDir::NoDotAndDotDot | QDir::Files);
+  //qDebug()<<file_names;
+  QJsonArray pvd_clibrs;
 
-    for(int i=0;i<file_names.size();++i){
-        auto fn = file_names[i];
-        fn.remove(".txt");
-        QString expo = QString::number(fn.toInt());
-        qDebug()<<expo;
-        QJsonObject obj;
-        obj["expo"] = expo;
-        QFile file("calibrs/"+file_names[i]);
-        file.open(QIODevice::ReadOnly);
-        QString line;
-        QJsonArray jarr_waves;
-        QJsonArray jarr_values;
-        QTextStream ts(&file);
-        while(ts.readLineInto(&line)){
-        QStringList values = line.split("\t");
-        if(values.size()==2){
-        jarr_waves.append(values[0].toDouble());
-        jarr_values.append(values[1].toDouble());
-        }
-        }
-        obj["waves"] = jarr_waves;
-        obj["values"] = jarr_values;
-        pvd_clibrs.append(obj);
-    }
+  for(int i=0;i<file_names.size();++i){
+      auto fn = file_names[i];
+      fn.remove(".txt");
+      QString expo = QString::number(fn.toInt());
+      qDebug()<<expo;
+      QJsonObject obj;
+      obj["expo"] = expo;
+      QFile file("calibrs/"+file_names[i]);
+      file.open(QIODevice::ReadOnly);
+      QString line;
+      QJsonArray jarr_waves;
+      QJsonArray jarr_values;
+      QTextStream ts(&file);
+      while(ts.readLineInto(&line)){
+      QStringList values = line.split("\t");
+      if(values.size()==2){
+      jarr_waves.append(values[0].toDouble());
+      jarr_values.append(values[1].toDouble());
+      }
+      }
+      obj["waves"] = jarr_waves;
+      obj["values"] = jarr_values;
+      pvd_clibrs.append(obj);
+  }
 
-    db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
+  db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
   */
-   findApparatMaximus();
+  findApparatMaximus();
 
 }
 
@@ -289,12 +291,11 @@ void SpectraSynthesizer::readDiodsData() {
   }
 }
 
-void SpectraSynthesizer::finishFitting()
-{
-    /*ui->widget_video->hide();
-    m_player->stop();*/
-    this->setEnabled(true);
-    ui->label_info->setText("");
+void SpectraSynthesizer::finishFitting() {
+  ui->widget_video->hide();
+  m_player->stop();
+  this->setEnabled(true);
+  ui->label_info->setText("");
 }
 
 void SpectraSynthesizer::readStmData() {
@@ -728,10 +729,10 @@ void SpectraSynthesizer::closeEvent(QCloseEvent* event) {
 
 bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
 
-    if (watched->objectName().contains("qslider")) {
-    if(m_view == view::ETALON_PVD){
-    if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
-      if(event->type() == QEvent::HoverEnter){  
+  if (watched->objectName().contains("qslider")) {
+    if (m_view == view::ETALON_PVD) {
+      if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
+        if (event->type() == QEvent::HoverEnter) {
           auto objName = watched->objectName();
           auto parts = objName.split("_");
           Q_ASSERT(parts.size() == 2);
@@ -747,20 +748,20 @@ bool SpectraSynthesizer::eventFilter(QObject* watched, QEvent* event) {
           QVector<double> wavs;
           auto apparat_maxs = m_apparat_maximus[watched->objectName()];
           auto et_max = m_etalons_maximums.value(ui->comboBox_etalons->currentText());
-          for(int i=0;i<values.size();++i){
-          auto val = (et_max/apparat_maxs.second)*values.at(i).toDouble();
-          vals.push_back(val);
-          wavs.push_back(waves.at(i).toDouble());
+          for (int i = 0; i < values.size(); ++i) {
+            auto val = (et_max / apparat_maxs.second) * values.at(i).toDouble();
+            vals.push_back(val);
+            wavs.push_back(waves.at(i).toDouble());
           }
-        ui->widget_plot->graph(3)->setData(wavs,vals);
-        ui->widget_plot->graph(2)->setData({apparat_maxs.first,apparat_maxs.first},{0,et_max});
+          ui->widget_plot->graph(3)->setData(wavs, vals);
+          ui->widget_plot->graph(2)->setData({apparat_maxs.first, apparat_maxs.first}, {0, et_max});
 
-      }else{
-          ui->widget_plot->graph(2)->setData({},{});
-          ui->widget_plot->graph(3)->setData({},{});
+        } else {
+          ui->widget_plot->graph(2)->setData({}, {});
+          ui->widget_plot->graph(3)->setData({}, {});
+        }
       }
-    }
-    ui->widget_plot->replot();
+      ui->widget_plot->replot();
     }
   }
   return false;
@@ -1066,42 +1067,53 @@ void SpectraSynthesizer::prepareDiodModels() {
 
 // Fitting module
 
-void SpectraSynthesizer::fitSignalToEtalonALL() {
-
-  fitSignalToEtalon(FitSettings::FIT_ALL);
+void SpectraSynthesizer::fitSignalToEtalonALL_analytical() {
+  fitSignalToEtalon_analytical(FitSettings::FIT_ALL);
 }
 
-void SpectraSynthesizer::fitSignalToEtalonMAX() {
-  fitSignalToEtalon(FitSettings::FIT_BY_MAXIMUMS);
+void SpectraSynthesizer::fitSignalToEtalonMAX_analytical() {
+  fitSignalToEtalon_analytical(FitSettings::FIT_BY_MAXIMUMS);
 }
 
-void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
+void SpectraSynthesizer::fitSignalToEtalonALL_bySpectrometer() {
+  showFunnyVideo();
+  fitSignalToEtalon_bySpectrometer(FitSettings::FIT_ALL);
+}
 
-    /*QDir dir(QDir::currentPath() + "/video/");
-    dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    int totalFiles = dir.count();
-    int nCommonVideos = totalFiles - 1; //число обычных видео
-    int percentOfRare = 5;
-    srand(time(0));
-    int videoNum = rand() % nCommonVideos + 1;
+void SpectraSynthesizer::fitSignalToEtalonMAX_bySpectrometer() {
+  showFunnyVideo();
+  fitSignalToEtalon_bySpectrometer(FitSettings::FIT_BY_MAXIMUMS);
+}
 
-    bool isRare = ! (rand() % (100/percentOfRare));
-    if(isRare){
-      videoNum = 0;
-    }
-    QString path = QString(QDir::currentPath() + "/video/%1.mp4").arg(videoNum);
-    QMediaPlayer* player = m_player;
-    player->setMedia(QUrl::fromLocalFile(path));
-    player->setVolume(100);
-    QVideoWidget *videoWidget = ui->widget_video;
-    player->setVideoOutput(videoWidget);
-    videoWidget->show();
-    player->play();*/
-ui->label_info->setText("Процесс автоматического подбора...");
-this->setEnabled(false);
+void SpectraSynthesizer::showFunnyVideo() {
+  QDir dir(QDir::currentPath() + "/video/");
+  dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
+  int totalFiles = dir.count();
+  int nCommonVideos = totalFiles - 1; //число обычных видео
+  int percentOfRare = 5;
+  srand(time(0));
+  int videoNum = rand() % nCommonVideos + 1;
 
+  bool isRare = !(rand() % (100 / percentOfRare));
+  if (isRare) {
+    videoNum = 0;
+  }
+  QString path = QString(QDir::currentPath() + "/video/7.mp4").arg(videoNum);
+  qDebug() << "playing video: " << path;
+  QMediaPlayer* player = m_player;
+  player->setMedia(QUrl::fromLocalFile(path));
+  player->setVolume(100);
+  QVideoWidget* videoWidget = ui->widget_video;
+  player->setVideoOutput(videoWidget);
+  videoWidget->show();
+  player->play();
+  ui->label_info->setText("Процесс автоматического подбора...");
+  this->setEnabled(false);
+}
 
-    qDebug() << "fit signal to etalon process have been started....";
+void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet) {
+
+  qDebug() << "fit signal to etalon process have been started....";
   double wavesStep = 1;
   FitSettings emuleSettings = fitSet;
   QVector<lampInfo> diods(m_pins_json_array.size());
@@ -1149,7 +1161,50 @@ this->setEnabled(false);
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 
   setValuesForSliders(diod_sliders);
+}
 
+void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fitSet) {
+  FitSettings emuleSettings = fitSet;
+  double wavesStep = 1;
+  QVector<double>etalon_speya;
+  QVector<double>etalon_grid;
+  auto sample = m_etalons[ui->comboBox_etalons->currentText()].toArray();
+  auto grid = m_etalons["_grid"].toArray();
+
+  for (int i = 0; i < sample.size(); ++i) {
+    auto wave = grid[i].toDouble();
+    if (wave > 900)
+      break;
+    if (wave >= 400) {
+      auto speya = sample[i].toDouble();
+      etalon_speya.push_back(speya);
+      etalon_grid.push_back(wave);
+    }
+  }
+  QVector<lampInfo> diods(m_pins_json_array.size());
+  for (int i = 0; i < m_pins_json_array.size(); ++i) {
+    //bright_deps
+    auto bright_deps = m_pins_json_array[i].toObject()["bright_deps"].toObject();
+    diods[i].a = bright_deps["a"].toDouble();
+    diods[i].b = bright_deps["b"].toDouble();
+    diods[i].c = bright_deps["c"].toDouble();
+    diods[i].max_slider_value = m_pins_json_array[i].toObject()["max_value"].toDouble();
+
+    //qDebug()<<"a: "<<diods[i].a;
+    auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
+    auto waves = m_pins_json_array[i].toObject()["model"].toObject()["waves"].toArray();
+    Q_ASSERT(values.size() == waves.size());
+    for (int j = 0; j < values.size(); ++j) {
+      diods[i].waves.push_back(waves[j].toDouble());
+      diods[i].speya.push_back(values[j].toDouble());
+    }
+  }
+
+  QVector<double> diod_sliders(m_sliders.size(), 0);
+  for (int i = 0; i < m_sliders.size(); ++i) {
+
+    diod_sliders[i] = m_sliders.at(i)->value();
+  }
 
   // delay scenario
   QTimer::singleShot(SET_SLIDERS_DELAY * (m_sliders.size() + 5),
@@ -1171,9 +1226,6 @@ this->setEnabled(false);
     QThreadPool* thread_pool = QThreadPool::globalInstance();
     thread_pool->start(m_fitter);
   });
-
-
-
 }
 
 void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders) {
@@ -1186,26 +1238,25 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders)
   }
 }
 
-void SpectraSynthesizer::findApparatMaximus()
-{
-    auto arr = m_json_config["pins_array"].toArray();
-    Q_ASSERT(m_sliders.size() == arr.size());
-    for(int i=0;i<m_sliders.size();++i){
-       auto model = arr[i].toObject()["model"].toObject();
-       double maximum = 0;
-       double wave = 0;
-       auto values = model["values"].toArray();
-       auto waves = model["waves"].toArray();
-       for(int j=0;j<values.size();++j){
-           auto value = values[j].toDouble();
-           if(maximum < value){
-               maximum = value;
-               wave = waves[j].toDouble();
-           }
-       }
-       m_apparat_maximus.insert(m_sliders[i]->objectName(),{wave,maximum});
+void SpectraSynthesizer::findApparatMaximus() {
+  auto arr = m_json_config["pins_array"].toArray();
+  Q_ASSERT(m_sliders.size() == arr.size());
+  for (int i = 0; i < m_sliders.size(); ++i) {
+    auto model = arr[i].toObject()["model"].toObject();
+    double maximum = 0;
+    double wave = 0;
+    auto values = model["values"].toArray();
+    auto waves = model["waves"].toArray();
+    for (int j = 0; j < values.size(); ++j) {
+      auto value = values[j].toDouble();
+      if (maximum < value) {
+        maximum = value;
+        wave = waves[j].toDouble();
+      }
     }
-    qDebug()<<m_apparat_maximus;
+    m_apparat_maximus.insert(m_sliders[i]->objectName(), {wave, maximum});
+  }
+  qDebug() << m_apparat_maximus;
 
 }
 

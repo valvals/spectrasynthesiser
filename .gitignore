@@ -7,3 +7,4 @@
 
 # QtCreator CMake
 CMakeLists.txt.user*
+msvc_make.bat

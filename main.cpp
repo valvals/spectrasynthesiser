@@ -4,7 +4,6 @@
 #include "QrcFilesRestorer.h"
 #include <QApplication>
 
-
 void myMessageOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
   Q_UNUSED(context);
   QFile file(QCoreApplication::applicationDirPath() + "//spectrasyn.log");

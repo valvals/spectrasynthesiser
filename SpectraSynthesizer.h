@@ -85,8 +85,10 @@ class SpectraSynthesizer : public QMainWindow {
   void recieveIrData(QVector<double> sumSpectr,
                      double maxValue,
                      double minValue);
-  void fitSignalToEtalonALL();
-  void fitSignalToEtalonMAX();
+  void fitSignalToEtalonALL_analytical();
+  void fitSignalToEtalonMAX_analytical();
+  void fitSignalToEtalonALL_bySpectrometer();
+  void fitSignalToEtalonMAX_bySpectrometer();
   void on_pushButton_apply_clicked();
   void on_comboBox_waves_currentTextChanged(const QString& arg1);
   void on_comboBox_etalons_currentIndexChanged(const QString& arg1);
@@ -107,7 +109,7 @@ class SpectraSynthesizer : public QMainWindow {
   fitterBySpectometer* m_fitter;
   QJsonObject m_etalons;
   QHash<QString, double> m_etalons_maximums;
-  QHash<QString, QPair<double,double>> m_apparat_maximus; //first - wave, second - maximum
+  QHash<QString, QPair<double, double>> m_apparat_maximus; //first - wave, second - maximum
   QJsonObject m_pvd_calibr;
   QJsonObject m_pir_calibr;
   QJsonObject m_json_config;
@@ -135,7 +137,7 @@ class SpectraSynthesizer : public QMainWindow {
   CameraModule* m_camera_module;
   QVector<double>* m_realSpectrPtr;
   QVector<double>* m_slidersFromFitter;
-  QMediaPlayer *m_player;
+  QMediaPlayer* m_player;
 
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
@@ -146,9 +148,11 @@ class SpectraSynthesizer : public QMainWindow {
   void loadEtalons();
   void prepareDiodModels();
   uchar getCS(const uchar* data, int size);
-  void fitSignalToEtalon(const FitSettings& fitSet);
+  void fitSignalToEtalon_analytical(const FitSettings& fitSet);
+  void fitSignalToEtalon_bySpectrometer(const FitSettings& fitSet);
   void setValuesForSliders(const QVector<double> diod_sliders);
   void findApparatMaximus();
+  void showFunnyVideo();
 
   // QWidget interface
  protected:
