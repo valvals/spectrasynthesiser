@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1478</width>
-    <height>762</height>
+    <width>1061</width>
+    <height>670</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,7 +52,19 @@ color: rgb(0, 170, 0);</string>
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout"/>
+     <widget class="QWidget" name="widget_visual_range_sliders" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout"/>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
      <layout class="QGridLayout" name="gridLayout">
@@ -311,7 +323,7 @@ color: rgb(0, 170, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1478</width>
+     <width>1061</width>
      <height>20</height>
     </rect>
    </property>

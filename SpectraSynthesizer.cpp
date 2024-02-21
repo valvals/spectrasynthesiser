@@ -1003,8 +1003,10 @@ void SpectraSynthesizer::mayBeStartCycleMovingMira() {
 void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1) {
 
   if (arg1 == "ПВД") {
+    ui->widget_visual_range_sliders->show();
     update_stm_spectr();
   } else {
+    ui->widget_visual_range_sliders->hide();
     emit m_ormin_device->requestSpectr();
   }
 }
