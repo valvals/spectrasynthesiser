@@ -99,6 +99,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     qDebug() << "Config file was not found on the disk...";
     db_json::getJsonObjectFromFile(":/config.json", m_json_config);
   };
+  m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
   m_pins_json_array = m_json_config.value("pins_array").toArray();
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
@@ -1076,12 +1077,16 @@ void SpectraSynthesizer::fitSignalToEtalonMAX_analytical() {
 }
 
 void SpectraSynthesizer::fitSignalToEtalonALL_bySpectrometer() {
-  showFunnyVideo();
+  if(m_is_show_funny_video){
+    showFunnyVideo();
+  }
   fitSignalToEtalon_bySpectrometer(FitSettings::FIT_ALL);
 }
 
 void SpectraSynthesizer::fitSignalToEtalonMAX_bySpectrometer() {
-  showFunnyVideo();
+    if(m_is_show_funny_video){
+      showFunnyVideo();
+    }
   fitSignalToEtalon_bySpectrometer(FitSettings::FIT_BY_MAXIMUMS);
 }
 

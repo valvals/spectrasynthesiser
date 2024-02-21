@@ -104,6 +104,7 @@ class SpectraSynthesizer : public QMainWindow {
   bool m_is_stm_exposition_changed;
   bool m_is_stm_spectrometr_connected;
   bool m_is_diods_arduino_connected;
+  bool m_is_show_funny_video;
   view m_view;
   DebugConsole* m_debug_console;
   fitterBySpectometer* m_fitter;

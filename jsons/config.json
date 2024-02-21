@@ -1,5 +1,6 @@
 {
     "mode": "developing",
+    "is_show_funny_video": false,
     "pins_array": [
         {
             "bright_deps": {
