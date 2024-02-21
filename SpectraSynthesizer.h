@@ -97,7 +97,6 @@ class SpectraSynthesizer : public QMainWindow {
 
  private:
   Ui::SpectraSynthesizer* ui;
-  bool m_is_sync;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;
   bool m_is_stm_exposition_changed;

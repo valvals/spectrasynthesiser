@@ -291,8 +291,8 @@ void SpectraSynthesizer::readDiodsData() {
 
 void SpectraSynthesizer::finishFitting()
 {
-    ui->widget_video->hide();
-    m_player->stop();
+    /*ui->widget_video->hide();
+    m_player->stop();*/
     this->setEnabled(true);
     ui->label_info->setText("");
 }
@@ -1075,7 +1075,7 @@ void SpectraSynthesizer::fitSignalToEtalonMAX() {
 
 void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
 
-    QDir dir(QDir::currentPath() + "/video/");
+    /*QDir dir(QDir::currentPath() + "/video/");
     dir.setFilter(QDir::NoDotAndDotDot | QDir::Files);
     int totalFiles = dir.count();
     int nCommonVideos = totalFiles - 1; //число обычных видео
@@ -1094,7 +1094,7 @@ void SpectraSynthesizer::fitSignalToEtalon(const FitSettings& fitSet) {
     QVideoWidget *videoWidget = ui->widget_video;
     player->setVideoOutput(videoWidget);
     videoWidget->show();
-    player->play();
+    player->play();*/
 ui->label_info->setText("Процесс автоматического подбора...");
 this->setEnabled(false);
 
@@ -1146,7 +1146,6 @@ this->setEnabled(false);
 
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 
-  m_is_sync = false;
   setValuesForSliders(diod_sliders);
 
 
@@ -1155,7 +1154,6 @@ this->setEnabled(false);
                      this, [this, diod_sliders,
                             etalon_grid, etalon_speya,
   wavesStep, diods, emuleSettings]() {
-    Q_ASSERT(m_is_sync);
     m_fitter = new fitterBySpectometer(diod_sliders,
                                        etalon_grid,
                                        etalon_speya,
@@ -1182,8 +1180,6 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders)
     QTimer::singleShot(SET_SLIDERS_DELAY * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       emit m_sliders[i]->sliderReleased();
-      if (i == diod_sliders.size() - 1)
-        m_is_sync = true;
     });
   }
 }
