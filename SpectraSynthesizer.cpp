@@ -42,6 +42,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_isSetValuesForSliders->store(false);
   m_shared_desired_sliders_positions = new QVector<double>();
   m_shared_spectral_data = new QVector<double>();
+  m_voice_informator = new VoiceInformator(":/sounds");
 
   m_is_show_etalon = false;
   m_is_stm_spectr_update = true;
@@ -1004,13 +1005,21 @@ void SpectraSynthesizer::mayBeStartCycleMovingMira() {
 
 void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1) {
 
-  if (arg1 == "ПВД") {
+    static bool isFirstRun = true;
+    if(isFirstRun){
+        isFirstRun = false;
+        return;
+    }
+    if (arg1 == "ПВД") {
+    m_voice_informator->playSound("pvd_sensor.mp3");
     ui->widget_visual_range_sliders->show();
     update_stm_spectr();
   } else {
     ui->widget_visual_range_sliders->hide();
+    m_voice_informator->playSound("pik_sensor.mp3");
     emit m_ormin_device->requestSpectr();
   }
+
 }
 
 void SpectraSynthesizer::prepareDiodModels() {
@@ -1077,16 +1086,16 @@ void SpectraSynthesizer::fitSignalToEtalonMAX_analytical() {
 }
 
 void SpectraSynthesizer::fitSignalToEtalonALL_bySpectrometer() {
-  if(m_is_show_funny_video){
+  if (m_is_show_funny_video) {
     showFunnyVideo();
   }
   fitSignalToEtalon_bySpectrometer(FitSettings::FIT_ALL);
 }
 
 void SpectraSynthesizer::fitSignalToEtalonMAX_bySpectrometer() {
-    if(m_is_show_funny_video){
-      showFunnyVideo();
-    }
+  if (m_is_show_funny_video) {
+    showFunnyVideo();
+  }
   fitSignalToEtalon_bySpectrometer(FitSettings::FIT_BY_MAXIMUMS);
 }
 

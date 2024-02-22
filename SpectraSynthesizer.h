@@ -15,6 +15,7 @@
 #include "qcustomplot.h"
 #include "CameraModule.h"
 #include "OrminDevice.h"
+#include "voice_informator.h"
 #include "fitting/dataStructs.h"
 
 class fitterBySpectometer;
@@ -139,6 +140,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<double>* m_realSpectrPtr;
   QVector<double>* m_slidersFromFitter;
   QMediaPlayer* m_player;
+  VoiceInformator* m_voice_informator;
 
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);

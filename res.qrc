@@ -4,5 +4,7 @@
         <file>jsons/config.json</file>
         <file>jsons/etalons.json</file>
         <file>jsons/pik_calibr.json</file>
+        <file>sounds/pik_sensor.mp3</file>
+        <file>sounds/pvd_sensor.mp3</file>
     </qresource>
 </RCC>

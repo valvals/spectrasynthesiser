@@ -39,8 +39,32 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext& context, const QS
 }
 
 int main(int argc, char* argv[]) {
+
   QrcFilesRestorer::restoreFilesFromQrc(":/jsons");
   QApplication a(argc, argv);
+
+  QSystemSemaphore semaphore("<SPECTRASYN>", 1);
+  semaphore.acquire();
+
+  QSharedMemory sharedMemory("<SPECTRASYN 2>");
+  bool is_running;
+  if (sharedMemory.attach()) {
+    is_running = true;
+  } else {
+    sharedMemory.create(1);
+    is_running = false;
+  }
+  semaphore.release();
+
+  if (is_running) {
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setText("Приложение уже запущено.\nВы можете запустить только один экземпляр приложения.");
+    msgBox.exec();
+    return 0;
+  }
+
+
   QCommandLineParser cli;
   QCommandLineOption debugOption(QStringList() << "d" << "debug", "Debug mode");
   cli.addOption(debugOption);

@@ -17,7 +17,8 @@ SOURCES += \
     main.cpp \
     SpectraSynthesizer.cpp \
     qcustomplot.cpp \
-    style_sheets.cpp
+    style_sheets.cpp \
+    voice_informator.cpp
 
 HEADERS += \
     CameraModule.h \
@@ -32,7 +33,8 @@ HEADERS += \
     fitting/fitSpectr.h \
     fitting/mpfit.h \
     qcustomplot.h \
-    style_sheets.h
+    style_sheets.h \
+    voice_informator.h
 
 FORMS += \
     SpectraSynthesizer.ui \

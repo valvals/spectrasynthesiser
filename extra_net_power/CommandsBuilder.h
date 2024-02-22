@@ -7,7 +7,7 @@
 
 class CommandsBuilder {
 
-public:
+ public:
   //!
   //! \brief  Создаёт комманду для включения всех модулей блока
   //! \return QByteArray Комманда в виде байтового массива
@@ -29,7 +29,7 @@ public:
   //! \param  unit номер модуля блока питания
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeSwitchOnUnitCommand(const uint16_t &unit) {
+  QByteArray makeSwitchOnUnitCommand(const uint16_t& unit) {
     return makeCommand(m_commands.switchUnit, unit, 1);
   }
 
@@ -38,7 +38,7 @@ public:
   //! \param  unit номер модуля блока питания
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeSwitchOffUnitCommand(const uint16_t &unit) {
+  QByteArray makeSwitchOffUnitCommand(const uint16_t& unit) {
     return makeCommand(m_commands.switchUnit, unit, 0);
   }
 
@@ -48,8 +48,8 @@ public:
   //! \param  value  значения тока ограничения (ампер)
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeSetCurrentLimitCommand(const uint16_t &unit,
-                                        const float &value) {
+  QByteArray makeSetCurrentLimitCommand(const uint16_t& unit,
+                                        const float& value) {
     return makeCommand(m_commands.current, unit, value);
   }
 
@@ -58,7 +58,7 @@ public:
   //! \param  unit номер модуля блока питания
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeGetCurrentLimitCommand(const uint16_t &unit) {
+  QByteArray makeGetCurrentLimitCommand(const uint16_t& unit) {
     return makeCommand(m_commands.current, unit);
   }
 
@@ -67,7 +67,7 @@ public:
   //! \param  unit номер модуля блока питания
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeGetCurrentValueCommand(const uint16_t &unit) {
+  QByteArray makeGetCurrentValueCommand(const uint16_t& unit) {
     return makeReadBackCommand(m_commands.current, unit);
   }
 
@@ -76,7 +76,7 @@ public:
   //! \param  unit номер модуля блока питания
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeGetVoltageValueCommand(const uint16_t &unit) {
+  QByteArray makeGetVoltageValueCommand(const uint16_t& unit) {
     return makeReadBackCommand(m_commands.voltage, unit);
   }
 
@@ -86,7 +86,7 @@ public:
   //! \param  value
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeSetVcommand(const uint16_t &unit, const float &value) {
+  QByteArray makeSetVcommand(const uint16_t& unit, const float& value) {
     return makeCommand(m_commands.voltage, unit, value);
   }
 
@@ -95,7 +95,7 @@ public:
   //! \param  unit
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeGetVcommand(const uint16_t &unit) {
+  QByteArray makeGetVcommand(const uint16_t& unit) {
     return makeCommand(m_commands.voltage, unit);
   }
   //!
@@ -103,7 +103,7 @@ public:
   //! \param  unit
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  QByteArray makeGetSwitchStateCommand(const uint16_t &unit) {
+  QByteArray makeGetSwitchStateCommand(const uint16_t& unit) {
     return makeCommand(m_commands.switchUnit, unit);
   }
 
@@ -113,7 +113,7 @@ public:
   //!
   QByteArray makeGetDeviceID_Command() { return m_commands.deviceID.toUtf8(); };
 
-private:
+ private:
   struct Commands {
     const QString deviceID = "*IDN?"; //!< Возвращает идентификатор БП
     const QString switchOnAll =
@@ -138,8 +138,8 @@ private:
   //! модуля для блока \param  Значение параметра \return QByteArray Комманда в
   //! виде байтового массива
   //!
-  inline QByteArray makeCommand(const QString &command, const quint16 &unit,
-                                const float &value) {
+  inline QByteArray makeCommand(const QString& command, const quint16& unit,
+                                const float& value) {
 
     QString unitStr = QString::number(unit);
     QString valueStr = QString::number(value);
@@ -153,7 +153,7 @@ private:
   //! элементов \param  Строковая константа обозначающая комманду \param  Номер
   //! модуля для блока \return QByteArray Комманда в виде байтового массива
   //!
-  inline QByteArray makeCommand(const QString &command, const quint16 &unit) {
+  inline QByteArray makeCommand(const QString& command, const quint16& unit) {
 
     QString unitStr = QString::number(unit);
     QString commandStr = QString("%1%2?\n").arg(command, unitStr);
@@ -166,8 +166,8 @@ private:
   //! \param  Номер модуля для блока
   //! \return QByteArray Комманда в виде байтового массива
   //!
-  inline QByteArray makeReadBackCommand(const QString &command,
-                                        const quint16 &unit) {
+  inline QByteArray makeReadBackCommand(const QString& command,
+                                        const quint16& unit) {
 
     QString unitStr = QString::number(unit);
     QString commandStr = QString("%1%2O?\n").arg(command, unitStr);
