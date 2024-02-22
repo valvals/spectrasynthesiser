@@ -3,8 +3,8 @@
 #include "QDebug"
 
 VoiceInformator::VoiceInformator(const QString& pathToSounds)
-    : isNotificationsMuted_(false),
-  m_pathToSounds_(pathToSounds){
+  : isNotificationsMuted_(false),
+    m_pathToSounds_(pathToSounds) {
   createPlayer();
 }
 
@@ -13,10 +13,10 @@ void VoiceInformator::playSound(const QString& sampleName) {
     return;
   uint16_t index = 0;
   auto it = std::find(mySounds_.begin(), mySounds_.end(), sampleName);
-  if (it== std::end(mySounds_)){
-      return;
+  if (it == std::end(mySounds_)) {
+    return;
   }
-  index = std::distance(mySounds_.begin(),it);
+  index = std::distance(mySounds_.begin(), it);
   m_playlist_->setCurrentIndex(index);
   m_player_->play();
   lastSampleIndex_ = index;

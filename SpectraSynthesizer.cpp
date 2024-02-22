@@ -101,6 +101,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     db_json::getJsonObjectFromFile(":/config.json", m_json_config);
   };
   m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
+  m_finite_derivative_step = m_json_config.value("fitting_finite_derivative_step").toDouble();
   m_pins_json_array = m_json_config.value("pins_array").toArray();
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
@@ -1005,12 +1006,12 @@ void SpectraSynthesizer::mayBeStartCycleMovingMira() {
 
 void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1) {
 
-    static bool isFirstRun = true;
-    if(isFirstRun){
-        isFirstRun = false;
-        return;
-    }
-    if (arg1 == "ПВД") {
+  static bool isFirstRun = true;
+  if (isFirstRun) {
+    isFirstRun = false;
+    return;
+  }
+  if (arg1 == "ПВД") {
     m_voice_informator->playSound("pvd_sensor.mp3");
     ui->widget_visual_range_sliders->show();
     update_stm_spectr();
@@ -1234,7 +1235,8 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
                                        m_shared_spectral_data,
                                        m_shared_desired_sliders_positions,
                                        m_isUpdateSpectrForFitter,
-                                       m_isSetValuesForSliders);
+                                       m_isSetValuesForSliders,
+                                       m_finite_derivative_step);
 
     connect(m_fitter, SIGNAL(workIsFinished()), this, SLOT(finishFitting()));
     QThreadPool* thread_pool = QThreadPool::globalInstance();

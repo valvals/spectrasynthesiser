@@ -1,6 +1,7 @@
 {
     "mode": "developing",
     "is_show_funny_video": false,
+    "fitting_finite_derivative_step": 0.001,
     "pins_array": [
         {
             "bright_deps": {
