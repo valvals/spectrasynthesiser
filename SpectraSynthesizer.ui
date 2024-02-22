@@ -59,6 +59,12 @@ color: rgb(0, 170, 0);</string>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>220</height>
+       </size>
+      </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout"/>
@@ -323,8 +329,8 @@ color: rgb(0, 170, 0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1478</width>
-     <height>21</height>
+     <width>1061</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

@@ -299,6 +299,7 @@ void SpectraSynthesizer::finishFitting() {
   m_player->stop();
   this->setEnabled(true);
   ui->label_info->setText("");
+  m_voice_informator->playSound("fitting_by_spectrometr_finished_.mp3");
 }
 
 void SpectraSynthesizer::readStmData() {
@@ -1122,13 +1123,13 @@ void SpectraSynthesizer::showFunnyVideo() {
   player->setVideoOutput(videoWidget);
   videoWidget->show();
   player->play();
-  ui->label_info->setText("Процесс автоматического подбора...");
   this->setEnabled(false);
 }
 
 void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet) {
 
   qDebug() << "fit signal to etalon process have been started....";
+  m_voice_informator->playSound("run_analytical_fitter.mp3");
   double wavesStep = 1;
   FitSettings emuleSettings = fitSet;
   QVector<lampInfo> diods(m_pins_json_array.size());
@@ -1150,7 +1151,6 @@ void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet)
     }
 
   }
-
   QVector<double>etalon_speya;
   QVector<double>etalon_grid;
   auto sample = m_etalons[ui->comboBox_etalons->currentText()].toArray();
@@ -1176,9 +1176,14 @@ void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet)
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 
   setValuesForSliders(diod_sliders);
+  QTimer::singleShot(SET_SLIDERS_DELAY * (diod_sliders.size() + 2),
+                     this,
+                     [this](){m_voice_informator->playSound("analytical_fitting_finished.mp3");});
 }
 
 void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fitSet) {
+  ui->label_info->setText("Процесс автоматического подбора...");
+  m_voice_informator->playSound("run_fitting_by_spectrometr.mp3");
   FitSettings emuleSettings = fitSet;
   double wavesStep = 1;
   QVector<double>etalon_speya;

@@ -6,5 +6,9 @@
         <file>jsons/pik_calibr.json</file>
         <file>sounds/pik_sensor.mp3</file>
         <file>sounds/pvd_sensor.mp3</file>
+        <file>sounds/analytical_fitting_finished.mp3</file>
+        <file>sounds/run_analytical_fitter.mp3</file>
+        <file>sounds/fitting_by_spectrometr_finished_.mp3</file>
+        <file>sounds/run_fitting_by_spectrometr.mp3</file>
     </qresource>
 </RCC>
