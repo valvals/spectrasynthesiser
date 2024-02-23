@@ -100,6 +100,9 @@ class SpectraSynthesizer : public QMainWindow {
 
  private:
   Ui::SpectraSynthesizer* ui;
+  int m_set_sliders_delay;
+  int m_average_count_for_fitter;
+  int m_set_sliders_finalize_delay_ms;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;
   bool m_is_stm_exposition_changed;

@@ -21,7 +21,6 @@
 const int mira_packet_size = 8;
 const uint16_t expo_packet_size = 4;
 const uint16_t spectr_packet_size = 7384;
-const int SET_SLIDERS_DELAY = 100;
 const char power_dir[] = "diods_tracker";
 const char tracker_full_path[] = "diods_tracker/diods_tracker.json";
 const uchar packetBack[mira_packet_size] = {0xA5, 'b', 0, 0, 0, 0, 0x5A, 97};
@@ -101,8 +100,12 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     db_json::getJsonObjectFromFile(":/config.json", m_json_config);
   };
   m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
+  m_average_count_for_fitter = m_json_config.value("average_spectr_count_for_fitter").toInt();
+  m_set_sliders_finalize_delay_ms = m_json_config.value("set_sliders_finalize_delay_ms").toInt();
+  m_set_sliders_delay = m_json_config.value("set_sliders_interval_delay_ms").toInt();
   m_finite_derivative_step = m_json_config.value("fitting_finite_derivative_step").toDouble();
   m_pins_json_array = m_json_config.value("pins_array").toArray();
+
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
   const QString mode = m_json_config.value("mode").toString();
@@ -250,28 +253,28 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   QJsonArray pvd_clibrs;
 
   for(int i=0;i<file_names.size();++i){
-      auto fn = file_names[i];
-      fn.remove(".txt");
-      QString expo = QString::number(fn.toInt());
-      qDebug()<<expo;
-      QJsonObject obj;
-      obj["expo"] = expo;
-      QFile file("calibrs/"+file_names[i]);
-      file.open(QIODevice::ReadOnly);
-      QString line;
-      QJsonArray jarr_waves;
-      QJsonArray jarr_values;
-      QTextStream ts(&file);
-      while(ts.readLineInto(&line)){
-      QStringList values = line.split("\t");
-      if(values.size()==2){
-      jarr_waves.append(values[0].toDouble());
-      jarr_values.append(values[1].toDouble());
-      }
-      }
-      obj["waves"] = jarr_waves;
-      obj["values"] = jarr_values;
-      pvd_clibrs.append(obj);
+    auto fn = file_names[i];
+    fn.remove(".txt");
+    QString expo = QString::number(fn.toInt());
+    qDebug()<<expo;
+    QJsonObject obj;
+    obj["expo"] = expo;
+    QFile file("calibrs/"+file_names[i]);
+    file.open(QIODevice::ReadOnly);
+    QString line;
+    QJsonArray jarr_waves;
+    QJsonArray jarr_values;
+    QTextStream ts(&file);
+    while(ts.readLineInto(&line)){
+    QStringList values = line.split("\t");
+    if(values.size()==2){
+    jarr_waves.append(values[0].toDouble());
+    jarr_values.append(values[1].toDouble());
+    }
+    }
+    obj["waves"] = jarr_waves;
+    obj["values"] = jarr_values;
+    pvd_clibrs.append(obj);
   }
 
   db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
@@ -403,16 +406,30 @@ void SpectraSynthesizer::readStmData() {
       max = m_etalons_maximums[ui->comboBox_etalons->currentText()] * TOP_MARGIN_COEFF;
       break;
   }
-
+  static quint8 fitter_counter = 0;
+  static QVector<double> average(values.size(), 0);
   if (!m_is_stm_exposition_changed) {
     if (m_isUpdateSpectrForFitter->load()) {
-      *m_shared_spectral_data = values;
-      m_isUpdateSpectrForFitter->store(false);
-      m_fitter->isBlocked = false;
+      ++fitter_counter;
+      for (int i = 0; i < average.size(); ++i) {
+        average[i] += values[i] / m_average_count_for_fitter;
+      }
+      if (fitter_counter == m_average_count_for_fitter) {
+        *m_shared_spectral_data = average;
+
+        //      std::copy(average.first(),average.end(),m_shared_spectral_data->begin());
+        m_isUpdateSpectrForFitter->store(false);
+        m_fitter->isBlocked = false;
+        fitter_counter = 0;
+        average.fill(0);
+        qDebug() << "M_SHARED_DATA: ---> " << *m_shared_spectral_data;
+        qDebug() << "\n\nFITTER COUNTER: ---> " << fitter_counter;
+        qDebug() << "\n\naverage: ---> " << average;
+      }
     }
     if (m_isSetValuesForSliders->load()) {
       setValuesForSliders(*m_shared_desired_sliders_positions);
-      QTimer::singleShot(SET_SLIDERS_DELAY * (m_sliders.size() + 5),
+      QTimer::singleShot(m_set_sliders_delay * (m_sliders.size() + 1) + m_set_sliders_finalize_delay_ms,//
       this, [this]() {
         m_isSetValuesForSliders->store(false);
         m_fitter->isBlocked = false;
@@ -1176,9 +1193,9 @@ void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet)
   QVector<double> diod_sliders = find_sliders_from_coefs(diod_spea_coefs, diods);
 
   setValuesForSliders(diod_sliders);
-  QTimer::singleShot(SET_SLIDERS_DELAY * (diod_sliders.size() + 2),
+  QTimer::singleShot(m_set_sliders_delay * (diod_sliders.size() + 2),
                      this,
-                     [this](){m_voice_informator->playSound("analytical_fitting_finished.mp3");});
+  [this]() {m_voice_informator->playSound("analytical_fitting_finished.mp3");});
 }
 
 void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fitSet) {
@@ -1227,7 +1244,7 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
   }
 
   // delay scenario
-  QTimer::singleShot(SET_SLIDERS_DELAY * (m_sliders.size() + 5),
+  QTimer::singleShot(m_set_sliders_delay * (m_sliders.size() + 1) + m_set_sliders_finalize_delay_ms,
                      this, [this, diod_sliders,
                             etalon_grid, etalon_speya,
   wavesStep, diods, emuleSettings]() {
@@ -1252,7 +1269,7 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
 void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders) {
   for (int i = 0; i < diod_sliders.size(); ++i) {
 
-    QTimer::singleShot(SET_SLIDERS_DELAY * (i + 1), this, [diod_sliders, i, this]() {
+    QTimer::singleShot(m_set_sliders_delay * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       emit m_sliders[i]->sliderReleased();
     });

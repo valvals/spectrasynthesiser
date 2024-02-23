@@ -1,6 +1,9 @@
 {
     "mode": "developing",
     "is_show_funny_video": false,
+    "average_spectr_count_for_fitter":10,
+    "set_sliders_finalize_delay_ms":1000,
+    "set_sliders_interval_delay_ms":150,
     "fitting_finite_derivative_step": 0.001,
     "pins_array": [
         {
