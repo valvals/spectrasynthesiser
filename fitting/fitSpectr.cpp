@@ -326,8 +326,6 @@ void fitterBySpectometer::run() {
   qDebug() << "-----------ПОДГОНКА К РЕАЛЬНОМУ СПЕКТРУ-----------------";
   qDebug() << "--------------------------------------------------------";
   qDebug() << "";
-  Sleep(5000);
-  emit workIsFinished();
   QVector<lampInfo> lamps;
   QVector<bool> usedLampsAll; // использована лампа или нет
   if (settings == FitSettings::FIT_BY_MAXIMUMS) {
