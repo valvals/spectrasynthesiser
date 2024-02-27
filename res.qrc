@@ -10,5 +10,7 @@
         <file>sounds/run_analytical_fitter.mp3</file>
         <file>sounds/fitting_by_spectrometr_finished_.mp3</file>
         <file>sounds/run_fitting_by_spectrometr.mp3</file>
+        <file>sounds/warning_signal_switched_off.mp3</file>
+        <file>sounds/warning_signal_switched_on.mp3</file>
     </qresource>
 </RCC>

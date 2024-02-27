@@ -110,6 +110,7 @@ class SpectraSynthesizer : public QMainWindow {
   bool m_is_diods_arduino_connected;
   bool m_is_show_funny_video;
   double m_finite_derivative_step;
+  bool m_is_first_previous_for_fitter;
   view m_view;
   DebugConsole* m_debug_console;
   fitterBySpectometer* m_fitter;
@@ -127,6 +128,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<double> m_etalons_grid;
   QVector<int> m_short_pvd_grid_indexes;
   QHash<QString, int> lambdas_indexes;
+  QHash<double,int>m_short_grid_lambda_to_real_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
   QSerialPort* m_serial_mira;
@@ -143,6 +145,7 @@ class SpectraSynthesizer : public QMainWindow {
   CameraModule* m_camera_module;
   QVector<double>* m_realSpectrPtr;
   QVector<double>* m_slidersFromFitter;
+  QVector<double> m_prev_sliders_states;
   QMediaPlayer* m_player;
   VoiceInformator* m_voice_informator;
 
@@ -157,9 +160,12 @@ class SpectraSynthesizer : public QMainWindow {
   uchar getCS(const uchar* data, int size);
   void fitSignalToEtalon_analytical(const FitSettings& fitSet);
   void fitSignalToEtalon_bySpectrometer(const FitSettings& fitSet);
-  void setValuesForSliders(const QVector<double> diod_sliders);
+  void setValuesForSliders(const QVector<double>& diod_sliders);
   void findApparatMaximus();
   void showFunnyVideo();
+  void combinateSpectralData(const QVector<double>& currentSpectr,
+                             const QVector<double>& prevSpectr,
+                             QVector <double>& combinatedSpectr);
 
   // QWidget interface
  protected:

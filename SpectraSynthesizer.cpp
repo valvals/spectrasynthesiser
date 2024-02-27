@@ -105,6 +105,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_set_sliders_delay = m_json_config.value("set_sliders_interval_delay_ms").toInt();
   m_finite_derivative_step = m_json_config.value("fitting_finite_derivative_step").toDouble();
   m_pins_json_array = m_json_config.value("pins_array").toArray();
+  m_is_first_previous_for_fitter = true;
 
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
@@ -137,6 +138,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
 
   }
   m_sliders_previous_values.resize(m_pins_json_array.size());
+  m_prev_sliders_states.resize(m_pins_json_array.size());
   m_elapsed_timers.resize(m_pins_json_array.size());
   bool isInitialTrackerFileExists = QFile(tracker_full_path).exists();
   if (isInitialTrackerFileExists)
@@ -204,11 +206,13 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     if (ui->action_water_cooler_warning->isChecked()) {
       m_timer_water_cooler_warning.start(1000);
       sendDataToDiodsComDevice("m\n");
+      m_voice_informator->playSound("warning_signal_switched_off.mp3");
     } else {
       sendDataToDiodsComDevice("u\n");
       m_timer_water_cooler_warning.stop();
       ui->label_info->setStyleSheet("background-color: rgb(31, 31, 31);color: rgb(0, 170, 0);");
       ui->label_info->setText("");
+      m_voice_informator->playSound("warning_signal_switched_on.mp3");
     }
   });
 
@@ -302,6 +306,7 @@ void SpectraSynthesizer::finishFitting() {
   m_player->stop();
   this->setEnabled(true);
   ui->label_info->setText("");
+  m_is_first_previous_for_fitter = true;
   m_voice_informator->playSound("fitting_by_spectrometr_finished_.mp3");
 }
 
@@ -324,7 +329,8 @@ void SpectraSynthesizer::readStmData() {
     if (m_is_stm_spectr_update) {
       update_stm_spectr();
     }
-    m_debug_console->add_message("expo packet recieved from stm: " + QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
+    m_debug_console->add_message("expo packet recieved from stm: " +
+                                 QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
     return;
   } else if (m_serial_stm_spectrometr->bytesAvailable() != spectr_packet_size) {
     qDebug() << "spectr packet recieved" << m_serial_stm_spectrometr->bytesAvailable();
@@ -408,26 +414,44 @@ void SpectraSynthesizer::readStmData() {
   }
   static quint8 fitter_counter = 0;
   static QVector<double> average(values.size(), 0);
+  static QVector<double> prev_average = average;
+  static QVector<double> combo(average.size(),0);
   if (!m_is_stm_exposition_changed) {
     if (m_isUpdateSpectrForFitter->load()) {
+
       ++fitter_counter;
+      if(fitter_counter==1&&!m_is_first_previous_for_fitter){
+          prev_average = average;
+      }
       for (int i = 0; i < average.size(); ++i) {
         average[i] += values[i] / m_average_count_for_fitter;
       }
       if (fitter_counter == m_average_count_for_fitter) {
+        if(m_is_first_previous_for_fitter){
         *m_shared_spectral_data = average;
-
-        //      std::copy(average.first(),average.end(),m_shared_spectral_data->begin());
+        }else{
+            // Implement spectr combinator
+            combinateSpectralData(average,prev_average,combo);
+            *m_shared_spectral_data = combo;
+        }
         m_isUpdateSpectrForFitter->store(false);
         m_fitter->isBlocked = false;
         fitter_counter = 0;
         average.fill(0);
-        qDebug() << "M_SHARED_DATA: ---> " << *m_shared_spectral_data;
-        qDebug() << "\n\nFITTER COUNTER: ---> " << fitter_counter;
-        qDebug() << "\n\naverage: ---> " << average;
+        //qDebug() << "M_SHARED_DATA: ---> " << *m_shared_spectral_data;
+        //qDebug() << "\n\nFITTER COUNTER: ---> " << fitter_counter;
+        //qDebug() << "\n\naverage: ---> " << average;
+      }
+      if(m_is_first_previous_for_fitter){
+          m_is_first_previous_for_fitter = false;
       }
     }
     if (m_isSetValuesForSliders->load()) {
+      //m_prev_sliders_states
+      Q_ASSERT(m_prev_sliders_states.size() == m_sliders.size());
+      for(int i=0;i<m_prev_sliders_states.size();++i){
+          m_prev_sliders_states[i] = m_sliders[i]->value();
+      }
       setValuesForSliders(*m_shared_desired_sliders_positions);
       QTimer::singleShot(m_set_sliders_delay * (m_sliders.size() + 1) + m_set_sliders_finalize_delay_ms,//
       this, [this]() {
@@ -903,6 +927,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
     } else {
       ++counter;
       m_short_pvd_grid_indexes.push_back(i);
+      m_short_grid_lambda_to_real_indexes.insert(counter,i);
     }
   }
 
@@ -1266,9 +1291,9 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
   });
 }
 
-void SpectraSynthesizer::setValuesForSliders(const QVector<double> diod_sliders) {
-  for (int i = 0; i < diod_sliders.size(); ++i) {
-
+void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders) {
+    Q_ASSERT(m_sliders.size()==diod_sliders.size());
+    for (int i = 0; i < diod_sliders.size(); ++i) {
     QTimer::singleShot(m_set_sliders_delay * (i + 1), this, [diod_sliders, i, this]() {
       m_sliders[i]->setValue(diod_sliders[i]);
       emit m_sliders[i]->sliderReleased();
@@ -1307,4 +1332,38 @@ void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) 
   m_pvd_calibr["waves"] = obj["waves"].toArray();
   qDebug() << "*** EXPO *** --> " << m_pvd_calibr["expo"].toString();
   m_is_stm_exposition_changed = true;
+}
+
+void SpectraSynthesizer::combinateSpectralData(const QVector<double> &currentSpectr,
+                                               const QVector<double> &prevSpectr,
+                                               QVector<double> &combinatedSpectr)
+{
+// 1 проверка какие слайдеры были изменены
+    QVector<int>changed_sliders;
+    for(int i=0;i<m_sliders.size();++i){
+        if(m_sliders[i]->value()!=m_prev_sliders_states[i]){
+            changed_sliders.push_back(i);// добавление индекса изменённого слайдера
+        }
+    }
+    if(changed_sliders.size()==0){// по идее такого случая не должно быть
+        combinatedSpectr = prevSpectr;
+        return;
+    }
+    if(changed_sliders.size() == m_sliders.size()){// когда все слайдеры изменены возвращаем весь спектр
+        combinatedSpectr = currentSpectr;
+        return;
+    }
+    combinatedSpectr = prevSpectr;// комбинировный спектр - на основе предыдущего спектра и нового спектра
+                                  // из нового спектра -> только те участки для которых менялись слайдеры
+    auto arr = m_json_config["pins_array"].toArray();
+    for(int i=0;i<changed_sliders.size();++i){
+    auto waves = arr[i].toObject()["model"].toObject()["waves"].toArray();
+    auto start = waves.first().toInt();
+    auto end = waves.last().toInt();
+    auto s = m_short_grid_lambda_to_real_indexes.value(start);
+    auto e = m_short_grid_lambda_to_real_indexes.value(end);
+    for(int ii=s;ii<e;++ii){
+    combinatedSpectr[ii] = currentSpectr[ii];
+    }
+    }
 }
