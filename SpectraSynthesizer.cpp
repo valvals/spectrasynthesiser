@@ -437,6 +437,7 @@ void SpectraSynthesizer::readStmData() {
         }
         m_isUpdateSpectrForFitter->store(false);
         m_fitter->isBlocked = false;
+        m_is_first_previous_for_fitter = true;
         fitter_counter = 0;
         average.fill(0);
         //qDebug() << "M_SHARED_DATA: ---> " << *m_shared_spectral_data;
