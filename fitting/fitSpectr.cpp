@@ -384,7 +384,7 @@ void fitterBySpectometer::run() {
   for (int i = 0; i < lampNums; ++i) {
     pars[i].limited[0] = 1;
     pars[i].limited[1] = 1;
-    pars[i].limits[0] = lamps.at(i).min_slider_value; // нижняя граница значения слайдера при СПЭЯ светодиода
+    pars[i].limits[0] = 0;//lamps.at(i).min_slider_value; // нижняя граница значения слайдера при СПЭЯ светодиода
     pars[i].limits[1] = lamps.at(i).max_slider_value; // верхняя граница значения коэффициента при СПЭЯ светодиода
   }
 
