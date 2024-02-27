@@ -5,6 +5,7 @@
 #include <atomic>
 #include "fitting/dataStructs.h"
 
+
 // Функция подгонки спектра сферы к спектру эталона.
 // Возвращает вектор с параметрами слайдеров ламп от 0 до 1
 QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
@@ -37,7 +38,8 @@ class fitterBySpectometer : public QObject, public QRunnable {
                       QVector<double>* optimalSlidersPtr,
                       std::atomic<bool>* needNewSpectrPtr,
                       std::atomic<bool>* needUpdateSlidersPtr,
-                      double finite_derivative_step);
+                      double finite_derivative_step,
+                      double relax_filter_percent);
   void run() override ;
 
   static std::atomic<bool> isBlocked;
@@ -51,11 +53,13 @@ class fitterBySpectometer : public QObject, public QRunnable {
   static std::atomic<bool>* m_needUpdateSlidersPtr;
   static QVector<double>* m_realSpectrPtr;
   static QVector<double>* m_optimalSlidersPtr;
+  static double m_relax_filter_percent;
   QVector<double> defaultSliders;
   QVector<double> wavesEtalon;
   QVector<double> speyaEtalon;
   double waveStep;
   double m_finite_derivative_step;
+
   QVector<lampInfo> lampsAll;
   FitSettings settings;
 

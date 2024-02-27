@@ -106,6 +106,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_finite_derivative_step = m_json_config.value("fitting_finite_derivative_step").toDouble();
   m_pins_json_array = m_json_config.value("pins_array").toArray();
   m_is_first_previous_for_fitter = true;
+  m_relax_filter_percent = m_json_config.value("relax_filter_percent").toDouble();
 
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
@@ -1181,7 +1182,8 @@ void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet)
     diods[i].a = bright_deps["a"].toDouble();
     diods[i].b = bright_deps["b"].toDouble();
     diods[i].c = bright_deps["c"].toDouble();
-    diods[i].max_slider_value = m_pins_json_array[i].toObject()["max_value"].toDouble();
+    diods[i].max_slider_value = m_pins_json_array[i].toObject()["max_value"].toInt();
+    diods[i].min_slider_value = m_pins_json_array[i].toObject()["start_light_value"].toInt();
 
     //qDebug()<<"a: "<<diods[i].a;
     auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
@@ -1250,7 +1252,8 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
     diods[i].a = bright_deps["a"].toDouble();
     diods[i].b = bright_deps["b"].toDouble();
     diods[i].c = bright_deps["c"].toDouble();
-    diods[i].max_slider_value = m_pins_json_array[i].toObject()["max_value"].toDouble();
+    diods[i].max_slider_value = m_pins_json_array[i].toObject()["max_value"].toInt();
+    diods[i].min_slider_value = m_pins_json_array[i].toObject()["start_light_value"].toInt();
 
     //qDebug()<<"a: "<<diods[i].a;
     auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
@@ -1283,7 +1286,8 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
                                        m_shared_desired_sliders_positions,
                                        m_isUpdateSpectrForFitter,
                                        m_isSetValuesForSliders,
-                                       m_finite_derivative_step);
+                                       m_finite_derivative_step,
+                                       m_relax_filter_percent);
 
     connect(m_fitter, SIGNAL(workIsFinished()), this, SLOT(finishFitting()));
     QThreadPool* thread_pool = QThreadPool::globalInstance();

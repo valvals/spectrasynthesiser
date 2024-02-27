@@ -14,6 +14,7 @@ SOURCES += \
     debug_console.cpp \
     fitting/fitSpectr.cpp \
     fitting/mpfit.c \
+    fitting/relaxFilter.cpp \
     main.cpp \
     SpectraSynthesizer.cpp \
     qcustomplot.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     fitting/dataStructs.h \
     fitting/fitSpectr.h \
     fitting/mpfit.h \
+    fitting/relaxFilter.h \
     qcustomplot.h \
     style_sheets.h \
     voice_informator.h
