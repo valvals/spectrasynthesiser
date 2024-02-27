@@ -916,6 +916,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
     auto wave_array = jo["waves"].toArray();
     auto bright_array = m_pvd_calibr["values"].toArray();
     int counter = 0;
+    int wave_start = 400;
 
     for (int i = 0; i < arr.size(); ++i) {
         auto temp = arr[i].toObject();
@@ -933,7 +934,8 @@ void SpectraSynthesizer::load_pvd_calibr() {
         } else {
             ++counter;
             m_short_pvd_grid_indexes.push_back(i);
-            m_short_grid_lambda_to_real_indexes.insert(counter,i);
+            m_short_grid_lambda_to_real_indexes.insert(wave_start,i);// REFACTOR !!!!!!
+            ++wave_start;
         }
     }
 
@@ -1370,6 +1372,7 @@ void SpectraSynthesizer::combinateSpectralData(const QVector<double> &currentSpe
         auto waves = arr[i].toObject()["model"].toObject()["waves"].toArray();
         auto start = waves.first().toDouble();
         auto end = waves.last().toDouble();
+
         auto s = m_short_grid_lambda_to_real_indexes.value(start);
         auto e = m_short_grid_lambda_to_real_indexes.value(end);
         for(int ii=s;ii<e;++ii){
