@@ -462,7 +462,7 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < m_prev_sliders_states.size(); ++i) {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
-      setValuesForSliders(*m_shared_desired_sliders_positions);
+      setValuesForSliders(*m_shared_desired_sliders_positions, m_prev_sliders_states);
       QTimer::singleShot(m_set_sliders_delay * (m_sliders.size() + 1) + m_set_sliders_finalize_delay_ms,//
       this, [this]() {
         m_isSetValuesForSliders->store(false);
@@ -1322,6 +1322,23 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
       emit m_sliders[i]->sliderReleased();
     });
   }
+}
+
+void SpectraSynthesizer::setValuesForSliders(const QVector<double> &diod_sliders,
+                                             const QVector<double> &diod_sliders_previous)
+{
+    Q_ASSERT(m_sliders.size() == diod_sliders.size());
+    Q_ASSERT(m_sliders.size() == diod_sliders_previous.size());
+    int iChanged = 0;
+    for (int i = 0; i < diod_sliders.size(); ++i) {
+        if(diod_sliders[i] != diod_sliders_previous[i]){
+            QTimer::singleShot(m_set_sliders_delay * (iChanged + 1), this, [diod_sliders, i, this]() {
+                m_sliders[i]->setValue(diod_sliders[i]);
+                emit m_sliders[i]->sliderReleased();
+            });
+            iChanged++;
+        }
+    }
 }
 
 void SpectraSynthesizer::findApparatMaximus() {

@@ -164,6 +164,8 @@ class SpectraSynthesizer : public QMainWindow {
   void fitSignalToEtalon_analytical(const FitSettings& fitSet);
   void fitSignalToEtalon_bySpectrometer(const FitSettings& fitSet);
   void setValuesForSliders(const QVector<double>& diod_sliders);
+  void setValuesForSliders(const QVector<double>& diod_sliders,
+                           const QVector<double>& diod_sliders_previous);
   void findApparatMaximus();
   void showFunnyVideo();
   void combinateSpectralData(const QVector<double>& currentSpectr,
