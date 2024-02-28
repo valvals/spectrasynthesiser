@@ -209,9 +209,6 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   //-config
   mp_config config;
   memset(&config, 0, sizeof(config));
-  config.ftol = 1e-1;
-  config.xtol = 1e-10;
-  config.gtol = 1e-1;
 
   //-------------- Фитируем и находим параметры коэффициентов при СПЭЯ светодиодов -------
   int status = mpfit(fitFunct, specChannels, lampNums, params, pars,
@@ -333,6 +330,9 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
   m_ftol_for_fitter = ftol_for_fitter;
   m_xtol_for_fitter = xtol_for_fitter;
   m_gtol_for_fitter = gtol_for_fitter;
+  qDebug()<<"m_ftol_for_fitter: "<<m_ftol_for_fitter;
+  qDebug()<<"m_xtol_for_fitter: "<<m_xtol_for_fitter;
+  qDebug()<<"m_gtol_for_fitter: "<<m_gtol_for_fitter;
 }
 
 void fitterBySpectometer::run() {

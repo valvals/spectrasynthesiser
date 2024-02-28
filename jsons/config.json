@@ -10,7 +10,7 @@
     "slider_step_for_fitter": 50,
     "ftol_for_fitter": 1e-10,
     "xtol_for_fitter": 1e-10,
-    "gftol_for_fitter": 1e-10,
+    "gtol_for_fitter": 1e-10,
     "pins_array": [
         {
             "bright_deps": {
