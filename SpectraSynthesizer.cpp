@@ -953,6 +953,7 @@ void SpectraSynthesizer::switchAZP_pvd() {
     ui->action_hide_etalon->setChecked(true);
     ui->widget_plot->yAxis->setLabel("отсчёты АЦП");
     ui->widget_plot->xAxis->setLabel("номер канала");
+    ui->widget_plot->replot();
 }
 
 void SpectraSynthesizer::switchSpeya_pvd() {
@@ -961,6 +962,7 @@ void SpectraSynthesizer::switchSpeya_pvd() {
     ui->action_azp_pvd->setChecked(false);
     ui->widget_plot->yAxis->setLabel("СПЭЯ (Вт/(м3 * ср))");
     ui->widget_plot->xAxis->setLabel("длина волны (нм)");
+    ui->widget_plot->replot();
 }
 
 void SpectraSynthesizer::switchSpeyaEtalon_pvd() {
@@ -971,6 +973,7 @@ void SpectraSynthesizer::switchSpeyaEtalon_pvd() {
     ui->action_hide_etalon->setChecked(false);
     ui->widget_plot->yAxis->setLabel("СПЭЯ (Вт/(м3 * ср))");
     ui->widget_plot->xAxis->setLabel("длина волны (нм)");
+    ui->widget_plot->replot();
 }
 
 void SpectraSynthesizer::on_spinBox_exposition_valueChanged(int arg1) {
