@@ -108,6 +108,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_is_first_previous_for_fitter = true;
   m_relax_filter_percent = m_json_config.value("relax_filter_percent").toDouble();
   m_slider_step_for_fitter = m_json_config.value("slider_step_for_fitter").toInt();
+  m_ftol_for_fitter = m_json_config.value("ftol_for_fitter").toDouble();
+  m_xtol_for_fitter = m_json_config.value("xtol_for_fitter").toDouble();
+  m_gtol_for_fitter = m_json_config.value("gtol_for_fitter").toDouble();
 
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
@@ -382,7 +385,7 @@ void SpectraSynthesizer::readStmData() {
     case view::PVD_SPEYA:
       // PVD_SPEYA case
       prev_azp_max = 0;
-      for (size_t i = 0; i < spectr_values_size; ++i) {
+      for (int i = 0; i < spectr_values_size; ++i) {
         auto wave = m_pvd_calibr["waves"].toArray()[i].toDouble();
         if (wave < 400)
           continue;
@@ -426,11 +429,6 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < average.size(); ++i) {
         average[i] += values[i] / m_average_count_for_fitter;
       }
-      /*if(fitter_counter==m_average_count_for_fitter&&!m_is_first_previous_for_fitter){
-          prev_average = average;
-
-      }*/
-
       if (fitter_counter == m_average_count_for_fitter) {
         if (m_is_first_previous_for_fitter) {
           *m_shared_spectral_data = average;
@@ -447,9 +445,11 @@ void SpectraSynthesizer::readStmData() {
         prev_average = combo;
         fitter_counter = 0;
         if (is_smart_range_mode) {
+          QVector<double> difference(average.size());
           for (int j = 0; j < average.size(); ++j) {
-            qDebug() << "difference: ---> " << average[j] - prev_average[j];
+            difference[j] = average[j] - prev_average[j];
           }
+          qDebug() << "difference: ---> " << difference;
         }
         average.fill(0);
         m_isUpdateSpectrForFitter->store(false);
@@ -1303,7 +1303,10 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
                                        m_isSetValuesForSliders,
                                        m_finite_derivative_step,
                                        m_relax_filter_percent,
-                                       m_slider_step_for_fitter);
+                                       m_slider_step_for_fitter,
+                                       m_ftol_for_fitter,
+                                       m_xtol_for_fitter,
+                                       m_gtol_for_fitter);
 
     connect(m_fitter, SIGNAL(workIsFinished()), this, SLOT(finishFitting()));
     QThreadPool* thread_pool = QThreadPool::globalInstance();

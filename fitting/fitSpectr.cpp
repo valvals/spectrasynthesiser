@@ -175,7 +175,6 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
     pars[i].limited[1] = 1;
     pars[i].limits[0] = 0; // нижняя граница значения коэффициента при СПЭЯ светодиода
     pars[i].limits[1] = 1; // верхняя граница значения коэффициента при СПЭЯ светодиода
-    pars[i].step = 0;
   }
 
   //-mydata
@@ -210,6 +209,9 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
   //-config
   mp_config config;
   memset(&config, 0, sizeof(config));
+  config.ftol = 1e-1;
+  config.xtol = 1e-10;
+  config.gtol = 1e-1;
 
   //-------------- Фитируем и находим параметры коэффициентов при СПЭЯ светодиодов -------
   int status = mpfit(fitFunct, specChannels, lampNums, params, pars,
@@ -309,7 +311,10 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
                                          std::atomic<bool>* needUpdateSlidersPtr,
                                          double finite_derivative_step,
                                          double relax_filter_percent,
-                                         int slider_step_for_fitter) {
+                                         int slider_step_for_fitter,
+                                         double ftol_for_fitter,
+                                         double xtol_for_fitter,
+                                         double gtol_for_fitter) {
 
   isBlocked = false;
   this->defaultSliders = defaultSliders;
@@ -325,6 +330,9 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
   m_finite_derivative_step = finite_derivative_step;
   m_relax_filter_percent = relax_filter_percent;
   m_slider_step_for_fitter = slider_step_for_fitter;
+  m_ftol_for_fitter = ftol_for_fitter;
+  m_xtol_for_fitter = xtol_for_fitter;
+  m_gtol_for_fitter = gtol_for_fitter;
 }
 
 void fitterBySpectometer::run() {
@@ -427,7 +435,9 @@ void fitterBySpectometer::run() {
   mp_config config;
   memset(&config, 0, sizeof(config));
   config.epsfcn = m_finite_derivative_step; // чтобы дерганья спектрометра не влияли на подгонку
-  qDebug() << "ТЕСТ: " << config.epsfcn;
+  config.ftol = m_ftol_for_fitter;
+  config.xtol = m_xtol_for_fitter;
+  config.gtol = m_gtol_for_fitter;
   // -------------- Конец заполнения настроек---------------------
 
   //-------------- Фитируем и находим значения слайдеров для светодиодов -------
@@ -460,19 +470,24 @@ int fitterBySpectometer::fitFunctRealSpectrometer(int m, int n, double* p, doubl
   const QVector<double>& x = mydata->wavesEtalon;
   const QVector<double>& y = mydata->speyaEtalon;
   Q_ASSERT(x.size() == m_realSpectrPtr->size());
-  QVector<double> smoothSpectr = smoothRelax(*m_realSpectrPtr, m_relax_filter_percent);
+  QVector<double> spectr;
+  if (m_relax_filter_percent > 0 && m_relax_filter_percent <= 100) {
+    spectr =  smoothRelax(*m_realSpectrPtr, m_relax_filter_percent);
+  } else {
+    spectr = *m_realSpectrPtr;
+  }
   double* ey = mydata->ey;
 
   if (mydata->settings == FitSettings::FIT_ALL) {
     for (int i = 0; i < m; i++) {
-      dy[i] = (y[i] - smoothSpectr.at(i)) / ey[i];
+      dy[i] = (y[i] - spectr.at(i)) / ey[i];
     }
   } else if (mydata->settings == FitSettings::FIT_BY_MAXIMUMS) {
     Q_ASSERT(m == mydata->wavesEtalonShort.size());
     //нужен шорт realSpectr. Для этого из realSpectrPtr надо выбрать только нужные значения
     QVector<double> realSpectrShort(mydata->wavesEtalonShort.size(), -1);
     for (int i = 0; i < mydata->wavesEtalonShort.size(); ++i) {
-      realSpectrShort[i] = smoothSpectr.at(mydata->indexesOfWavesEtalonShort.at(i));
+      realSpectrShort[i] = spectr.at(mydata->indexesOfWavesEtalonShort.at(i));
     }
     for (int i = 0; i < m; i++) {
       dy[i] = (mydata->speyaEtalonShort[i] - realSpectrShort[i]) / ey[i];

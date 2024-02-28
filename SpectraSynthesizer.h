@@ -113,6 +113,7 @@ class SpectraSynthesizer : public QMainWindow {
   bool m_is_show_funny_video;
   double m_finite_derivative_step;
   bool m_is_first_previous_for_fitter;
+  double m_ftol_for_fitter, m_xtol_for_fitter, m_gtol_for_fitter;
   view m_view;
   DebugConsole* m_debug_console;
   fitterBySpectometer* m_fitter;

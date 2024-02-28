@@ -7,7 +7,10 @@
     "fitting_finite_derivative_step": 0.001,
     "is_combinated_range_spectr_for_fitter": false,
     "relax_filter_percent": 0,
-    "slider_step_for_fitter": 5,
+    "slider_step_for_fitter": 50,
+    "ftol_for_fitter": 1e-10,
+    "xtol_for_fitter": 1e-10,
+    "gftol_for_fitter": 1e-10,
     "pins_array": [
         {
             "bright_deps": {
