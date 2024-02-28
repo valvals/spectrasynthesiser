@@ -129,7 +129,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<double> m_etalons_grid;
   QVector<int> m_short_pvd_grid_indexes;
   QHash<QString, int> lambdas_indexes;
-  QHash<double,int>m_short_grid_lambda_to_real_indexes;
+  QHash<double, int>m_short_grid_lambda_to_real_indexes;
   QSerialPort* m_serial_diods_controller;
   QSerialPort* m_serial_stm_spectrometr;
   QSerialPort* m_serial_mira;
