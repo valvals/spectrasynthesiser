@@ -39,7 +39,8 @@ class fitterBySpectometer : public QObject, public QRunnable {
                       std::atomic<bool>* needNewSpectrPtr,
                       std::atomic<bool>* needUpdateSlidersPtr,
                       double finite_derivative_step,
-                      double relax_filter_percent);
+                      double relax_filter_percent,
+                      int slider_step_for_fitter);
   void run() override ;
 
   static std::atomic<bool> isBlocked;
@@ -59,6 +60,7 @@ class fitterBySpectometer : public QObject, public QRunnable {
   QVector<double> speyaEtalon;
   double waveStep;
   double m_finite_derivative_step;
+  int m_slider_step_for_fitter;
 
   QVector<lampInfo> lampsAll;
   FitSettings settings;

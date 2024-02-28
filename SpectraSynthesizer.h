@@ -104,6 +104,7 @@ class SpectraSynthesizer : public QMainWindow {
   int m_average_count_for_fitter;
   int m_set_sliders_finalize_delay_ms;
   double m_relax_filter_percent; //from 0 to 100
+  int m_slider_step_for_fitter;
   bool m_is_show_etalon;
   bool m_is_stm_spectr_update;
   bool m_is_stm_exposition_changed;

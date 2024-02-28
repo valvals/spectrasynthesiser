@@ -78,6 +78,8 @@ QVector<double> emuleFullSpectr(double* params,
       spectr[j] += lamps.at(i).speya.at(j - chanNumLampStart) * params[i];
     }
   }
+  QVector<double >pars(params, params + lamps.size()); //for test debug only
+  int stop = 0; //for test debug only
   return spectr;
 }
 
@@ -173,6 +175,7 @@ QVector<double> find_diod_spea_coefs(const QVector<double>& wavesEtalon,
     pars[i].limited[1] = 1;
     pars[i].limits[0] = 0; // нижняя граница значения коэффициента при СПЭЯ светодиода
     pars[i].limits[1] = 1; // верхняя граница значения коэффициента при СПЭЯ светодиода
+    pars[i].step = 0;
   }
 
   //-mydata
@@ -305,7 +308,8 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
                                          std::atomic<bool>* needNewSpectrPtr,
                                          std::atomic<bool>* needUpdateSlidersPtr,
                                          double finite_derivative_step,
-                                         double relax_filter_percent) {
+                                         double relax_filter_percent,
+                                         int slider_step_for_fitter) {
 
   isBlocked = false;
   this->defaultSliders = defaultSliders;
@@ -320,6 +324,7 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
   m_optimalSlidersPtr = optimalSlidersPtr;
   m_finite_derivative_step = finite_derivative_step;
   m_relax_filter_percent = relax_filter_percent;
+  m_slider_step_for_fitter = slider_step_for_fitter;
 }
 
 void fitterBySpectometer::run() {
@@ -384,8 +389,9 @@ void fitterBySpectometer::run() {
   for (int i = 0; i < lampNums; ++i) {
     pars[i].limited[0] = 1;
     pars[i].limited[1] = 1;
-    pars[i].limits[0] = 0;//lamps.at(i).min_slider_value; // нижняя граница значения слайдера при СПЭЯ светодиода
+    pars[i].limits[0] = 0;//lamps.at(i).min_slider_value; //WTF!!?? WHY NOT WORKING COMMENTED? нижняя граница значения слайдера при СПЭЯ светодиода
     pars[i].limits[1] = lamps.at(i).max_slider_value; // верхняя граница значения коэффициента при СПЭЯ светодиода
+    pars[i].step = m_slider_step_for_fitter;
   }
 
   //-mydata

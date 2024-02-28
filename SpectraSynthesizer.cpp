@@ -107,6 +107,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_pins_json_array = m_json_config.value("pins_array").toArray();
   m_is_first_previous_for_fitter = true;
   m_relax_filter_percent = m_json_config.value("relax_filter_percent").toDouble();
+  m_slider_step_for_fitter = m_json_config.value("slider_step_for_fitter").toInt();
 
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
@@ -1301,7 +1302,8 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
                                        m_isUpdateSpectrForFitter,
                                        m_isSetValuesForSliders,
                                        m_finite_derivative_step,
-                                       m_relax_filter_percent);
+                                       m_relax_filter_percent,
+                                       m_slider_step_for_fitter);
 
     connect(m_fitter, SIGNAL(workIsFinished()), this, SLOT(finishFitting()));
     QThreadPool* thread_pool = QThreadPool::globalInstance();
@@ -1342,8 +1344,8 @@ void SpectraSynthesizer::findApparatMaximus() {
 }
 
 void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) {
-  // if (!m_is_stm_spectrometr_connected)
-  //     return;
+  if (!m_is_stm_spectrometr_connected)
+    return;
   QJsonObject obj;
   db_json::getJsonObjectFromFile("pvd_calibr_list.json", obj);
   m_pvd_calibr = obj["calibrs"].toArray()[index].toObject();
