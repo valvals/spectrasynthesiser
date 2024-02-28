@@ -189,14 +189,14 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       slider->setStyleSheet(QString(styles::slider).arg(color, color));
       ui->horizontalLayout->addLayout(vbl);
       m_sliders.push_back(slider);
-      connect(slider, &QSlider::sliderReleased, [i, slider, this]() {
+      connect(slider, &QSlider::sliderReleased, this, [i, slider, this]() {
         setTooltipForSlider(i, slider->value());
         sendDataToDiodsComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
         ui->comboBox_waves->setCurrentIndex(i);
         ui->spinBox_bright_value->setValue(slider->value());
         savePowerParams(i, slider->value());
         updatePowerStat();
-      });
+      }, Qt::DirectConnection);
     }
   } else {
     QMessageBox mb;
@@ -463,11 +463,6 @@ void SpectraSynthesizer::readStmData() {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
       setValuesForSliders(*m_shared_desired_sliders_positions, m_prev_sliders_states);
-      QTimer::singleShot(m_set_sliders_delay * (m_sliders.size() + 1) + m_set_sliders_finalize_delay_ms,//
-      this, [this]() {
-        m_isSetValuesForSliders->store(false);
-        m_fitter->isBlocked = false;
-      });
     }
     show_stm_spectr(channels, values, max);
   } else {
@@ -1324,21 +1319,36 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
   }
 }
 
-void SpectraSynthesizer::setValuesForSliders(const QVector<double> &diod_sliders,
-                                             const QVector<double> &diod_sliders_previous)
-{
-    Q_ASSERT(m_sliders.size() == diod_sliders.size());
-    Q_ASSERT(m_sliders.size() == diod_sliders_previous.size());
-    int iChanged = 0;
-    for (int i = 0; i < diod_sliders.size(); ++i) {
-        if(diod_sliders[i] != diod_sliders_previous[i]){
-            QTimer::singleShot(m_set_sliders_delay * (iChanged + 1), this, [diod_sliders, i, this]() {
-                m_sliders[i]->setValue(diod_sliders[i]);
-                emit m_sliders[i]->sliderReleased();
-            });
-            iChanged++;
-        }
+void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders,
+                                             const QVector<double>& diod_sliders_previous) {
+  Q_ASSERT(m_sliders.size() == diod_sliders.size());
+  Q_ASSERT(m_sliders.size() == diod_sliders_previous.size());
+  QVector<int> slidersChanged;
+  for (int i = 0; i < diod_sliders.size(); ++i) {
+    if (diod_sliders[i] != diod_sliders_previous[i]) {
+      slidersChanged.append(i);
     }
+  }
+  for (int i = 0; i < slidersChanged.size(); ++i) {
+    {
+      QTimer::singleShot(m_set_sliders_delay * (i + 1), this, [slidersChanged, diod_sliders, i, this]() {
+        const auto index = slidersChanged[i];
+        m_sliders[index]->setValue(diod_sliders[index]);
+        emit m_sliders[index]->sliderReleased();
+
+        if (i == slidersChanged.size() - 1) {
+          QTimer::singleShot(100, this, [this] { //время контроллеру на обработку команды
+            m_isSetValuesForSliders->store(false);
+            m_fitter->isBlocked = false;
+          });
+
+        }
+      });
+
+    }
+  }
+
+
 }
 
 void SpectraSynthesizer::findApparatMaximus() {
@@ -1403,13 +1413,13 @@ void SpectraSynthesizer::combinateSpectralData(const QVector<double>& currentSpe
       break;
     auto s = m_short_grid_lambda_to_real_indexes.value(start);
     auto e = m_short_grid_lambda_to_real_indexes.value(end);
-    if(s<0||s>combinatedSpectr.size()-1){
-        qDebug()<<"START RANGE WRONG CASE..."<<s;
-        continue;
+    if (s < 0 || s > combinatedSpectr.size() - 1) {
+      qDebug() << "START RANGE WRONG CASE..." << s;
+      continue;
     }
-    if(e<0||e>combinatedSpectr.size()-1){
-        qDebug()<<"END OUT OF RANGE CASE..."<<e;
-        e = combinatedSpectr.size()-1;
+    if (e < 0 || e > combinatedSpectr.size() - 1) {
+      qDebug() << "END OUT OF RANGE CASE..." << e;
+      e = combinatedSpectr.size() - 1;
     }
     for (int ii = s; ii < e; ++ii) {
       combinatedSpectr[ii] = currentSpectr[ii];
