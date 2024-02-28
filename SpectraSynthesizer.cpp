@@ -1386,6 +1386,14 @@ void SpectraSynthesizer::combinateSpectralData(const QVector<double>& currentSpe
       break;
     auto s = m_short_grid_lambda_to_real_indexes.value(start);
     auto e = m_short_grid_lambda_to_real_indexes.value(end);
+    if(s<0||s>combinatedSpectr.size()-1){
+        qDebug()<<"START RANGE WRONG CASE..."<<s;
+        continue;
+    }
+    if(e<0||e>combinatedSpectr.size()-1){
+        qDebug()<<"END OUT OF RANGE CASE..."<<e;
+        e = combinatedSpectr.size()-1;
+    }
     for (int ii = s; ii < e; ++ii) {
       combinatedSpectr[ii] = currentSpectr[ii];
     }
