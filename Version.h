@@ -1,11 +1,11 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define VER_FILEVERSION             1,8,1,0
-#define VER_FILEVERSION_STR         "1.8.1.0\0"
+#define VER_FILEVERSION             1,8,2,0
+#define VER_FILEVERSION_STR         "1.8.2.0\0"
 
-#define VER_PRODUCTVERSION          1,8,1,0
-#define VER_PRODUCTVERSION_STR      "1.8.1\0"
+#define VER_PRODUCTVERSION          1,8,2,0
+#define VER_PRODUCTVERSION_STR      "1.8.2\0"
 
 #define VER_COMPANYNAME_STR         "IAPP of BSU"
 #define VER_FILEDESCRIPTION_STR     "spectrasynthesizer"
