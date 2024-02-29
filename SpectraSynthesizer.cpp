@@ -463,7 +463,7 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < m_prev_sliders_states.size(); ++i) {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
-      setValuesForSlidersBlocked(*m_shared_desired_sliders_positions);
+      setValuesForSlidersBlocked(*m_shared_desired_sliders_positions,m_prev_sliders_states);
       m_isSetValuesForSliders->store(false);
       m_fitter->isBlocked = false;
     }
