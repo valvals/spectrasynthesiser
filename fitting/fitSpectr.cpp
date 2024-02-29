@@ -295,6 +295,7 @@ std::atomic<bool>* fitterBySpectometer::m_needNewSpectrPtr(nullptr);
 std::atomic<bool>* fitterBySpectometer::m_needUpdateSlidersPtr(nullptr);
 QVector<double>* fitterBySpectometer::m_optimalSlidersPtr(nullptr);
 double fitterBySpectometer::m_relax_filter_percent = 0;
+int fitterBySpectometer::m_countOfCallingFitFunc = 0;
 
 fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
                                          const QVector<double>& wavesEtalon,
@@ -342,6 +343,7 @@ void fitterBySpectometer::run() {
   qDebug() << "-----------ПОДГОНКА К РЕАЛЬНОМУ СПЕКТРУ-----------------";
   qDebug() << "--------------------------------------------------------";
   qDebug() << "";
+  m_countOfCallingFitFunc = 0;
   QVector<lampInfo> lamps;
   QVector<bool> usedLampsAll; // использована лампа или нет
   if (settings == FitSettings::FIT_BY_MAXIMUMS) {
@@ -465,7 +467,8 @@ int fitterBySpectometer::fitFunctRealSpectrometer(int m, int n, double* p, doubl
   while (isBlocked) {
     // ждем, пока спектрометр не измерит спектр
   }
-
+  qDebug()<< "fitFunctRealSpectrometer разблокирован: "<< m_countOfCallingFitFunc;
+  m_countOfCallingFitFunc++;
   vars_struct* mydata = static_cast<vars_struct*>(vars);
   const QVector<double>& x = mydata->wavesEtalon;
   const QVector<double>& y = mydata->speyaEtalon;

@@ -58,6 +58,7 @@ class fitterBySpectometer : public QObject, public QRunnable {
   static QVector<double>* m_realSpectrPtr;
   static QVector<double>* m_optimalSlidersPtr;
   static double m_relax_filter_percent;
+  static int m_countOfCallingFitFunc;
   QVector<double> defaultSliders;
   QVector<double> wavesEtalon;
   QVector<double> speyaEtalon;

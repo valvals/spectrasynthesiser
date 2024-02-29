@@ -430,6 +430,7 @@ void SpectraSynthesizer::readStmData() {
         average[i] += values[i] / m_average_count_for_fitter;
       }
       if (fitter_counter == m_average_count_for_fitter) {
+
         if (m_is_first_previous_for_fitter) {
           *m_shared_spectral_data = average;
           m_is_first_previous_for_fitter = false;
@@ -454,6 +455,7 @@ void SpectraSynthesizer::readStmData() {
         average.fill(0);
         m_isUpdateSpectrForFitter->store(false);
         m_fitter->isBlocked.store(false);
+        qDebug()<<"разлочили фиттер из SpectraSynthesizer.cpp";
       }
     }
     if (m_isSetValuesForSliders->load()) {
@@ -463,6 +465,7 @@ void SpectraSynthesizer::readStmData() {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
       setValuesForSliders(*m_shared_desired_sliders_positions, m_prev_sliders_states);
+      qDebug()<<"дали команду на установку слайдеров из SpectraSynthesizer.cpp";
     }
     show_stm_spectr(channels, values, max);
   } else {
