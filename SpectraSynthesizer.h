@@ -166,6 +166,8 @@ class SpectraSynthesizer : public QMainWindow {
   void setValuesForSliders(const QVector<double>& diod_sliders);
   void setValuesForSliders(const QVector<double>& diod_sliders,
                            const QVector<double>& diod_sliders_previous);
+  void setValuesForSlidersBlocked(const QVector<double>& diod_sliders,
+                                  const QVector<double>& diod_sliders_previous);
   void findApparatMaximus();
   void showFunnyVideo();
   void combinateSpectralData(const QVector<double>& currentSpectr,

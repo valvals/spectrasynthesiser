@@ -455,7 +455,6 @@ void SpectraSynthesizer::readStmData() {
         average.fill(0);
         m_isUpdateSpectrForFitter->store(false);
         m_fitter->isBlocked.store(false);
-        qDebug()<<"разлочили фиттер из SpectraSynthesizer.cpp";
       }
     }
     if (m_isSetValuesForSliders->load()) {
@@ -464,8 +463,9 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < m_prev_sliders_states.size(); ++i) {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
-      setValuesForSliders(*m_shared_desired_sliders_positions, m_prev_sliders_states);
-      qDebug()<<"дали команду на установку слайдеров из SpectraSynthesizer.cpp";
+      setValuesForSlidersBlocked(*m_shared_desired_sliders_positions);
+      m_isSetValuesForSliders->store(false);
+      m_fitter->isBlocked = false;
     }
     show_stm_spectr(channels, values, max);
   } else {
@@ -1343,6 +1343,7 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
           QTimer::singleShot(100, this, [this] { //время контроллеру на обработку команды
             m_isSetValuesForSliders->store(false);
             m_fitter->isBlocked = false;
+            qDebug()<<"UNLOCK AFTER LAST SLIDER WAS SETTED .....\n";
           });
 
         }
@@ -1352,6 +1353,24 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
   }
 
 
+}
+
+void SpectraSynthesizer::setValuesForSlidersBlocked(const QVector<double> &diod_sliders,
+                                                    const QVector<double>& diod_sliders_previous)
+{
+    Q_ASSERT(m_sliders.size() == diod_sliders.size());
+    QVector<int> slidersChanged;
+     for (int i = 0; i < diod_sliders.size(); ++i) {
+       if (diod_sliders[i] != diod_sliders_previous[i]) {
+         slidersChanged.append(i);
+       }
+     }
+    for (int i = 0; i < slidersChanged.size(); ++i) {
+        const auto index = slidersChanged[i];
+        m_sliders[index]->setValue(diod_sliders[index]);
+        emit m_sliders[index]->sliderReleased();
+        Sleep(50);
+    }
 }
 
 void SpectraSynthesizer::findApparatMaximus() {

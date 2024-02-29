@@ -467,7 +467,6 @@ int fitterBySpectometer::fitFunctRealSpectrometer(int m, int n, double* p, doubl
   while (isBlocked) {
     // ждем, пока спектрометр не измерит спектр
   }
-  qDebug()<< "fitFunctRealSpectrometer разблокирован: "<< m_countOfCallingFitFunc;
   m_countOfCallingFitFunc++;
   vars_struct* mydata = static_cast<vars_struct*>(vars);
   const QVector<double>& x = mydata->wavesEtalon;
