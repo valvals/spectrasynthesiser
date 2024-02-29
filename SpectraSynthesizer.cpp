@@ -63,7 +63,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   if (!dir.exists(power_dir)) {
     dir.mkdir(power_dir);
   }
-  this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
+  this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1%2").arg(VER_PRODUCTVERSION_STR).arg("SINGULARITY_RANGE"));
   ui->comboBox_spectrometr_type->addItems({"ПВД", "ПИК"});
   QAction* copy_stm_spectr = new QAction;
   copy_stm_spectr->setText("копировать в буфер спектр");
