@@ -59,7 +59,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   if (!dir.exists(power_dir)) {
     dir.mkdir(power_dir);
   }
-  this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
+  this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1%2").arg(VER_PRODUCTVERSION_STR).arg(" VALLILO"));
   ui->comboBox_spectrometr_type->addItems({"ПВД", "ПИК"});
   QAction* copy_stm_spectr = new QAction;
   copy_stm_spectr->setText("копировать в буфер спектр");
@@ -80,6 +80,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->addGraph(); // 1 - эталон
   ui->widget_plot->addGraph(); // 2 - sensor functions
   ui->widget_plot->addGraph(); // 3 - sensor functions normal
+  ui->widget_plot->addGraph(); // 4 - combo for fitter
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
   m_diod_models = new QCustomPlot;
@@ -91,6 +92,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   QPen graphPenApparatNormal(QColor(200, 200, 200));
   graphPenApparatNormal.setWidth(2);
   ui->widget_plot->graph(2)->setPen(graphPenApparatNormal);
+  QPen graphPenCombo(QColor("#a767f5"));
+  graphPenCombo.setWidth(2);
+  ui->widget_plot->graph(4)->setPen(graphPenCombo);
 
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
@@ -442,6 +446,7 @@ void SpectraSynthesizer::readStmData() {
             combo = average;
           }
           *m_shared_spectral_data = combo;
+          showComboGraph(channels,combo);
         }
         prev_average = combo;
         fitter_counter = 0;
@@ -1447,4 +1452,11 @@ void SpectraSynthesizer::combinateSpectralData(const QVector<double>& currentSpe
       combinatedSpectr[ii] = currentSpectr[ii];
     }
   }
+}
+
+void SpectraSynthesizer::showComboGraph(QVector<double> &combo_waves,
+                                        QVector<double> &combo_values)
+{
+ui->widget_plot->graph(4)->setData(combo_waves,combo_values);
+ui->widget_plot->replot();
 }

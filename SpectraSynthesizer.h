@@ -173,6 +173,8 @@ class SpectraSynthesizer : public QMainWindow {
   void combinateSpectralData(const QVector<double>& currentSpectr,
                              const QVector<double>& prevSpectr,
                              QVector <double>& combinatedSpectr);
+  void showComboGraph(QVector<double>& combo_waves,
+                      QVector<double>& combo_values);
 
   // QWidget interface
  protected:
