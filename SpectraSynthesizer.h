@@ -97,6 +97,8 @@ class SpectraSynthesizer : public QMainWindow {
   void on_pushButton_stop_start_update_stm_spectr_toggled(bool checked);
   void on_comboBox_spectrometr_type_currentIndexChanged(const QString& arg1);
   void on_comboBox_expositions_currentIndexChanged(int index);
+  void setValuesForSlidersBlocked(const QVector<double>& diod_sliders,
+                                  const QVector<double>& diod_sliders_previous);
 
  private:
   Ui::SpectraSynthesizer* ui;

@@ -28,6 +28,10 @@ const uchar packetForward[mira_packet_size] = {0xA5, 'f', 0, 0, 0, 0, 0x5A, 101}
 const uchar packetGetPosition[mira_packet_size] = {0xA5, 'l', 0, 0, 0, 0, 0x5A, 107};
 const uchar packetStop[mira_packet_size] = {0xA5, '_', 0, 0, 0, 0, 0x5A, 0};
 
+int LEFT_LAMP;// = 17;
+int RIGHT_LAMP; //= 25;
+int LEFT_WAVE; //= 650;
+int RIGHT_WAVE;// = 850;
 
 SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   : QMainWindow(parent)
@@ -111,7 +115,11 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_ftol_for_fitter = m_json_config.value("ftol_for_fitter").toDouble();
   m_xtol_for_fitter = m_json_config.value("xtol_for_fitter").toDouble();
   m_gtol_for_fitter = m_json_config.value("gtol_for_fitter").toDouble();
-
+  LEFT_LAMP = m_json_config.value("LEFT_LAMP").toInt();
+  RIGHT_LAMP = m_json_config.value("RIGHT_LAMP").toInt();
+  LEFT_WAVE = m_json_config.value("LEFT_WAVE").toInt();
+  RIGHT_WAVE = m_json_config.value("RIGHT_WAVE").toInt();
+qDebug()<<" проверка новых параметров: LEFT_LAMP RIGHT_LAMP LEFT_WAVE RIGHT_WAVE"<< LEFT_LAMP<< RIGHT_LAMP<< LEFT_WAVE<< RIGHT_WAVE;
   const QString serial_diods_number = m_json_config.value("serial_diods_controller_id").toString();
   const QString serial_stm_number = m_json_config.value("serial_stm_controller_id").toString();
   const QString mode = m_json_config.value("mode").toString();
@@ -455,7 +463,7 @@ void SpectraSynthesizer::readStmData() {
         average.fill(0);
         m_isUpdateSpectrForFitter->store(false);
         m_fitter->isBlocked.store(false);
-        qDebug()<<"разлочили фиттер из SpectraSynthesizer.cpp";
+        qDebug() << "разлочили фиттер из SpectraSynthesizer.cpp";
       }
     }
     if (m_isSetValuesForSliders->load()) {
@@ -464,8 +472,17 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < m_prev_sliders_states.size(); ++i) {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
-      setValuesForSliders(*m_shared_desired_sliders_positions, m_prev_sliders_states);
-      qDebug()<<"дали команду на установку слайдеров из SpectraSynthesizer.cpp";
+
+      QVector<double> sliders_combo = m_prev_sliders_states;
+      int indx = 0;
+      for (int i = LEFT_LAMP; i < RIGHT_LAMP + 1; ++i) {
+        sliders_combo[i] = m_shared_desired_sliders_positions->at(indx);
+        indx++;
+      }
+
+
+    setValuesForSlidersBlocked(sliders_combo, m_prev_sliders_states);
+
     }
     show_stm_spectr(channels, values, max);
   } else {
@@ -1250,9 +1267,10 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
 
   for (int i = 0; i < sample.size(); ++i) {
     auto wave = grid[i].toDouble();
-    if (wave > 900)
+    //17-25 диоды покрывают примерно 650-850 нм
+    if (wave > RIGHT_WAVE)
       break;
-    if (wave >= 400) {
+    if (wave >= LEFT_WAVE) {
       auto speya = sample[i].toDouble();
       etalon_speya.push_back(speya);
       etalon_grid.push_back(wave);
@@ -1272,18 +1290,18 @@ void SpectraSynthesizer::fitSignalToEtalon_bySpectrometer(const FitSettings& fit
     auto values = m_pins_json_array[i].toObject()["model"].toObject()["values"].toArray();
     auto waves = m_pins_json_array[i].toObject()["model"].toObject()["waves"].toArray();
     Q_ASSERT(values.size() == waves.size());
-    for (int j = 0; j < values.size(); ++j) {
+    for (int j = LEFT_LAMP; j < RIGHT_LAMP + 1; ++j) {
       diods[i].waves.push_back(waves[j].toDouble());
       diods[i].speya.push_back(values[j].toDouble());
     }
   }
 
-  QVector<double> diod_sliders(m_sliders.size(), 0);
-  for (int i = 0; i < m_sliders.size(); ++i) {
+  QVector<double> diod_sliders(diods.size(), 0);
+  for (int i = LEFT_LAMP; i < RIGHT_LAMP + 1; ++i) {
 
     diod_sliders[i] = m_sliders.at(i)->value();
   }
-
+  qDebug() << "проверка размеров: " << diods.size() << " " << diod_sliders.size();
   // delay scenario
   QTimer::singleShot(m_set_sliders_delay * (m_sliders.size() + 1) + m_set_sliders_finalize_delay_ms,
                      this, [this, diod_sliders,
@@ -1385,6 +1403,24 @@ void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) 
   m_pvd_calibr["waves"] = obj["waves"].toArray();
   qDebug() << "*** EXPO *** --> " << m_pvd_calibr["expo"].toString();
   m_is_stm_exposition_changed = true;
+}
+
+void SpectraSynthesizer::setValuesForSlidersBlocked(const QVector<double> &diod_sliders,
+                                                    const QVector<double>& diod_sliders_previous)
+{
+    Q_ASSERT(m_sliders.size() == diod_sliders.size());
+    QVector<int> slidersChanged;
+     for (int i = 0; i < diod_sliders.size(); ++i) {
+       if (diod_sliders[i] != diod_sliders_previous[i]) {
+         slidersChanged.append(i);
+       }
+     }
+    for (int i = 0; i < slidersChanged.size(); ++i) {
+        const auto index = slidersChanged[i];
+        m_sliders[index]->setValue(diod_sliders[index]);
+        emit m_sliders[index]->sliderReleased();
+        Sleep(50);
+    }
 }
 
 void SpectraSynthesizer::combinateSpectralData(const QVector<double>& currentSpectr,

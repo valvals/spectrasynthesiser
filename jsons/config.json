@@ -11,6 +11,10 @@
     "ftol_for_fitter": 1e-10,
     "xtol_for_fitter": 1e-10,
     "gtol_for_fitter": 1e-10,
+    "RIGHT_WAVE":850,
+    "LEFT_WAVE":650,
+    "RIGHT_LAMP":25,
+    "LEFT_LAMP":17,
     "pins_array": [
         {
             "bright_deps": {

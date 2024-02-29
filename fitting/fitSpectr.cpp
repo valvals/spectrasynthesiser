@@ -331,9 +331,9 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
   m_ftol_for_fitter = ftol_for_fitter;
   m_xtol_for_fitter = xtol_for_fitter;
   m_gtol_for_fitter = gtol_for_fitter;
-  qDebug()<<"m_ftol_for_fitter: "<<m_ftol_for_fitter;
-  qDebug()<<"m_xtol_for_fitter: "<<m_xtol_for_fitter;
-  qDebug()<<"m_gtol_for_fitter: "<<m_gtol_for_fitter;
+  qDebug() << "m_ftol_for_fitter: " << m_ftol_for_fitter;
+  qDebug() << "m_xtol_for_fitter: " << m_xtol_for_fitter;
+  qDebug() << "m_gtol_for_fitter: " << m_gtol_for_fitter;
 }
 
 void fitterBySpectometer::run() {
@@ -467,7 +467,7 @@ int fitterBySpectometer::fitFunctRealSpectrometer(int m, int n, double* p, doubl
   while (isBlocked) {
     // ждем, пока спектрометр не измерит спектр
   }
-  qDebug()<< "fitFunctRealSpectrometer разблокирован: "<< m_countOfCallingFitFunc;
+  qDebug() << "fitFunctRealSpectrometer разблокирован: " << m_countOfCallingFitFunc;
   m_countOfCallingFitFunc++;
   vars_struct* mydata = static_cast<vars_struct*>(vars);
   const QVector<double>& x = mydata->wavesEtalon;
