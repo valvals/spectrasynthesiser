@@ -200,7 +200,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         ui->spinBox_bright_value->setValue(slider->value());
         savePowerParams(i, slider->value());
         updatePowerStat();
-        createLightModel(i);
+        createLightModel();
       }, Qt::DirectConnection);
     }
   } else {
@@ -1460,7 +1460,7 @@ void SpectraSynthesizer::showComboGraph(QVector<double>& combo_waves,
   ui->widget_plot->replot();
 }
 
-void SpectraSynthesizer::createLightModel(int slider_index) {
+void SpectraSynthesizer::createLightModel() {
   auto arr = m_json_config["pins_array"].toArray();
   static QVector<double>m_light_model = QVector<double>(501);
   m_light_model.fill(0);
@@ -1468,15 +1468,14 @@ void SpectraSynthesizer::createLightModel(int slider_index) {
   for(int i=400;i<=900;++i){
      f_waves.push_back(i);
   }
-
+  int slider_index = 0;
   for(int jj=0;jj<m_sliders.size();++jj){
   if(m_sliders[jj]->value()==1){
       continue;
   }else{
      slider_index = jj;
-     qDebug()<<"-----------> jj: "<<jj;
   }
-  auto model = arr[slider_index].toObject()["model"].toObject();//bright_deps
+  auto model = arr[slider_index].toObject()["model"].toObject();
   auto bright_deps = arr[slider_index].toObject()["bright_deps"].toObject();
   auto values = model["values"].toArray();
   auto waves = model["waves"].toArray();

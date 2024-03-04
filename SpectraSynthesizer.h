@@ -175,7 +175,7 @@ class SpectraSynthesizer : public QMainWindow {
                              QVector <double>& combinatedSpectr);
   void showComboGraph(QVector<double>& combo_waves,
                       QVector<double>& combo_values);
-  void createLightModel(int slider_index);
+  void createLightModel();
 
   // QWidget interface
  protected:
