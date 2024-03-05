@@ -331,9 +331,9 @@ fitterBySpectometer::fitterBySpectometer(const QVector<double>& defaultSliders,
   m_ftol_for_fitter = ftol_for_fitter;
   m_xtol_for_fitter = xtol_for_fitter;
   m_gtol_for_fitter = gtol_for_fitter;
-  qDebug()<<"m_ftol_for_fitter: "<<m_ftol_for_fitter;
-  qDebug()<<"m_xtol_for_fitter: "<<m_xtol_for_fitter;
-  qDebug()<<"m_gtol_for_fitter: "<<m_gtol_for_fitter;
+  qDebug() << "m_ftol_for_fitter: " << m_ftol_for_fitter;
+  qDebug() << "m_xtol_for_fitter: " << m_xtol_for_fitter;
+  qDebug() << "m_gtol_for_fitter: " << m_gtol_for_fitter;
 }
 
 void fitterBySpectometer::run() {

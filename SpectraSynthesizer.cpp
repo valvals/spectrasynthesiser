@@ -80,6 +80,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   ui->widget_plot->addGraph(); // 1 - эталон
   ui->widget_plot->addGraph(); // 2 - sensor functions
   ui->widget_plot->addGraph(); // 3 - sensor functions normal
+  ui->widget_plot->addGraph(); // 4 - combo for fitter
   m_power_stat_plot = new QCustomPlot;
   m_hours_stat_plot = new QCustomPlot;
   m_diod_models = new QCustomPlot;
@@ -91,6 +92,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   QPen graphPenApparatNormal(QColor(200, 200, 200));
   graphPenApparatNormal.setWidth(2);
   ui->widget_plot->graph(2)->setPen(graphPenApparatNormal);
+  QPen graphPenCombo(QColor(167, 103, 245));
+  graphPenCombo.setWidth(2);
+  ui->widget_plot->graph(4)->setPen(graphPenCombo);
 
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
@@ -196,6 +200,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         ui->spinBox_bright_value->setValue(slider->value());
         savePowerParams(i, slider->value());
         updatePowerStat();
+        createLightModel();
       }, Qt::DirectConnection);
     }
   } else {
@@ -442,6 +447,7 @@ void SpectraSynthesizer::readStmData() {
             combo = average;
           }
           *m_shared_spectral_data = combo;
+          showComboGraph(channels, combo);
         }
         prev_average = combo;
         fitter_counter = 0;
@@ -463,7 +469,7 @@ void SpectraSynthesizer::readStmData() {
       for (int i = 0; i < m_prev_sliders_states.size(); ++i) {
         m_prev_sliders_states[i] = m_sliders[i]->value();
       }
-      setValuesForSlidersBlocked(*m_shared_desired_sliders_positions,m_prev_sliders_states);
+      setValuesForSlidersBlocked(*m_shared_desired_sliders_positions, m_prev_sliders_states);
       m_isSetValuesForSliders->store(false);
       m_fitter->isBlocked = false;
     }
@@ -698,7 +704,7 @@ void SpectraSynthesizer::showCurrentEtalon() {
   }
   ui->widget_plot->graph(1)->setData(m_etalons_grid, current_etalon);
   ui->widget_plot->xAxis->setRange(400, 900);
-  ui->widget_plot->yAxis->setRange(0, max);
+  ui->widget_plot->yAxis->setRange(0, max * 1.1);
   ui->widget_plot->replot();
 }
 
@@ -1037,7 +1043,7 @@ void SpectraSynthesizer::readMiraAnswer() {
 void SpectraSynthesizer::recieveIrData(QVector<double> sumSpectr,
                                        double maxValue,
                                        double minValue) {
-  qDebug() << sumSpectr.size();
+  //qDebug() << sumSpectr.size();
   Q_UNUSED(minValue);
   QVector<double>channels;
   for (int i = 0; i < sumSpectr.size(); ++i) {
@@ -1343,7 +1349,7 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
           QTimer::singleShot(100, this, [this] { //время контроллеру на обработку команды
             m_isSetValuesForSliders->store(false);
             m_fitter->isBlocked = false;
-            qDebug()<<"UNLOCK AFTER LAST SLIDER WAS SETTED .....\n";
+            qDebug() << "UNLOCK AFTER LAST SLIDER WAS SETTED .....\n";
           });
 
         }
@@ -1355,22 +1361,21 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
 
 }
 
-void SpectraSynthesizer::setValuesForSlidersBlocked(const QVector<double> &diod_sliders,
-                                                    const QVector<double>& diod_sliders_previous)
-{
-    Q_ASSERT(m_sliders.size() == diod_sliders.size());
-    QVector<int> slidersChanged;
-     for (int i = 0; i < diod_sliders.size(); ++i) {
-       if (diod_sliders[i] != diod_sliders_previous[i]) {
-         slidersChanged.append(i);
-       }
-     }
-    for (int i = 0; i < slidersChanged.size(); ++i) {
-        const auto index = slidersChanged[i];
-        m_sliders[index]->setValue(diod_sliders[index]);
-        emit m_sliders[index]->sliderReleased();
-        Sleep(50);
+void SpectraSynthesizer::setValuesForSlidersBlocked(const QVector<double>& diod_sliders,
+                                                    const QVector<double>& diod_sliders_previous) {
+  Q_ASSERT(m_sliders.size() == diod_sliders.size());
+  QVector<int> slidersChanged;
+  for (int i = 0; i < diod_sliders.size(); ++i) {
+    if (diod_sliders[i] != diod_sliders_previous[i]) {
+      slidersChanged.append(i);
     }
+  }
+  for (int i = 0; i < slidersChanged.size(); ++i) {
+    const auto index = slidersChanged[i];
+    m_sliders[index]->setValue(diod_sliders[index]);
+    emit m_sliders[index]->sliderReleased();
+    Sleep(50);
+  }
 }
 
 void SpectraSynthesizer::findApparatMaximus() {
@@ -1447,4 +1452,76 @@ void SpectraSynthesizer::combinateSpectralData(const QVector<double>& currentSpe
       combinatedSpectr[ii] = currentSpectr[ii];
     }
   }
+}
+
+void SpectraSynthesizer::showComboGraph(QVector<double>& combo_waves,
+                                        QVector<double>& combo_values) {
+  ui->widget_plot->graph(4)->setData(combo_waves, combo_values);
+  ui->widget_plot->replot();
+}
+
+void SpectraSynthesizer::createLightModel() {
+  auto arr = m_json_config["pins_array"].toArray();
+  static QVector<double>m_light_model = QVector<double>(501);
+  m_light_model.fill(0);
+  QVector<double>f_waves;
+  for (int i = 400; i <= 900; ++i) {
+    f_waves.push_back(i);
+  }
+  int slider_index = 0;
+  for (int jj = 0; jj < m_sliders.size(); ++jj) {
+    if (m_sliders[jj]->value() == 1) {
+      continue;
+    } else {
+      slider_index = jj;
+    }
+    auto model = arr[slider_index].toObject()["model"].toObject();
+    auto bright_deps = arr[slider_index].toObject()["bright_deps"].toObject();
+    auto values = model["values"].toArray();
+    auto waves = model["waves"].toArray();
+    auto coeffs = model["bright_deps"].toObject();
+    double wave_start = MAXUINT;
+    double wave_end = 0;
+    QVector<double>d_values;
+    QVector<double>d_waves;
+    auto a = bright_deps["a"].toDouble();
+    auto b = bright_deps["b"].toDouble();
+    auto c = bright_deps["c"].toDouble();
+    auto slider_value = m_sliders[slider_index]->value();
+    auto slider_max = m_sliders[slider_index]->maximum();
+    double speya_c = a * slider_value * slider_value + slider_value * b + c;
+    double speya_m = a * slider_max * slider_max + slider_max * b + c;
+    double smart_coeff = (double)speya_c / (double)speya_m;
+    double coeff = (double)slider_value / (double)slider_max;
+    qDebug() << "------COMPARE-------->" << coeff << smart_coeff;
+    Q_ASSERT(values.size() == waves.size());
+    for (int j = 0; j < values.size(); ++j) {
+      auto value = values[j].toDouble();
+      auto wave = waves[j].toDouble();
+      if (wave < 400 || wave > 900)
+        continue;
+      value = smart_coeff * value;
+      d_values.push_back(value);
+
+      if (wave_start > wave && wave != 0) {
+        wave_start = wave;
+      }
+      if (wave_end < wave) {
+        wave_end = wave;
+      }
+      d_waves.push_back(wave);
+    }
+
+    for (int i = 0; i < d_values.size(); ++i) {
+      auto index = d_waves[i] - 400;
+      if (index > m_light_model.size() - 1)
+        break;
+      if (index < 0)
+        break;
+      //qDebug()<<"inex: "<<index;
+      m_light_model[index] += d_values[i];
+    }
+  }
+  ui->widget_plot->graph(4)->setData(f_waves, m_light_model);
+  ui->widget_plot->replot();
 }
