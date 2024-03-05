@@ -59,7 +59,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   if (!dir.exists(power_dir)) {
     dir.mkdir(power_dir);
   }
-  this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1%2").arg(VER_PRODUCTVERSION_STR).arg(" VALLILO"));
+  this->setWindowTitle(QString("СПЕКТРАСИНТЕЗАТОР %1").arg(VER_PRODUCTVERSION_STR));
   ui->comboBox_spectrometr_type->addItems({"ПВД", "ПИК"});
   QAction* copy_stm_spectr = new QAction;
   copy_stm_spectr->setText("копировать в буфер спектр");
@@ -704,7 +704,7 @@ void SpectraSynthesizer::showCurrentEtalon() {
   }
   ui->widget_plot->graph(1)->setData(m_etalons_grid, current_etalon);
   ui->widget_plot->xAxis->setRange(400, 900);
-  ui->widget_plot->yAxis->setRange(0, max*1.1);
+  ui->widget_plot->yAxis->setRange(0, max * 1.1);
   ui->widget_plot->replot();
 }
 
@@ -1465,59 +1465,62 @@ void SpectraSynthesizer::createLightModel() {
   static QVector<double>m_light_model = QVector<double>(501);
   m_light_model.fill(0);
   QVector<double>f_waves;
-  for(int i=400;i<=900;++i){
-     f_waves.push_back(i);
+  for (int i = 400; i <= 900; ++i) {
+    f_waves.push_back(i);
   }
   int slider_index = 0;
-  for(int jj=0;jj<m_sliders.size();++jj){
-  if(m_sliders[jj]->value()==1){
+  for (int jj = 0; jj < m_sliders.size(); ++jj) {
+    if (m_sliders[jj]->value() == 1) {
       continue;
-  }else{
-     slider_index = jj;
-  }
-  auto model = arr[slider_index].toObject()["model"].toObject();
-  auto bright_deps = arr[slider_index].toObject()["bright_deps"].toObject();
-  auto values = model["values"].toArray();
-  auto waves = model["waves"].toArray();
-  auto coeffs = model["bright_deps"].toObject();
-  double wave_start = MAXUINT;
-  double wave_end = 0;
-  QVector<double>d_values;
-  QVector<double>d_waves;
-  auto a = bright_deps["a"].toDouble();
-  auto b = bright_deps["b"].toDouble();
-  auto c = bright_deps["c"].toDouble();
-  auto slider_value = m_sliders[slider_index]->value();
-  auto slider_max = m_sliders[slider_index]->maximum();
-  double speya_c = a * slider_value * slider_value + slider_value * b + c;
-  double speya_m = a * slider_max * slider_max + slider_max * b + c;
-  double smart_coeff = (double)speya_c / (double)speya_m;
-  double coeff = (double)slider_value / (double)slider_max;
-  qDebug() << "------COMPARE-------->" << coeff << smart_coeff;
-  Q_ASSERT(values.size() == waves.size());
-  for (int j = 0; j < values.size(); ++j) {
-    auto value = values[j].toDouble();
-    auto wave = waves[j].toDouble();
-    if(wave<400||wave>900)continue;
-    value = smart_coeff * value;
-    d_values.push_back(value);
-
-    if (wave_start > wave && wave != 0) {
-      wave_start = wave;
+    } else {
+      slider_index = jj;
     }
-    if (wave_end < wave) {
-      wave_end = wave;
-    }
-    d_waves.push_back(wave);
-  }
+    auto model = arr[slider_index].toObject()["model"].toObject();
+    auto bright_deps = arr[slider_index].toObject()["bright_deps"].toObject();
+    auto values = model["values"].toArray();
+    auto waves = model["waves"].toArray();
+    auto coeffs = model["bright_deps"].toObject();
+    double wave_start = MAXUINT;
+    double wave_end = 0;
+    QVector<double>d_values;
+    QVector<double>d_waves;
+    auto a = bright_deps["a"].toDouble();
+    auto b = bright_deps["b"].toDouble();
+    auto c = bright_deps["c"].toDouble();
+    auto slider_value = m_sliders[slider_index]->value();
+    auto slider_max = m_sliders[slider_index]->maximum();
+    double speya_c = a * slider_value * slider_value + slider_value * b + c;
+    double speya_m = a * slider_max * slider_max + slider_max * b + c;
+    double smart_coeff = (double)speya_c / (double)speya_m;
+    double coeff = (double)slider_value / (double)slider_max;
+    qDebug() << "------COMPARE-------->" << coeff << smart_coeff;
+    Q_ASSERT(values.size() == waves.size());
+    for (int j = 0; j < values.size(); ++j) {
+      auto value = values[j].toDouble();
+      auto wave = waves[j].toDouble();
+      if (wave < 400 || wave > 900)
+        continue;
+      value = smart_coeff * value;
+      d_values.push_back(value);
 
-  for(int i=0;i<d_values.size();++i){
-      auto index = d_waves[i]-400;
-      if(index>m_light_model.size()-1)break;
-      if(index<0)break;
+      if (wave_start > wave && wave != 0) {
+        wave_start = wave;
+      }
+      if (wave_end < wave) {
+        wave_end = wave;
+      }
+      d_waves.push_back(wave);
+    }
+
+    for (int i = 0; i < d_values.size(); ++i) {
+      auto index = d_waves[i] - 400;
+      if (index > m_light_model.size() - 1)
+        break;
+      if (index < 0)
+        break;
       //qDebug()<<"inex: "<<index;
-    m_light_model[index] += d_values[i];
-  }
+      m_light_model[index] += d_values[i];
+    }
   }
   ui->widget_plot->graph(4)->setData(f_waves, m_light_model);
   ui->widget_plot->replot();
