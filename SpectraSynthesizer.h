@@ -126,7 +126,9 @@ class SpectraSynthesizer : public QMainWindow {
   QJsonObject m_json_config;
   QJsonArray m_power_tracker;
   QJsonArray m_pins_json_array;
+  QJsonObject m_ir_lamps;
   QVector<QSlider*> m_sliders;
+  QVector<QSlider*> m_ir_sliders;
   QVector<uint16_t> m_sliders_previous_values;
   QVector<QElapsedTimer> m_elapsed_timers;
   QVector<double> m_etalons_grid;

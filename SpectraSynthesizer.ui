@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1061</width>
-    <height>670</height>
+    <height>688</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -68,6 +68,15 @@ color: rgb(0, 170, 0);</string>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_ir_sliders" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_ir_sliders"/>
        </item>
       </layout>
      </widget>

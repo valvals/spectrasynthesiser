@@ -103,6 +103,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     qDebug() << "Config file was not found on the disk...";
     jsn::getJsonObjectFromFile(":/config.json", m_json_config);
   };
+  jsn::getJsonObjectFromFile("ir_lamps.json",m_ir_lamps);
   m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
   m_is_show_light_model =  m_json_config.value("is_show_light_model").toBool();
   m_average_count_for_fitter = m_json_config.value("average_spectr_count_for_fitter").toInt();
@@ -260,7 +261,15 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_fit_etalon_max_by_spectrometer, SIGNAL(triggered()), SLOT(fitSignalToEtalonMAX_bySpectrometer()));
   sendDataToDiodsComDevice("u\n");
 
-
+  QVBoxLayout* m_ir_lamps_layout = new QVBoxLayout;
+  auto ir_lamps = m_ir_lamps["lamps"].toArray();
+  for(int i=0;i<ir_lamps.size();++i){
+  auto slider = new QSlider;
+  slider->setOrientation(Qt::Horizontal);
+  m_ir_lamps_layout->addWidget(slider);
+  }
+  ui->verticalLayout_ir_sliders->addLayout(m_ir_lamps_layout);
+  ui->widget_ir_sliders->setVisible(false);
   // DRAFT this code will be used to update calibr_lists
 
   /*
@@ -1079,8 +1088,10 @@ void SpectraSynthesizer::on_comboBox_spectrometr_type_currentIndexChanged(const 
   if (arg1 == "ПВД") {
     m_voice_informator->playSound("pvd_sensor.mp3");
     ui->widget_visual_range_sliders->show();
+    ui->widget_ir_sliders->hide();
     update_stm_spectr();
   } else {
+    ui->widget_ir_sliders->show();
     ui->widget_visual_range_sliders->hide();
     m_voice_informator->playSound("pik_sensor.mp3");
     emit m_ormin_device->requestSpectr();
