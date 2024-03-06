@@ -20,6 +20,23 @@ QSlider::add-page:vertical {
 }
 )";
 
+extern const char slider_ir[]=R"(
+QSlider::groove:horizontal {
+    border: 1px solid #999999;
+    height: 18px;
+    background: "#404244";
+    margin: 2px 0;
+}
+
+QSlider::handle:horizontal {
+    background: #faa300;
+    border: 1px solid #5c5c5c;
+    width: 30px;
+    margin: -2px 0;
+    border-radius: 3px;
+}
+)";
+
 const char tooltip[]=R"(
 <html>
 <head/>

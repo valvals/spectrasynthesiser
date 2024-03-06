@@ -262,11 +262,30 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   sendDataToDiodsComDevice("u\n");
 
   QVBoxLayout* m_ir_lamps_layout = new QVBoxLayout;
+  //QHBoxLayout* hl
   auto ir_lamps = m_ir_lamps["lamps"].toArray();
   for(int i=0;i<ir_lamps.size();++i){
   auto slider = new QSlider;
   slider->setOrientation(Qt::Horizontal);
+
+  slider->setMinimumHeight(50);
+  slider->setStyleSheet(QString(styles::slider_ir));
+  slider->setSingleStep(1);
+  slider->setMaximum(100);
   m_ir_lamps_layout->addWidget(slider);
+  connect(slider, &QSlider::sliderReleased, this, [i, slider, this]() {
+    slider->setToolTip(QString("Ток (A) %1").arg(slider->value()/10.0));
+    //setTooltipForSlider(i, slider->value());
+    //sendDataToDiodsComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
+    //ui->comboBox_waves->setCurrentIndex(i);
+    //ui->spinBox_bright_value->setValue(slider->value());
+    //savePowerParams(i, slider->value());
+    //updatePowerStat();
+    //if(m_is_show_light_model){
+    //createLightModel();
+    //}
+  }, Qt::DirectConnection);
+
   }
   ui->verticalLayout_ir_sliders->addLayout(m_ir_lamps_layout);
   ui->widget_ir_sliders->setVisible(false);

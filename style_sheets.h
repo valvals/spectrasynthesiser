@@ -5,7 +5,7 @@ namespace styles {
 
 extern const char slider[];
 extern const char tooltip[];
-
+extern const char slider_ir[];
 
 }
 
