@@ -23,7 +23,7 @@ bool checkNodes(const QJsonObject& obj,
 
 } // end namespace
 
-namespace db_json {
+namespace jsn {
 
 bool getJsonObjectFromFile(const QString& path,
                            QJsonObject& object) {
@@ -167,7 +167,7 @@ void getStructFromJsonObject(SPECTRAL_STRUCT& spectral_struct,
   auto sd = json_object.find("spectral_data").value().toObject();
   auto atributes = sd.find("atributes")->toArray();
   for (int i = 0; i < atributes.size(); ++i) {
-    db_json::SPECTRAL_ATRIBUTES sa;
+    jsn::SPECTRAL_ATRIBUTES sa;
     auto atr = atributes[i].toObject();
     sa.instrument = atr.find("instrument")->toString();
     sa.type = atr.find("type")->toString();

@@ -8,7 +8,7 @@ class QJsonArray;
 class QJsonObject;
 
 
-namespace db_json {
+namespace jsn {
 
 constexpr int UNDEFINED = -999;
 

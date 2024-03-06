@@ -52,7 +52,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   connect(ui->action_show_camera, SIGNAL(triggered(bool)), m_camera_module, SLOT(mayBeShowCamera(bool)));
   connect(m_camera_module, &CameraModule::cameraWindowClosed, [this]() {ui->action_show_camera->setChecked(false);});
 
-  db_json::getJsonObjectFromFile("etalons.json", m_etalons);
+  jsn::getJsonObjectFromFile("etalons.json", m_etalons);
   loadEtalons();
   load_pvd_calibr();
   QDir dir;
@@ -99,9 +99,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
   m_serial_mira = new QSerialPort;
-  if (!db_json::getJsonObjectFromFile("config.json", m_json_config)) {
+  if (!jsn::getJsonObjectFromFile("config.json", m_json_config)) {
     qDebug() << "Config file was not found on the disk...";
-    db_json::getJsonObjectFromFile(":/config.json", m_json_config);
+    jsn::getJsonObjectFromFile(":/config.json", m_json_config);
   };
   m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
   m_average_count_for_fitter = m_json_config.value("average_spectr_count_for_fitter").toInt();
@@ -151,7 +151,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_elapsed_timers.resize(m_pins_json_array.size());
   bool isInitialTrackerFileExists = QFile(tracker_full_path).exists();
   if (isInitialTrackerFileExists)
-    db_json::getJsonArrayFromFile(tracker_full_path, m_power_tracker);
+    jsn::getJsonArrayFromFile(tracker_full_path, m_power_tracker);
   if (m_is_diods_arduino_connected || mode == "developing") {
 
     for (int i = 0; i < m_pins_json_array.size(); ++i) {
@@ -227,7 +227,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   });
 
   if (!isInitialTrackerFileExists) {
-    db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
+    jsn::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
   }
   setupPowerStatPlot();
   updatePowerStat();
@@ -620,7 +620,7 @@ void SpectraSynthesizer::savePowerParams(const int& index, const int& value) {
     prev_object["current"] = ampers_hours + prev_current_value;
     prev_object[groupID] = ampers_hours + prev_group_value;
     m_power_tracker[index] = prev_object;
-    db_json::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
+    jsn::saveJsonArrayToFile(tracker_full_path, m_power_tracker, QJsonDocument::Indented);
   }
 }
 
@@ -632,7 +632,7 @@ void SpectraSynthesizer::createSamplesJson() {
   if (files.size() == 0)
     return;
   QJsonObject root;
-  db_json::getJsonObjectFromFile("etalons.json", root);
+  jsn::getJsonObjectFromFile("etalons.json", root);
   QJsonArray objects = root["_objects"].toArray();
   QString etalon_name;
   for (int i = 0; i < files.size(); ++i) {
@@ -659,7 +659,7 @@ void SpectraSynthesizer::createSamplesJson() {
     root.insert(etalon_name, values);
   }
   root["_objects"] = objects;
-  db_json::saveJsonObjectToFile("etalons.json", root, QJsonDocument::Indented);
+  jsn::saveJsonObjectToFile("etalons.json", root, QJsonDocument::Indented);
   m_etalons = root;
   m_etalons_grid.clear();
   ui->comboBox_etalons->clear();
@@ -916,7 +916,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
 
   QJsonObject jo;
   QJsonArray arr;
-  db_json::getJsonObjectFromFile("pvd_calibr_list.json", jo);
+  jsn::getJsonObjectFromFile("pvd_calibr_list.json", jo);
   arr = jo["calibrs"].toArray();
   Q_ASSERT(arr.size() > 0);
   m_pvd_calibr = arr[0].toObject();
@@ -1404,7 +1404,7 @@ void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) 
   if (!m_is_stm_spectrometr_connected)
     return;
   QJsonObject obj;
-  db_json::getJsonObjectFromFile("pvd_calibr_list.json", obj);
+  jsn::getJsonObjectFromFile("pvd_calibr_list.json", obj);
   m_pvd_calibr = obj["calibrs"].toArray()[index].toObject();
   m_pvd_calibr["waves"] = obj["waves"].toArray();
   qDebug() << "*** EXPO *** --> " << m_pvd_calibr["expo"].toString();
