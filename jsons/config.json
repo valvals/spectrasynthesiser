@@ -1,6 +1,7 @@
 {
     "mode": "developing",
     "is_show_funny_video": false,
+    "is_show_light_model": false,
     "average_spectr_count_for_fitter":10,
     "set_sliders_finalize_delay_ms":1000,
     "set_sliders_interval_delay_ms":150,

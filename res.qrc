@@ -12,5 +12,6 @@
         <file>sounds/run_fitting_by_spectrometr.mp3</file>
         <file>sounds/warning_signal_switched_off.mp3</file>
         <file>sounds/warning_signal_switched_on.mp3</file>
+        <file>jsons/ir_lamps.json</file>
     </qresource>
 </RCC>

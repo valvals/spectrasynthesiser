@@ -104,6 +104,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
     jsn::getJsonObjectFromFile(":/config.json", m_json_config);
   };
   m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
+  m_is_show_light_model =  m_json_config.value("is_show_light_model").toBool();
   m_average_count_for_fitter = m_json_config.value("average_spectr_count_for_fitter").toInt();
   m_set_sliders_finalize_delay_ms = m_json_config.value("set_sliders_finalize_delay_ms").toInt();
   m_set_sliders_delay = m_json_config.value("set_sliders_interval_delay_ms").toInt();
@@ -200,7 +201,9 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         ui->spinBox_bright_value->setValue(slider->value());
         savePowerParams(i, slider->value());
         updatePowerStat();
+        if(m_is_show_light_model){
         createLightModel();
+        }
       }, Qt::DirectConnection);
     }
   } else {
@@ -1493,7 +1496,7 @@ void SpectraSynthesizer::createLightModel() {
     double speya_m = a * slider_max * slider_max + slider_max * b + c;
     double smart_coeff = (double)speya_c / (double)speya_m;
     double coeff = (double)slider_value / (double)slider_max;
-    qDebug() << "------COMPARE-------->" << coeff << smart_coeff;
+    //qDebug() << "------COMPARE-------->" << coeff << smart_coeff;
     Q_ASSERT(values.size() == waves.size());
     for (int j = 0; j < values.size(); ++j) {
       auto value = values[j].toDouble();
