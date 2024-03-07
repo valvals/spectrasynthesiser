@@ -1,7 +1,7 @@
 #include "SpectraSynthesizer.h"
 
 #include "QCommandLineParser"
-#include "QrcFilesRestorer.h"
+#include "qrc_files_restorer.h"
 #include <QApplication>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
@@ -63,7 +63,6 @@ int main(int argc, char* argv[]) {
     msgBox.exec();
     return 0;
   }
-
 
   QCommandLineParser cli;
   QCommandLineOption debugOption(QStringList() << "d" << "debug", "Debug mode");

@@ -9,7 +9,6 @@ SOURCES += \
     CameraModule.cpp \
     HamamatsuApi.cpp \
     OrminDevice.cpp \
-    QrcFilesRestorer.cpp \
     debug_console.cpp \
     fitting/fitSpectr.cpp \
     fitting/mpfit.c \
@@ -18,6 +17,7 @@ SOURCES += \
     main.cpp \
     SpectraSynthesizer.cpp \
     qcustomplot.cpp \
+    qrc_files_restorer.cpp \
     style_sheets.cpp \
     voice_informator.cpp
 
@@ -25,7 +25,6 @@ HEADERS += \
     CameraModule.h \
     HamamatsuApi.h \
     OrminDevice.h \
-    QrcFilesRestorer.h \
     SpectraSynthesizer.h \
     debug_console.h \
     fitting/dataStructs.h \
@@ -34,6 +33,7 @@ HEADERS += \
     fitting/relaxFilter.h \
     json_utils.h \
     qcustomplot.h \
+    qrc_files_restorer.h \
     style_sheets.h \
     version.h \
     voice_informator.h

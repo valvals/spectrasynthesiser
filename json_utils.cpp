@@ -1,4 +1,5 @@
 #include "json_utils.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
