@@ -100,11 +100,12 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_serial_diods_controller = new QSerialPort;
   m_serial_stm_spectrometr = new QSerialPort;
   m_serial_mira = new QSerialPort;
+  m_net_powers = new PowerSupplyManager;
   if (!jsn::getJsonObjectFromFile("config.json", m_json_config)) {
     //qDebug() << "Config file was not found on the disk...";
     jsn::getJsonObjectFromFile(":/config.json", m_json_config);
   };
-  jsn::getJsonObjectFromFile("ir_lamps.json",m_ir_lamps);
+  jsn::getJsonObjectFromFile("ir_lamps.json", m_ir_lamps);
   m_is_show_funny_video =  m_json_config.value("is_show_funny_video").toBool();
   m_is_show_light_model =  m_json_config.value("is_show_light_model").toBool();
   m_average_count_for_fitter = m_json_config.value("average_spectr_count_for_fitter").toInt();
@@ -204,8 +205,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
         ui->spinBox_bright_value->setValue(slider->value());
         savePowerParams(i, slider->value());
         updatePowerStat();
-        if(m_is_show_light_model){
-        createLightModel();
+        if (m_is_show_light_model) {
+          createLightModel();
         }
       }, Qt::DirectConnection);
     }
@@ -266,29 +267,29 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   QVBoxLayout* m_ir_lamps_layout = new QVBoxLayout;
   //QHBoxLayout* hl
   auto ir_lamps = m_ir_lamps["lamps"].toArray();
-  for(int i=0;i<ir_lamps.size();++i){
-  auto slider = new QSlider;
-  slider->setOrientation(Qt::Horizontal);
+  for (int i = 0; i < ir_lamps.size(); ++i) {
+    auto slider = new QSlider;
+    slider->setOrientation(Qt::Horizontal);
 
-  slider->setMinimumHeight(50);
-  slider->setStyleSheet(QString(styles::slider_ir));
-  slider->setSingleStep(1);
-  slider->setMaximum(100);
-  m_ir_lamps_layout->addWidget(slider);
-  connect(slider, &QSlider::sliderReleased, this, [i, slider, this]() {
-    slider->setToolTip(QString("Ток (A) %1").arg(slider->value()/10.0));
-    std::ignore = i;
-    std::ignore = this;
-    //setTooltipForSlider(i, slider->value());
-    //sendDataToDiodsComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
-    //ui->comboBox_waves->setCurrentIndex(i);
-    //ui->spinBox_bright_value->setValue(slider->value());
-    //savePowerParams(i, slider->value());
-    //updatePowerStat();
-    //if(m_is_show_light_model){
-    //createLightModel();
-    //}
-  }, Qt::DirectConnection);
+    slider->setMinimumHeight(50);
+    slider->setStyleSheet(QString(styles::slider_ir));
+    slider->setSingleStep(1);
+    slider->setMaximum(100);
+    m_ir_lamps_layout->addWidget(slider);
+    connect(slider, &QSlider::sliderReleased, this, [i, slider, this]() {
+      slider->setToolTip(QString("Ток (A) %1").arg(slider->value() / 10.0));
+      std::ignore = i;
+      std::ignore = this;
+      //setTooltipForSlider(i, slider->value());
+      //sendDataToDiodsComDevice(QString("a%1_%2\n").arg(QString::number(i + 1), QString::number(slider->value())));
+      //ui->comboBox_waves->setCurrentIndex(i);
+      //ui->spinBox_bright_value->setValue(slider->value());
+      //savePowerParams(i, slider->value());
+      //updatePowerStat();
+      //if(m_is_show_light_model){
+      //createLightModel();
+      //}
+    }, Qt::DirectConnection);
 
   }
   ui->verticalLayout_ir_sliders->addLayout(m_ir_lamps_layout);

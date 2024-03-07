@@ -14,6 +14,7 @@ SOURCES += \
     hamamatsu_api.cpp \
     json_utils.cpp \
     main.cpp \
+    net_power_supply/power_supply_manager.cpp \
     ormin_device.cpp \
     qcustomplot.cpp \
     qrc_files_restorer.cpp \
@@ -30,6 +31,8 @@ HEADERS += \
     fitting/relaxFilter.h \
     hamamatsu_api.h \
     json_utils.h \
+    net_power_supply/commands_builder.h \
+    net_power_supply/power_supply_manager.h \
     ormin_device.h \
     qcustomplot.h \
     qrc_files_restorer.h \

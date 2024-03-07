@@ -17,6 +17,7 @@
 #include "ormin_device.h"
 #include "voice_informator.h"
 #include "fitting/dataStructs.h"
+#include "net_power_supply/power_supply_manager.h"
 
 class fitterBySpectometer;
 
@@ -154,6 +155,7 @@ class SpectraSynthesizer : public QMainWindow {
   QVector<double> m_prev_sliders_states;
   QMediaPlayer* m_player;
   VoiceInformator* m_voice_informator;
+  PowerSupplyManager* m_net_powers;
 
   void sendDataToDiodsComDevice(const QString& command);
   void setTooltipForSlider(const int& index, const int& value);
