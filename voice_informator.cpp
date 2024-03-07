@@ -53,12 +53,12 @@ void VoiceInformator::createPlayer() {
   QString urlPrefix = QString(m_pathToSounds_);
   urlPrefix.prepend("qrc");
   urlPrefix.append("/");
-  qDebug() << urlPrefix;
+  //qDebug() << urlPrefix;
 
   mySounds_ = dir.entryList();
   for (int i = 0; i < mySounds_.count(); ++i) {
     QString url = urlPrefix + mySounds_.at(i);
-    qDebug() << url;
+    //qDebug() << url;
     m_playlist_->addMedia(QUrl(url));
   }
 }

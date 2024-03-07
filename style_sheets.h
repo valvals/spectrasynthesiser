@@ -9,5 +9,4 @@ extern const char slider_ir[];
 
 }
 
-
 #endif // STYLE_SHEETS_H

@@ -20,6 +20,14 @@ CameraModule::CameraModule(): camera(nullptr) {
   QAction* action_capture = new QAction;
   action_capture->setText("копировать снимок в буфер обмена");
   m_view_finder->addAction(action_capture);
+  /*const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+  for (const QCameraInfo &cameraInfo : cameras) {
+      if (cameraInfo.deviceName() == "mycamera"){
+          camera = new QCamera(cameraInfo);
+      }
+         qDebug()<<cameraInfo.deviceName();
+  }*/
+
   setCamera(QCameraInfo::defaultCamera());
   startCamera();
   connect(m_view_finder, SIGNAL(camera_window_closed()), SIGNAL(cameraWindowClosed()));
@@ -60,7 +68,8 @@ void CameraModule::mayBeShowCamera(bool is_show) {
 }
 
 void CameraModule::imageWasCaptured(int id, const QImage& preview) {
-  qDebug() << "image size:" << preview.size();
+  //qDebug() << "image size:" << preview.size();
+  Q_UNUSED(id)
   auto clip = QGuiApplication::clipboard();
   clip->setImage(preview);
 }

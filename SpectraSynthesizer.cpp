@@ -7,10 +7,10 @@
 #include "qslider.h"
 #include "QDebug"
 #include "QMessageBox"
-#include "DBJson.h"
+#include "json_utils.h"
 #include "style_sheets.h"
 #include "windows.h"
-#include "Version.h"
+#include "version.h"
 #include "QFile"
 #include "QDir"
 #include "QClipboard"
@@ -100,7 +100,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_serial_stm_spectrometr = new QSerialPort;
   m_serial_mira = new QSerialPort;
   if (!jsn::getJsonObjectFromFile("config.json", m_json_config)) {
-    qDebug() << "Config file was not found on the disk...";
+    //qDebug() << "Config file was not found on the disk...";
     jsn::getJsonObjectFromFile(":/config.json", m_json_config);
   };
   jsn::getJsonObjectFromFile("ir_lamps.json",m_ir_lamps);
@@ -124,7 +124,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   auto available_ports = m_serial_port_info.availablePorts();
 
   for (int i = 0; i < available_ports.size(); ++i) {
-    qDebug() << available_ports[i].serialNumber() << available_ports[i].portName();
+    //qDebug() << available_ports[i].serialNumber() << available_ports[i].portName();
     if (serial_diods_number == available_ports[i].serialNumber()) {
       m_serial_diods_controller->setPort(available_ports[i]);
       m_serial_diods_controller->open(QIODevice::ReadWrite);
@@ -144,7 +144,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
       m_serial_mira->setBaudRate(9600);
       m_serial_mira->setPort(available_ports[i]);
       bool isMira = m_serial_mira->open(QIODevice::ReadWrite);
-      qDebug() << "is Mira: " << isMira;
+      //qDebug() << "is Mira: " << isMira;
     }
 
   }
@@ -374,7 +374,7 @@ void SpectraSynthesizer::readStmData() {
                                  QString::number(expo.toInt()) + "\n", dbg::STM_CONTROLLER);
     return;
   } else if (m_serial_stm_spectrometr->bytesAvailable() != spectr_packet_size) {
-    qDebug() << "spectr packet recieved" << m_serial_stm_spectrometr->bytesAvailable();
+    //qDebug() << "spectr packet recieved" << m_serial_stm_spectrometr->bytesAvailable();
     if (m_serial_stm_spectrometr->bytesAvailable() > spectr_packet_size) {
       qDebug() << "BAD CASE ----> data will never be processing";
       m_serial_stm_spectrometr->readAll();
@@ -487,7 +487,7 @@ void SpectraSynthesizer::readStmData() {
           for (int j = 0; j < average.size(); ++j) {
             difference[j] = average[j] - prev_average[j];
           }
-          qDebug() << "difference: ---> " << difference;
+          //qDebug() << "difference: ---> " << difference;
         }
         average.fill(0);
         m_isUpdateSpectrForFitter->store(false);
@@ -714,7 +714,7 @@ void SpectraSynthesizer::loadEtalons() {
       }
     }
     m_etalons_maximums.insert(object_name, max);
-    qDebug() << object_name << max;
+    //qDebug() << object_name << max;
   }
   showCurrentEtalon();
 }
@@ -960,7 +960,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
   for (int i = 0; i < arr.size(); ++i) {
     auto temp = arr[i].toObject();
     auto bright_array = temp["values"].toArray();
-    qDebug() << i << bright_array.size();
+    //qDebug() << i << bright_array.size();
     Q_ASSERT(bright_array.size() == spectr_values_size);
   }
   for (int i = 1; i < wave_array.size(); ++i) {
@@ -984,7 +984,7 @@ void SpectraSynthesizer::load_pvd_calibr() {
 }
 
 void SpectraSynthesizer::switchAZP_pvd() {
-  qDebug() << "AЦП режим.....";
+  //qDebug() << "AЦП режим.....";
   m_view = view::PVD_AZP;
   ui->action_speya_pvd->setChecked(false);
   ui->action_etalon_pvd->setChecked(false);
@@ -1085,7 +1085,7 @@ void SpectraSynthesizer::recieveIrData(QVector<double> sumSpectr,
 
 void SpectraSynthesizer::mayBeStartCycleMovingMira() {
   auto isMiraChecked = ui->action_cycleMoveMira->isChecked();
-  qDebug() << "Mira is checked: " << isMiraChecked;
+  //qDebug() << "Mira is checked: " << isMiraChecked;
   if (!m_serial_mira->isOpen()) {
     return;
   }
@@ -1160,7 +1160,7 @@ void SpectraSynthesizer::prepareDiodModels() {
 
     m_diod_models->graph(i)->setData(d_waves, d_values);
   }
-  qDebug() << wave_start << wave_end;
+  //qDebug() << wave_start << wave_end;
   m_diod_models->xAxis->setRange(200, 1200);//200 - 1200 looks better then wave_start wave_end
   m_diod_models->yAxis->setRange(0, max);
   m_diod_models->yAxis->setLabel("СПЭЯ (Вт/(м3 * ср))");
@@ -1209,7 +1209,7 @@ void SpectraSynthesizer::showFunnyVideo() {
     videoNum = 0;
   }
   QString path = QString(QDir::currentPath() + "/video/7.mp4").arg(videoNum);
-  qDebug() << "playing video: " << path;
+  //qDebug() << "playing video: " << path;
   QMediaPlayer* player = m_player;
   player->setMedia(QUrl::fromLocalFile(path));
   player->setVolume(100);
@@ -1222,7 +1222,7 @@ void SpectraSynthesizer::showFunnyVideo() {
 
 void SpectraSynthesizer::fitSignalToEtalon_analytical(const FitSettings& fitSet) {
 
-  qDebug() << "fit signal to etalon process have been started....";
+  //qDebug() << "fit signal to etalon process have been started....";
   m_voice_informator->playSound("run_analytical_fitter.mp3");
   double wavesStep = 1;
   FitSettings emuleSettings = fitSet;
@@ -1382,7 +1382,7 @@ void SpectraSynthesizer::setValuesForSliders(const QVector<double>& diod_sliders
           QTimer::singleShot(100, this, [this] { //время контроллеру на обработку команды
             m_isSetValuesForSliders->store(false);
             m_fitter->isBlocked = false;
-            qDebug() << "UNLOCK AFTER LAST SLIDER WAS SETTED .....\n";
+            //qDebug() << "UNLOCK AFTER LAST SLIDER WAS SETTED .....\n";
           });
 
         }
@@ -1429,7 +1429,7 @@ void SpectraSynthesizer::findApparatMaximus() {
     }
     m_apparat_maximus.insert(m_sliders[i]->objectName(), {wave, maximum});
   }
-  qDebug() << m_apparat_maximus;
+  //qDebug() << m_apparat_maximus;
 
 }
 
@@ -1440,7 +1440,6 @@ void SpectraSynthesizer::on_comboBox_expositions_currentIndexChanged(int index) 
   jsn::getJsonObjectFromFile("pvd_calibr_list.json", obj);
   m_pvd_calibr = obj["calibrs"].toArray()[index].toObject();
   m_pvd_calibr["waves"] = obj["waves"].toArray();
-  qDebug() << "*** EXPO *** --> " << m_pvd_calibr["expo"].toString();
   m_is_stm_exposition_changed = true;
 }
 
@@ -1474,11 +1473,11 @@ void SpectraSynthesizer::combinateSpectralData(const QVector<double>& currentSpe
     auto s = m_short_grid_lambda_to_real_indexes.value(start);
     auto e = m_short_grid_lambda_to_real_indexes.value(end);
     if (s < 0 || s > combinatedSpectr.size() - 1) {
-      qDebug() << "START RANGE WRONG CASE..." << s;
+      //qDebug() << "START RANGE WRONG CASE..." << s;
       continue;
     }
     if (e < 0 || e > combinatedSpectr.size() - 1) {
-      qDebug() << "END OUT OF RANGE CASE..." << e;
+      //qDebug() << "END OUT OF RANGE CASE..." << e;
       e = combinatedSpectr.size() - 1;
     }
     for (int ii = s; ii < e; ++ii) {
@@ -1524,16 +1523,14 @@ void SpectraSynthesizer::createLightModel() {
     auto slider_max = m_sliders[slider_index]->maximum();
     double speya_c = a * slider_value * slider_value + slider_value * b + c;
     double speya_m = a * slider_max * slider_max + slider_max * b + c;
-    double smart_coeff = (double)speya_c / (double)speya_m;
-    double coeff = (double)slider_value / (double)slider_max;
-    //qDebug() << "------COMPARE-------->" << coeff << smart_coeff;
+    double coeff = (double)speya_c / (double)speya_m;
     Q_ASSERT(values.size() == waves.size());
     for (int j = 0; j < values.size(); ++j) {
       auto value = values[j].toDouble();
       auto wave = waves[j].toDouble();
       if (wave < 400 || wave > 900)
         continue;
-      value = smart_coeff * value;
+      value = coeff * value;
       d_values.push_back(value);
 
       if (wave_start > wave && wave != 0) {
@@ -1551,7 +1548,6 @@ void SpectraSynthesizer::createLightModel() {
         break;
       if (index < 0)
         break;
-      //qDebug()<<"inex: "<<index;
       m_light_model[index] += d_values[i];
     }
   }

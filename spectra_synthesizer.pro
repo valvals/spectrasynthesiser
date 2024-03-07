@@ -7,7 +7,6 @@ TARGET = spectrasynthesizer
 
 SOURCES += \
     CameraModule.cpp \
-    DBJson.cpp \
     HamamatsuApi.cpp \
     OrminDevice.cpp \
     QrcFilesRestorer.cpp \
@@ -15,6 +14,7 @@ SOURCES += \
     fitting/fitSpectr.cpp \
     fitting/mpfit.c \
     fitting/relaxFilter.cpp \
+    json_utils.cpp \
     main.cpp \
     SpectraSynthesizer.cpp \
     qcustomplot.cpp \
@@ -23,19 +23,19 @@ SOURCES += \
 
 HEADERS += \
     CameraModule.h \
-    DBJson.h \
     HamamatsuApi.h \
     OrminDevice.h \
     QrcFilesRestorer.h \
     SpectraSynthesizer.h \
-    Version.h \
     debug_console.h \
     fitting/dataStructs.h \
     fitting/fitSpectr.h \
     fitting/mpfit.h \
     fitting/relaxFilter.h \
+    json_utils.h \
     qcustomplot.h \
     style_sheets.h \
+    version.h \
     voice_informator.h
 
 FORMS += \
