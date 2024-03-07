@@ -1,4 +1,4 @@
-#include "CameraModule.h"
+#include "camera_module.h"
 #include <QCamera>
 #include <QCameraImageCapture>
 #include <QMediaRecorder>

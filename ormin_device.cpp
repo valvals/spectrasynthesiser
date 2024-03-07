@@ -1,4 +1,5 @@
-#include "OrminDevice.h"
+#include "ormin_device.h"
+
 #include "qdebug.h"
 #include <QDir>
 #include <QDateTime>

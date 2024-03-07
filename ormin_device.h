@@ -1,8 +1,9 @@
-#ifndef ORMINDEVICE_H
-#define ORMINDEVICE_H
+#ifndef ORMIN_DEVICE_H
+#define ORMIN_DEVICE_H
+
 #include <QObject>
-#include  "HamamatsuApi.h"
 #include <QVector>
+#include  "hamamatsu_api.h"
 
 class OrminDevice : public QObject {
   Q_OBJECT
@@ -81,4 +82,4 @@ class OrminDevice : public QObject {
 
 };
 
-#endif // ORMINDEVICE_H
+#endif // ORMIN_DEVICE_H

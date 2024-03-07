@@ -1,5 +1,6 @@
-#ifndef CAMERAMODULE_H
-#define CAMERAMODULE_H
+#ifndef CAMERA_MODULE_H
+#define CAMERA_MODULE_H
+
 #include <QCamera>
 #include <QLabel>
 #include <QCameraImageCapture>
@@ -55,4 +56,4 @@ class CameraModule: public QObject {
 
 };
 
-#endif // CAMERAMODULE_H
+#endif // CAMERA_MODULE_H

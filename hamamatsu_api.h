@@ -1,5 +1,6 @@
-#ifndef usbccd
-#define usbccd
+#ifndef HAMAMATSU_API_H
+#define HAMAMATSU_API_H
+
 #include <Windows.h>
 
 #pragma once
@@ -205,4 +206,4 @@ class HamamatsuApi {
   void setSensorMode(sensorMode sensorMode);
 };
 
-#endif //usbccd
+#endif // HAMAMATSU_API_H

@@ -1,4 +1,4 @@
-﻿#include "HamamatsuApi.h"
+﻿#include "hamamatsu_api.h"
 #include <qdebug.h>
 
 HamamatsuApi::HamamatsuApi()

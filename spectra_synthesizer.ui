@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SpectraSynthesizer</class>
+ <widget class="QMainWindow" name="SpectraSynthesizer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1061</width>
+    <height>688</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>СПЕКТРАСИНТЕЗАТОР  v1.1</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(31, 31, 31);
+color: rgb(0, 170, 0);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QCustomPlot" name="widget_plot" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>500</height>
+       </size>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::ActionsContextMenu</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(64, 66, 68);</string>
+      </property>
+      <widget class="QVideoWidget" name="widget_video" native="true">
+       <property name="geometry">
+        <rect>
+         <x>390</x>
+         <y>110</y>
+         <width>640</width>
+         <height>360</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_visual_range_sliders" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>220</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_ir_sliders" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_ir_sliders"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="1" rowspan="3">
+       <widget class="QPushButton" name="pushButton_stop_start_update_stm_spectr">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>пауза</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="6" rowspan="2">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>длина волны</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4" rowspan="3">
+       <widget class="QComboBox" name="comboBox_etalons">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>эталоны</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5" rowspan="3">
+       <widget class="QLabel" name="label_info">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" rowspan="3">
+       <widget class="QSpinBox" name="spinBox_exposition">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Экспозиция спектрометра</string>
+        </property>
+        <property name="suffix">
+         <string> ms</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>50000</number>
+        </property>
+        <property name="value">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="3">
+       <widget class="QComboBox" name="comboBox_spectrometr_type">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="6">
+       <widget class="QComboBox" name="comboBox_waves">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="7">
+       <widget class="QSpinBox" name="spinBox_bright_value">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="8" rowspan="3">
+       <widget class="QPushButton" name="pushButton_apply">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>применить</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7" rowspan="2">
+       <widget class="QLabel" name="label_value">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>значение</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3" rowspan="3">
+       <widget class="QComboBox" name="comboBox_expositions">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>экспозиция спектрометра</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1061</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Отладка</string>
+    </property>
+    <addaction name="action_show_debug_console"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Ресурс светодиодов</string>
+    </property>
+    <addaction name="action_show_power_stat"/>
+    <addaction name="action_hours_stat"/>
+    <addaction name="action_copy_power_stat_to_buffer"/>
+    <addaction name="action_show_diod_models"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>Эталоны</string>
+    </property>
+    <addaction name="action_add_etalon"/>
+    <addaction name="action_hide_etalon"/>
+   </widget>
+   <widget class="QMenu" name="menu_4">
+    <property name="title">
+     <string>Звук</string>
+    </property>
+    <addaction name="action_water_cooler_warning"/>
+   </widget>
+   <widget class="QMenu" name="menu_5">
+    <property name="title">
+     <string>Управление светодиодами</string>
+    </property>
+    <addaction name="action_set_all_diods_to_zero"/>
+    <addaction name="action_start_fitting_analytical"/>
+    <addaction name="action_start_fitting_by_spectrometer"/>
+    <addaction name="action_fit_etalon_max_analytical"/>
+    <addaction name="action_fit_etalon_max_by_spectrometer"/>
+   </widget>
+   <widget class="QMenu" name="menu_6">
+    <property name="title">
+     <string>Вид</string>
+    </property>
+    <addaction name="action_azp_pvd"/>
+    <addaction name="action_speya_pvd"/>
+    <addaction name="action_etalon_pvd"/>
+   </widget>
+   <widget class="QMenu" name="menu_7">
+    <property name="title">
+     <string>Камера</string>
+    </property>
+    <addaction name="action_show_camera"/>
+   </widget>
+   <widget class="QMenu" name="menu_8">
+    <property name="title">
+     <string>Мира</string>
+    </property>
+    <addaction name="action_cycleMoveMira"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_4"/>
+   <addaction name="menu_3"/>
+   <addaction name="menu_2"/>
+   <addaction name="menu_5"/>
+   <addaction name="menu_6"/>
+   <addaction name="menu_7"/>
+   <addaction name="menu_8"/>
+  </widget>
+  <action name="action_show_debug_console">
+   <property name="text">
+    <string>консоль контроллера светодиодов</string>
+   </property>
+  </action>
+  <action name="action_show_power_stat">
+   <property name="text">
+    <string>График (Ампер*часы)</string>
+   </property>
+  </action>
+  <action name="action_hours_stat">
+   <property name="text">
+    <string>График (часы)</string>
+   </property>
+  </action>
+  <action name="action_copy_power_stat_to_buffer">
+   <property name="text">
+    <string>Копировать в буфер обмена</string>
+   </property>
+  </action>
+  <action name="action_add_etalon">
+   <property name="text">
+    <string>Добавить эталон</string>
+   </property>
+  </action>
+  <action name="action_water_cooler_warning">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Выключить звуковой предупреждающий сигнал</string>
+   </property>
+  </action>
+  <action name="action_set_all_diods_to_zero">
+   <property name="text">
+    <string>Сброс на ноль</string>
+   </property>
+  </action>
+  <action name="action_hide_etalon">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Скрыть эталон</string>
+   </property>
+  </action>
+  <action name="action_azp_pvd">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>АЦП</string>
+   </property>
+  </action>
+  <action name="action_speya_pvd">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>СПЭЯ</string>
+   </property>
+  </action>
+  <action name="action_etalon_pvd">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Эталон</string>
+   </property>
+  </action>
+  <action name="action_show_camera">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать окно камеры</string>
+   </property>
+  </action>
+  <action name="action_cycleMoveMira">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Непрерывное движение</string>
+   </property>
+  </action>
+  <action name="action_show_diod_models">
+   <property name="text">
+    <string>График апаратных функций</string>
+   </property>
+  </action>
+  <action name="action_start_fitting_analytical">
+   <property name="text">
+    <string>Подогнать под эталон (ALL) - аналитически</string>
+   </property>
+  </action>
+  <action name="action_fit_etalon_max_analytical">
+   <property name="text">
+    <string>Подогнать под эталон (MAКС) - аналитически</string>
+   </property>
+  </action>
+  <action name="action_start_fitting_by_spectrometer">
+   <property name="text">
+    <string>Подогнать под эталон (ALL) - по спектрометру</string>
+   </property>
+  </action>
+  <action name="action_fit_etalon_max_by_spectrometer">
+   <property name="text">
+    <string>Подогнать под эталон (MAКС) - по спектрометру</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header location="global">qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QVideoWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">qvideowidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

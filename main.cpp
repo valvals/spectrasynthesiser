@@ -1,4 +1,4 @@
-#include "SpectraSynthesizer.h"
+#include "spectra_synthesizer.h"
 
 #include "QCommandLineParser"
 #include "qrc_files_restorer.h"

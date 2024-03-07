@@ -6,41 +6,41 @@ RC_FILE = recource.rc
 TARGET = spectrasynthesizer
 
 SOURCES += \
-    CameraModule.cpp \
-    HamamatsuApi.cpp \
-    OrminDevice.cpp \
+    camera_module.cpp \
     debug_console.cpp \
     fitting/fitSpectr.cpp \
     fitting/mpfit.c \
     fitting/relaxFilter.cpp \
+    hamamatsu_api.cpp \
     json_utils.cpp \
     main.cpp \
-    SpectraSynthesizer.cpp \
+    ormin_device.cpp \
     qcustomplot.cpp \
     qrc_files_restorer.cpp \
+    spectra_synthesizer.cpp \
     style_sheets.cpp \
     voice_informator.cpp
 
 HEADERS += \
-    CameraModule.h \
-    HamamatsuApi.h \
-    OrminDevice.h \
-    SpectraSynthesizer.h \
+    camera_module.h \
     debug_console.h \
     fitting/dataStructs.h \
     fitting/fitSpectr.h \
     fitting/mpfit.h \
     fitting/relaxFilter.h \
+    hamamatsu_api.h \
     json_utils.h \
+    ormin_device.h \
     qcustomplot.h \
     qrc_files_restorer.h \
+    spectra_synthesizer.h \
     style_sheets.h \
     version.h \
     voice_informator.h
 
 FORMS += \
-    SpectraSynthesizer.ui \
-    debug_console.ui
+    debug_console.ui \
+    spectra_synthesizer.ui
 
 RESOURCES += \
     res.qrc
