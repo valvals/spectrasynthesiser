@@ -107,7 +107,6 @@ bool getJsonArrayFromFile(const QString& path,
   return true;
 }
 
-
 bool saveJsonObjectToFile(const QString& path,
                           const QJsonObject& json_object,
                           QJsonDocument::JsonFormat format) {
@@ -122,7 +121,6 @@ bool saveJsonObjectToFile(const QString& path,
   else
     return true;
 }
-
 
 bool saveJsonArrayToFile(const QString& path,
                          const QJsonArray& json_object,
