@@ -185,7 +185,6 @@ void PowerSupplyManager::getPowerStatus(quint16 unit) {
 }
 
 void PowerSupplyManager::switchOnAllUnits() {
-  qDebug() << "Switch on all units....";
   m_socket->write(m_cb.makeSwitchOnAllunitsCommand());
 }
 
@@ -202,7 +201,6 @@ void PowerSupplyManager::switchOffUnit(quint16 unit) {
 }
 
 void PowerSupplyManager::recieveData() {
-  //qDebug()<<"Recieve data function..."<<(int)operation_variant;
   timeOutTimer.stop();
   answer = QString::fromLocal8Bit(m_socket->readAll());
   if (!m_isTimeOut) {
@@ -217,28 +215,24 @@ void PowerSupplyManager::recieveData() {
         case parametrRead::S1: qDebug() << "Power out 1 state: " << answer; break;
         case parametrRead::S2: qDebug() << "Power out 2 state: " << answer; break;
         case parametrRead::V1: {
-          //qDebug()<<"Voltage out 1: "<<answer;
           replaceUselessGetV(psV, answer);
           checkIfVoltageWasSetted(psV);
           powers_params[getPowerAndOut()].V = psV;
           break;
         }
         case parametrRead::V2: {
-          //qDebug()<<"Voltage out 2: "<<answer;
           replaceUselessGetV(psV, answer);
           checkIfVoltageWasSetted(psV);
           powers_params[getPowerAndOut()].V = psV;
           break;
         }
         case parametrRead::I1: {
-          //qDebug()<<"Current out 1: "<<answer;
           replaceUselessGetI(psI, answer);
           checkIfPwrSupplyIsLoaded(m_V, psI);
           powers_params[getPowerAndOut()].I = psI;
           break;
         }
         case parametrRead::I2: {
-          //qDebug()<<"Current out 2: "<<answer;
           replaceUselessGetI(psI, answer);
           checkIfPwrSupplyIsLoaded(m_V, psI);
           powers_params[getPowerAndOut()].I = psI;
@@ -249,7 +243,6 @@ void PowerSupplyManager::recieveData() {
       }
     }
     if (operation_variant == operation::test) {
-      qDebug() << "Test power supplyies cases:";
       switch (parametr_state) {
         case PowerSupplyManager::parametrRead::ID:
           break;
