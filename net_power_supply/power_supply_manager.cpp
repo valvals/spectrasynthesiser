@@ -4,45 +4,24 @@
 #include <QDir>
 #include "Windows.h"
 #include "QTimer"
-#include <random>
 #include <QtGlobal>
+#include "json_utils.h"
 
 #define DECREASING_INTERVAL 100
 #define DECREASING_DELTA 0.05
 
 PowerSupplyManager::PowerSupplyManager() {
   m_socket = new QTcpSocket;
-  //m_socket->bind(QHostAddress::LocalHost, 2001);
-  m_powerSupplyIndex = 0;
-  m_outNumber = 1;
-  operation_variant = operation::test;
-  m_IpAddresses << "192.168.1.24" << "192.168.1.23" << "192.168.1.22";
-  m_hostAddress.setAddress(m_IpAddresses.at(m_powerSupplyIndex));
+  m_powerSupplyIndex = 0; 
   m_hostPort  = 9221;
-  m_isTimeOut = false;
-  timeOutTimer.setInterval(5000);
-  initializeJSonObjects();
-  powers_params = {
-    {PowerOuts::POW1_OUT1, {0, 0, 0, false}},
-    {PowerOuts::POW1_OUT2, {0, 0, 0, false}},
-    {PowerOuts::POW2_OUT1, {0, 0, 0, false}},
-    {PowerOuts::POW2_OUT2, {0, 0, 0, false}},
-    {PowerOuts::POW3_OUT1, {0, 0, 0, false}},
-    {PowerOuts::POW3_OUT2, {0, 0, 0, false}},
-    {PowerOuts::POW4_OUT1, {0, 0, 0, false}},
-    {PowerOuts::POW4_OUT2, {0, 0, 0, false}}
-  };
-  //connectToHost();
+  loadJsonConfig();
+  m_hostAddress.setAddress(m_powers["lamps"].toArray()[m_powerSupplyIndex].toObject()["ip"].toString());
+
   connect(m_socket, SIGNAL(connected()), this, SLOT(connectedCase()));
   connect(m_socket, SIGNAL(disconnected()), this, SLOT(disconnectedCase()));
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(recieveData()));
   connect(m_socket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(errorInSocket(QAbstractSocket::SocketError)));
-  connect(&timeOutTimer, SIGNAL(timeout()), this, SLOT(timeOutCase()));
-  connect(&increaseVoltageTimer, SIGNAL(timeout()), this, SLOT(increasingVoltage()));
-  connect(&testDisplayTimer, SIGNAL(timeout()), SLOT(testChangeRandomAllParams()));
-  connect(&decreasingVoltageTimer, SIGNAL(timeout()), this, SLOT(decreasingProcess()));
-  //QTimer::singleShot(1000,this,SLOT(checkPowerUnitsConnection()));
-  //testDisplayTimer.start(1000);
+
 }
 
 PowerSupplyManager::~PowerSupplyManager() {
@@ -78,70 +57,20 @@ void PowerSupplyManager::getID() {
   m_socket->write(m_cb.makeGetDeviceID_Command());
 }
 
-void PowerSupplyManager::initializeJSonObjects() {
-  QFile file(QDir::currentPath() + "/PowerSupplyList.json");
-  if (!file.exists()) {
-    QJsonObject outObj{
-      {"isOn", false},
-      {"Voltage", 0.0},
-      {"Current_T", 0.0},
-      {"LimitCurrent", 0.0},
-      {"LimitVoltage", 0.0},
-      {"Power", 0.0},
-      {"Delta_V", 0.0},
-      {"Delta_t", 0.0},
-      {"TargetName", "Lamp X"},
-    };
-    powerSupply_1.insert("PowerSupplyName", "");
-    powerSupply_1.insert("IP", "0.0.0.0");
-    powerSupply_1.insert("MAC", "00-00-00-00-00-00");
-    powerSupply_1.insert("isConnected", false);
-    powerSupply_1.insert("out1", outObj);
-    powerSupply_1.insert("out2", outObj);
-    powerSupply_2 = powerSupply_1;
-    powerSupply_3 = powerSupply_1;
-    powerSupply_4 = powerSupply_1;
-
-    QJsonArray jArray = {powerSupply_1, powerSupply_2, powerSupply_3, powerSupply_4};
-
-    file.open(QIODevice::WriteOnly);
-    file.write(QJsonDocument(jArray).toJson(QJsonDocument::Indented));
-  } else {
-    file.open(QIODevice::ReadOnly);
-    QByteArray data = file.readAll();
-    QJsonParseError errorPtr;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
-    if (doc.isNull()) {
-      qDebug() << "Ошибка разбора JSON!";
-    }
-    powerSupply_1 = doc.array().at(0).toObject();
-    powerSupply_2 = doc.array().at(1).toObject();
-    powerSupply_3 = doc.array().at(2).toObject();
-    //powerSupply_4 = doc.array().at(3).toObject();
-    qDebug() << "Check ps1 property: " << powerSupply_1.value("PowerSupplyName").toString();
-    qDebug() << "Check ps2 property: " << powerSupply_2.value("PowerSupplyName").toString();
-    qDebug() << "Check ps3 property: " << powerSupply_3.value("PowerSupplyName").toString();
-    //qDebug()<<"Check ps4 property: "<<powerSupply_4.value("PowerSupplyName").toString();
-
-    for (int i = 0; i < m_IpAddresses.count(); ++i) {
-      double pl1 = doc.array().at(i).toObject().value("out1").toObject().value("Current_target").toDouble();
-      double pl2 = doc.array().at(i).toObject().value("out2").toObject().value("Current_target").toDouble();
-      m_powerLimits.insert(QPair<QString, int>(m_IpAddresses.at(i), 1), pl1);
-      m_powerLimits.insert(QPair<QString, int>(m_IpAddresses.at(i), 2), pl2);
-      qDebug() << "-----> pL: " << pl1 << pl2;
-    }
-  }
-  file.close();
+void PowerSupplyManager::loadJsonConfig() {
+    jsn::getJsonObjectFromFile("ir_lamps.json",m_powers);
+    qDebug()<<m_powers;
+    QString ip;
+    int out;
+    getIpAndOutForIndex(0,ip,out);
+    m_hostAddress.setAddress(ip);
+    m_socket->connectToHost(m_hostAddress,m_hostPort);
+    m_socket->waitForConnected(3000);
 }
 
 void PowerSupplyManager::getVoltage(quint16 unit) {
-  timeOutTimer.start();
-  //qDebug()<<"getVoltage function....";
-  if (unit == 1)
-    parametr_state = parametrRead::V1;
-  if (unit == 2)
-    parametr_state = parametrRead::V2;
   m_socket->write(m_cb.makeGetVcommand(unit));
+  m_socket->waitForBytesWritten();
 }
 
 void PowerSupplyManager::setVoltage(quint16 unit, double value) {
@@ -201,145 +130,14 @@ void PowerSupplyManager::switchOffUnit(quint16 unit) {
 }
 
 void PowerSupplyManager::recieveData() {
-  timeOutTimer.stop();
+
   answer = QString::fromLocal8Bit(m_socket->readAll());
-  if (!m_isTimeOut) {
-
-    if (operation_variant == operation::increaseVoltage) {
-
-      double psV = -1;
-      double psI = -1;
-
-      switch (parametr_state) {
-        case PowerSupplyManager::parametrRead::ID: break;
-        case parametrRead::S1: qDebug() << "Power out 1 state: " << answer; break;
-        case parametrRead::S2: qDebug() << "Power out 2 state: " << answer; break;
-        case parametrRead::V1: {
-          replaceUselessGetV(psV, answer);
-          checkIfVoltageWasSetted(psV);
-          powers_params[getPowerAndOut()].V = psV;
-          break;
-        }
-        case parametrRead::V2: {
-          replaceUselessGetV(psV, answer);
-          checkIfVoltageWasSetted(psV);
-          powers_params[getPowerAndOut()].V = psV;
-          break;
-        }
-        case parametrRead::I1: {
-          replaceUselessGetI(psI, answer);
-          checkIfPwrSupplyIsLoaded(m_V, psI);
-          powers_params[getPowerAndOut()].I = psI;
-          break;
-        }
-        case parametrRead::I2: {
-          replaceUselessGetI(psI, answer);
-          checkIfPwrSupplyIsLoaded(m_V, psI);
-          powers_params[getPowerAndOut()].I = psI;
-          break;
-        }
-        case parametrRead::LI1: qDebug() << "Current out 1: " << answer; break;
-        case parametrRead::LI2: qDebug() << "Current out 2: " << answer; break;
-      }
-    }
-    if (operation_variant == operation::test) {
-      switch (parametr_state) {
-        case PowerSupplyManager::parametrRead::ID:
-          break;
-        case PowerSupplyManager::parametrRead::V1:
-          qDebug() << "V1: " << answer;
-          setParamsForPwrSupply(out::out1, parametrRead::V1, answer.toDouble());
-          getVoltage(2);
-          break;
-        case PowerSupplyManager::parametrRead::V2:
-          qDebug() << "V2: " << answer;
-          setParamsForPwrSupply(out::out2, parametrRead::V2, answer.toDouble());
-          getCurrentValue(1);
-          break;
-        case PowerSupplyManager::parametrRead::I1:
-          qDebug() << "I1: " << answer;
-          setParamsForPwrSupply(out::out1, parametrRead::I1, answer.toDouble());
-          getCurrentValue(2);
-          break;
-        case PowerSupplyManager::parametrRead::I2:
-          qDebug() << "I2: " << answer;
-          setParamsForPwrSupply(out::out2, parametrRead::I2, answer.toDouble());
-          getCurrentLimit(1);
-          break;
-        case PowerSupplyManager::parametrRead::LI1:
-          qDebug() << "LI1: " << answer;
-          setParamsForPwrSupply(out::out1, parametrRead::LI1, answer.toDouble());
-          getCurrentLimit(2);
-          break;
-        case PowerSupplyManager::parametrRead::LI2:
-          qDebug() << "LI2: " << answer;
-          setParamsForPwrSupply(out::out2, parametrRead::LI2, answer.toDouble());
-          getPowerStatus(1);
-          break;
-        case PowerSupplyManager::parametrRead::S1:
-          qDebug() << "PS1: " << answer;
-          setParamsForPwrSupply(out::out1, parametrRead::S1, answer.toDouble());
-          getPowerStatus(2);
-          break;
-        case PowerSupplyManager::parametrRead::S2:
-          qDebug() << "PS2: " << answer;
-          setParamsForPwrSupply(out::out2, parametrRead::S2, answer.toDouble());
-          qDebug() << "********************************\n\n";
-          switchOnAllUnits();
-          m_socket->disconnectFromHost();
-          break;
-
-      }
-    }
-    if (operation_variant == operation::decreasingVoltageAndSwitchOff) {
-      switch (parametr_state) {
-        case parametrRead::V1: {
-
-          qDebug() << "Voltage decreasing out 1: " << answer;
-          double psV = -1;
-          replaceUselessGetV(psV, answer);
-          if (psV > 0.005) {
-            m_decreaseV = psV - DECREASING_DELTA;
-            if (m_decreaseV < 0)
-              m_decreaseV = 0;
-            setVoltage(m_outNumber, m_decreaseV);
-            decreasingVoltageTimer.start(DECREASING_INTERVAL);
-            break;
-          } else {
-            //Добавить команду выключения выхода
-            qDebug() << "Decreasing is finished...";
-          }
-          break;
-
-        }
-        case parametrRead::V2: {
-
-          qDebug() << "Voltage decreasing out 2: " << answer;
-          double psV = -1;
-          replaceUselessGetV(psV, answer);
-          if (psV > 0.005) {
-            m_decreaseV = psV - 0.1;
-            if (m_decreaseV < 0)
-              m_decreaseV = 0;
-            setVoltage(m_outNumber, m_decreaseV);
-            decreasingVoltageTimer.start(DECREASING_INTERVAL);
-            break;
-          } else {
-            //Добавить команду выключения выхода
-            qDebug() << "Decreasing is finished...";
-            switchOffUnit(m_outNumber);//NOT TESTED
-          }
-          break;
-        }
-      }
-    }
-
-
-  }
+  qDebug()<<answer;
 }
 
 void PowerSupplyManager::errorInSocket(QAbstractSocket::SocketError error) {
-  switch (error) {
+  qDebug()<<error;
+    switch (error) {
     case QAbstractSocket::ConnectionRefusedError:
       break;
     case QAbstractSocket::RemoteHostClosedError:
@@ -476,10 +274,10 @@ void PowerSupplyManager::decreasingProcess() {
 
 void PowerSupplyManager::testChangeRandomAllParams() {
 
-  setParamsForPwrSupply(powerSupply_1);
-  setParamsForPwrSupply(powerSupply_2);
-  setParamsForPwrSupply(powerSupply_3);
-  setParamsForPwrSupply(powerSupply_4);
+  //setParamsForPwrSupply(powerSupply_1);
+  //setParamsForPwrSupply(powerSupply_2);
+  //setParamsForPwrSupply(powerSupply_3);
+  //setParamsForPwrSupply(powerSupply_4);
 
 }
 
@@ -568,22 +366,6 @@ void PowerSupplyManager::checkIfPwrSupplyIsLoaded(const double& V, const double&
   }
 
 
-}
-
-void PowerSupplyManager::setParamsForPwrSupply(QJsonObject& json) {
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<> dis(0.00, 20.00);
-  qDebug() << dis(gen);
-  QJsonObject power1 =  json.value("out1").toObject();
-  power1["Voltage"] = dis(gen);
-  power1["Current"] = dis(gen);
-  QJsonObject power2 =  json.value("out1").toObject();
-  power2["Voltage"] = dis(gen);
-  power2["Current"] = dis(gen);
-  json["out1"] = power1;
-  json["out2"] = power2;
 }
 
 void PowerSupplyManager::setParamsForPwrSupply(out out, parametrRead pr, const double& value) {
@@ -711,122 +493,24 @@ PowerOuts PowerSupplyManager::getPowerAndOut() {
 }
 
 double PowerSupplyManager::getCurrentLimitForCurrentPowerSupplyAndOut() {
-  return m_powerLimits.value(QPair<QString, int>(m_IpAddresses.at(m_powerSupplyIndex), m_outNumber));
+    return m_powerLimits.value(QPair<QString, int>(m_IpAddresses.at(m_powerSupplyIndex), m_outNumber));
+}
+
+void PowerSupplyManager::getIpAndOutForIndex(const int index,
+                                             QString &ip,
+                                             int &out)
+{
+
+    QJsonArray lamps = m_powers["lamps"].toArray();
+    ip = lamps[index].toObject()["ip"].toString();
+    out = lamps[index].toObject()["out"].toInt();
 }
 
 void PowerSupplyManager::connectedCase() {
-  if (m_powerSupplyIndex == 0) {
-    powerSupply_1.value("isConnected") = true;
-    sendUpdateSignal();
-    m_results.power1 = true;
-  }
-  if (m_powerSupplyIndex == 1) {
-    powerSupply_2.value("isConnected") = true;
-    sendUpdateSignal();
-    m_results.power2 = true;
-  }
-  if (m_powerSupplyIndex == 2) {
-    powerSupply_3.value("isConnected") = true;
-    sendUpdateSignal();
-    m_results.power3 = true;
-  }
-  if (m_powerSupplyIndex == 3) {
-    powerSupply_4.value("isConnected") = true;
-    sendUpdateSignal();
-    m_results.power4 = true;
-  }
-
-  qDebug() << "Power supply " << m_IpAddresses.at(m_powerSupplyIndex) << " is connected.";
-
-  if (operation_variant == operation::test) {
-    setVoltage(1, 0);
-    setVoltage(2, 0);
-    setCurrentLimit(1, m_powerLimits.value(QPair<QString, int>(m_IpAddresses.at(m_powerSupplyIndex), 1)));
-    setCurrentLimit(2, m_powerLimits.value(QPair<QString, int>(m_IpAddresses.at(m_powerSupplyIndex), 2)));
-    getVoltage(m_outNumber);
-
-  }
-  if (operation_variant == operation::increaseVoltage) {
-
-    qDebug() << "increasing starts **************************************************";
-    startToReachTargetCurrent();
-  }
-  if (operation_variant == operation::decreasingVoltageAndSwitchOff) {
-
-    qDebug() << "Change network interface after lamp was switched off" << m_powerSupplyIndex << m_outNumber;
-    emit oneLampWasSwitchedOff();
-  }
 
 }
 
 void PowerSupplyManager::disconnectedCase() {
 
-  if (m_powerSupplyIndex == 0) {
-    powerSupply_1.value("isConnected") = false;
-    sendUpdateSignal();
-  }
-  if (m_powerSupplyIndex == 1) {
-    powerSupply_2.value("isConnected") = false;
-    sendUpdateSignal();
-  }
-  if (m_powerSupplyIndex == 2) {
-    powerSupply_3.value("isConnected") = false;
-    sendUpdateSignal();
-  }
-  if (m_powerSupplyIndex == 3) {
-    powerSupply_4.value("isConnected") = false;
-    sendUpdateSignal();
-  }
-
-  if (operation_variant == operation::test) {
-    if (m_powerSupplyIndex < m_IpAddresses.size() - 1) {
-      ++m_powerSupplyIndex;
-      qDebug() << "Index: " << m_powerSupplyIndex;
-      m_hostAddress.setAddress(m_IpAddresses.at(m_powerSupplyIndex));
-      connectToHost();
-    } else {
-      qDebug() << "All power supplyies are tested.";
-      operation_variant = operation::singleOperation;
-      m_powerSupplyIndex = 0;
-      m_powerSupplyIndex = 0;
-      timeOutTimer.stop();
-      m_hostAddress.setAddress(m_IpAddresses.at(m_powerSupplyIndex));
-      connectToHost();
-      return;
-    }
-  }
-  if (operation_variant == operation::increaseVoltage) {
-
-    //if(m_outNumber == 1)m_outNumber = 2;
-    //if(m_outNumber == 2)m_outNumber = 1;
-
-    if (m_powerSupplyIndex < m_IpAddresses.size() - 1) {
-
-      ++m_powerSupplyIndex;
-      m_hostAddress.setAddress(m_IpAddresses.at(m_powerSupplyIndex));
-      qDebug() << "Connect to " << m_powerSupplyIndex << ")))))))))))))))))))))))))))))))))))))))))))))))";
-      connectToHost();
-
-
-    } else {
-
-      qDebug() << "All lamps are ready.";
-    }
-  }
-  if (operation_variant == operation::decreasingVoltageAndSwitchOff) {
-
-    if (m_powerSupplyIndex > 0) {
-
-      -- m_powerSupplyIndex;
-      m_outNumber = 2;
-      m_hostAddress.setAddress(m_IpAddresses.at(m_powerSupplyIndex));
-      connectToHost();
-    } else {
-
-      //if all lamps were switched off some code
-      emit oneLampWasSwitchedOff();
-    }
-
-  }
 
 }

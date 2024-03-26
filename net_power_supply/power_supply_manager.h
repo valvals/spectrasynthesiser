@@ -128,6 +128,7 @@ class PowerSupplyManager: public QObject {
   QJsonObject powerSupply_2;
   QJsonObject powerSupply_3;
   QJsonObject powerSupply_4;
+  QJsonObject m_powers;
   QHash<QPair<QString, int>, double> m_powerLimits;
   CommandsBuilder m_cb;
 
@@ -138,7 +139,7 @@ class PowerSupplyManager: public QObject {
   QTimer accrcyTimer;
   QTimer testDisplayTimer;
 
-  void initializeJSonObjects();
+  void loadJsonConfig();
   void messageWasRecievedAfterTimeout();
   void replaceUselessGetV(double& V, QString& msg);
   void replaceUselessGetI(double& I, QString& msg);
@@ -146,12 +147,13 @@ class PowerSupplyManager: public QObject {
   void cantSetV_Case();
   void powerSupplyIsNotLoaded();
   void checkIfPwrSupplyIsLoaded(const double& V, const double& I);
-
-  void setParamsForPwrSupply(QJsonObject& json);
   void setParamsForPwrSupply(out out, parametrRead pr, const double& value);
   void sendUpdateSignal();
   PowerOuts getPowerAndOut();
   double getCurrentLimitForCurrentPowerSupplyAndOut();
+  void getIpAndOutForIndex(const int index,
+                           QString& ip,
+                           int& out);
 
 
 

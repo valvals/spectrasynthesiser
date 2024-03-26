@@ -1,5 +1,5 @@
 #include "spectra_synthesizer.h"
-#include "ui_SpectraSynthesizer.h"
+#include "ui_spectra_synthesizer.h"
 
 #include "qjsonarray.h"
 #include "qjsonobject.h"
@@ -330,7 +330,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
   */
   findApparatMaximus();
-
+  m_net_powers->getVoltage(1);
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
