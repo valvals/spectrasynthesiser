@@ -16,7 +16,7 @@ PowerSupplyManager::PowerSupplyManager() {
   m_powerSupplyIndex = 0;
   m_outNumber = 1;
   operation_variant = operation::test;
-  m_IpAddresses << "192.168.1.24" << "192.168.1.23" << "192.168.1.22"; //<<"192.168.1.25";
+  m_IpAddresses << "192.168.1.24" << "192.168.1.23" << "192.168.1.22";
   m_hostAddress.setAddress(m_IpAddresses.at(m_powerSupplyIndex));
   m_hostPort  = 9221;
   m_isTimeOut = false;
