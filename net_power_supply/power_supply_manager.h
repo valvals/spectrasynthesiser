@@ -63,12 +63,12 @@ class PowerSupplyManager: public QObject {
   PowerSupplyManager();
   ~PowerSupplyManager();
   void getID();
-  void getVoltage(quint16 unit);
+  void getVoltage(quint16 index);
   void setVoltage(quint16 unit, double value);
-  void setCurrentLimit(quint16 unit, double value);
-  void getCurrentLimit(quint16 unit);
+  void setCurrentLimit(quint16 index, double value);
+  void getCurrentLimit(quint16 index);
   void getCurrentValue(quint16 unit);
-  void getPowerStatus(quint16 unit);
+  void getPowerStatus(quint16 index);
   void switchOnAllUnits();
   void switchOnUnit(quint16 unit);
   void switchOffAllUnits();
@@ -154,25 +154,15 @@ class PowerSupplyManager: public QObject {
   void getIpAndOutForIndex(const int index,
                            QString& ip,
                            int& out);
-  void maybeReconnectHost(const int index);
+  int maybeReconnectHost(const int index);
 
 
-
- public slots:
-  void startToReachTargetCurrent();
 
  private slots:
-  void connectedCase();
-  void disconnectedCase();
   void recieveData();
   void errorInSocket(QAbstractSocket::SocketError error);
   void checkPowerUnitsConnection();
-
-  void increasingVoltage();
   void timeOutCase();
-  void increasingVoltageFinished();
-  void decreasingProcess();
-  void testChangeRandomAllParams();
 
  signals:
   void paramsPowerChanged(PowerOuts);

@@ -7,16 +7,12 @@
 #include <QtGlobal>
 #include "json_utils.h"
 
-#define DECREASING_INTERVAL 100
-#define DECREASING_DELTA 0.05
 
 PowerSupplyManager::PowerSupplyManager() {
   m_socket = new QTcpSocket;
   m_powerSupplyIndex = 0; 
   m_hostPort  = 9221;
   loadJsonConfig();
-  m_hostAddress.setAddress(m_powers["lamps"].toArray()[m_powerSupplyIndex].toObject()["ip"].toString());
-
   QString ip;
   int out;
   getIpAndOutForIndex(0,ip,out);
@@ -24,8 +20,6 @@ PowerSupplyManager::PowerSupplyManager() {
   m_socket->connectToHost(m_hostAddress,m_hostPort);
   m_socket->waitForConnected(3000);
 
-  connect(m_socket, SIGNAL(connected()), this, SLOT(connectedCase()));
-  connect(m_socket, SIGNAL(disconnected()), this, SLOT(disconnectedCase()));
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(recieveData()));
   connect(m_socket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(errorInSocket(QAbstractSocket::SocketError)));
 
@@ -68,9 +62,10 @@ void PowerSupplyManager::loadJsonConfig() {
     jsn::getJsonObjectFromFile("ir_lamps.json",m_powers);
 }
 
-void PowerSupplyManager::getVoltage(quint16 unit) {
-  m_socket->write(m_cb.makeGetVcommand(unit));
-  m_socket->waitForBytesWritten();
+void PowerSupplyManager::getVoltage(quint16 index) {
+  int out = maybeReconnectHost(index);
+  m_socket->write(m_cb.makeGetVcommand(out));
+  m_socket->waitForReadyRead();
 }
 
 void PowerSupplyManager::setVoltage(quint16 unit, double value) {
@@ -78,19 +73,15 @@ void PowerSupplyManager::setVoltage(quint16 unit, double value) {
   m_socket->write(m_cb.makeSetVcommand(unit, value));
 }
 
-void PowerSupplyManager::setCurrentLimit(quint16 unit, double value) {
+void PowerSupplyManager::setCurrentLimit(quint16 index, double value) {
   //qDebug()<<"Set current limit";
-  m_socket->write(m_cb.makeSetCurrentLimitCommand(unit, value));
+  m_socket->write(m_cb.makeSetCurrentLimitCommand(index, value));
 }
 
-void PowerSupplyManager::getCurrentLimit(quint16 unit) {
-  timeOutTimer.start();
-  //qDebug()<<"get Current limit function....";
-  if (unit == 1)
-    parametr_state = parametrRead::LI1;
-  if (unit == 2)
-    parametr_state = parametrRead::LI2;
-  m_socket->write(m_cb.makeGetCurrentLimitCommand(unit));
+void PowerSupplyManager::getCurrentLimit(quint16 index) {
+  int out = maybeReconnectHost(index);
+  m_socket->write(m_cb.makeGetCurrentLimitCommand(out));
+  m_socket->waitForReadyRead();
 }
 
 void PowerSupplyManager::getCurrentValue(quint16 unit) {
@@ -103,14 +94,8 @@ void PowerSupplyManager::getCurrentValue(quint16 unit) {
   m_socket->write(m_cb.makeGetCurrentValueCommand(unit));
 }
 
-void PowerSupplyManager::getPowerStatus(quint16 unit) {
-  timeOutTimer.start();
-  //qDebug()<<"get Switch State for unit"<< unit;
-  if (unit == 1)
-    parametr_state = parametrRead::S1;
-  if (unit == 2)
-    parametr_state = parametrRead::S2;
-  m_socket->write(m_cb.makeGetSwitchStateCommand(unit));
+void PowerSupplyManager::getPowerStatus(quint16 index) {
+  m_socket->write(m_cb.makeGetSwitchStateCommand(index));
 }
 
 void PowerSupplyManager::switchOnAllUnits() {
@@ -201,84 +186,11 @@ void PowerSupplyManager::checkPowerUnitsConnection() {
   //startToReachTargetCurrent();
 }
 
-void PowerSupplyManager::startToReachTargetCurrent() {
-  m_target_I = getCurrentLimitForCurrentPowerSupplyAndOut();
-  qDebug() << "Target I: " << m_target_I;
-  m_accuracy_target_I = 0.01;
-  m_last_V_mult = 20.0;
-  m_acrcy_V = 0.05;
-  m_load_I  = 0.03;
-  m_delta_V = 0.2;
-  m_check_I = 2.0;
-  m_isLastV = false;
-  m_V_fail_counter = 10;
-  m_V = m_delta_V;
-  m_increaseV_interval = 300;
-  increaseVoltageTimer.setInterval(m_increaseV_interval);
-  operation_variant = operation::increaseVoltage;
-  timeOutTimer.start();
-  increaseVoltageTimer.start();
-  qDebug() << "Switch on all lamps * * * * * *  ";
-
-}
-
-void PowerSupplyManager::increasingVoltage() {
-  increaseVoltageTimer.stop();
-  setVoltage(m_outNumber, m_V);
-  getVoltage(m_outNumber);
-}
-
 void PowerSupplyManager::timeOutCase() {
   m_isTimeOut = true;
   qDebug() << "Timeout";
   timeOutTimer.stop();
   //m_sounder.playSound("timeOutCase.mp3");
-}
-
-void PowerSupplyManager::increasingVoltageFinished() {
-  qDebug() << "Increasing voltage process is finished. +++++++++++++++++++++++";
-  increaseVoltageTimer.stop();
-
-  if (m_outNumber == 2 && m_powerSupplyIndex == m_IpAddresses.size() - 1) {
-    //m_sounder.playSound("lamps_is_switched_on.mp3");
-    emit allLampsSwitchedOn();
-    return;
-  }
-  //qDebug("It's ok");return;
-  if (m_outNumber == 1) {
-    m_outNumber = 2;
-    startToReachTargetCurrent();
-  } else {
-    m_outNumber = 1;
-    qDebug() << "Disconnecting...";
-    m_socket->disconnectFromHost();
-
-  }
-}
-
-void PowerSupplyManager::decreasingProcess() {
-  qDebug() << "Decreasing process in progress...";
-  decreasingVoltageTimer.stop();
-  if (m_decreaseV > 0.005) {
-    getVoltage(m_outNumber);
-  } else {
-    qDebug() << "Decreasing process has stopped...";
-    if (m_outNumber == 2) {
-      m_outNumber = 1;
-      emit oneLampWasSwitchedOff();
-    } else {
-      m_socket->disconnectFromHost();
-    }
-  }
-}
-
-void PowerSupplyManager::testChangeRandomAllParams() {
-
-  //setParamsForPwrSupply(powerSupply_1);
-  //setParamsForPwrSupply(powerSupply_2);
-  //setParamsForPwrSupply(powerSupply_3);
-  //setParamsForPwrSupply(powerSupply_4);
-
 }
 
 void PowerSupplyManager::messageWasRecievedAfterTimeout() {
@@ -329,41 +241,6 @@ void PowerSupplyManager::powerSupplyIsNotLoaded() {
 }
 
 void PowerSupplyManager::checkIfPwrSupplyIsLoaded(const double& V, const double& I) {
-  if (V >= m_check_I) {
-
-    if (I < m_load_I) {
-      powerSupplyIsNotLoaded();
-      return;
-    }
-
-  } else {
-
-    if (I < m_target_I) { //Accuracy I
-      m_V += m_delta_V;
-      increaseVoltageTimer.start();
-      return;
-    }
-  }
-
-  if (m_isLastV) {
-
-    increasingVoltageFinished();
-    return;
-  }
-
-  if (I >= m_target_I - m_accuracy_target_I) {
-    qDebug() << "My last V multiplication.................................";
-    m_V += m_delta_V * m_last_V_mult;
-    m_isLastV = true;
-    increaseVoltageTimer.start();
-    return;
-  } else {
-
-    m_V += m_delta_V;
-    increaseVoltageTimer.start();
-    return;
-
-  }
 
 
 }
@@ -506,25 +383,17 @@ void PowerSupplyManager::getIpAndOutForIndex(const int index,
     out = lamps[index].toObject()["out"].toInt();
 }
 
-void PowerSupplyManager::maybeReconnectHost(const int index)
+int PowerSupplyManager::maybeReconnectHost(const int index)
 {
     int out;
     QString new_host;
     getIpAndOutForIndex(index,new_host,out);
     QString current_host = m_hostAddress.toString();
-    if(current_host == new_host)return;
+    if(current_host == new_host)return out;
     m_socket->disconnectFromHost();
-    m_socket->waitForDisconnected();
     m_hostAddress.setAddress(new_host);
     m_socket->connectToHost(m_hostAddress,m_hostPort,QIODevice::ReadWrite);
     m_socket->waitForConnected();
+    return out;
 }
 
-void PowerSupplyManager::connectedCase() {
-
-}
-
-void PowerSupplyManager::disconnectedCase() {
-
-
-}
