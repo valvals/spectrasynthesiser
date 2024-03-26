@@ -17,6 +17,13 @@ PowerSupplyManager::PowerSupplyManager() {
   loadJsonConfig();
   m_hostAddress.setAddress(m_powers["lamps"].toArray()[m_powerSupplyIndex].toObject()["ip"].toString());
 
+  QString ip;
+  int out;
+  getIpAndOutForIndex(0,ip,out);
+  m_hostAddress.setAddress(ip);
+  m_socket->connectToHost(m_hostAddress,m_hostPort);
+  m_socket->waitForConnected(3000);
+
   connect(m_socket, SIGNAL(connected()), this, SLOT(connectedCase()));
   connect(m_socket, SIGNAL(disconnected()), this, SLOT(disconnectedCase()));
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(recieveData()));
@@ -59,13 +66,6 @@ void PowerSupplyManager::getID() {
 
 void PowerSupplyManager::loadJsonConfig() {
     jsn::getJsonObjectFromFile("ir_lamps.json",m_powers);
-    qDebug()<<m_powers;
-    QString ip;
-    int out;
-    getIpAndOutForIndex(0,ip,out);
-    m_hostAddress.setAddress(ip);
-    m_socket->connectToHost(m_hostAddress,m_hostPort);
-    m_socket->waitForConnected(3000);
 }
 
 void PowerSupplyManager::getVoltage(quint16 unit) {
@@ -504,6 +504,20 @@ void PowerSupplyManager::getIpAndOutForIndex(const int index,
     QJsonArray lamps = m_powers["lamps"].toArray();
     ip = lamps[index].toObject()["ip"].toString();
     out = lamps[index].toObject()["out"].toInt();
+}
+
+void PowerSupplyManager::maybeReconnectHost(const int index)
+{
+    int out;
+    QString new_host;
+    getIpAndOutForIndex(index,new_host,out);
+    QString current_host = m_hostAddress.toString();
+    if(current_host == new_host)return;
+    m_socket->disconnectFromHost();
+    m_socket->waitForDisconnected();
+    m_hostAddress.setAddress(new_host);
+    m_socket->connectToHost(m_hostAddress,m_hostPort,QIODevice::ReadWrite);
+    m_socket->waitForConnected();
 }
 
 void PowerSupplyManager::connectedCase() {

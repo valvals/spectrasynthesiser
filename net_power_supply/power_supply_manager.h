@@ -154,6 +154,7 @@ class PowerSupplyManager: public QObject {
   void getIpAndOutForIndex(const int index,
                            QString& ip,
                            int& out);
+  void maybeReconnectHost(const int index);
 
 
 

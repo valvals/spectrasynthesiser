@@ -331,6 +331,7 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   */
   findApparatMaximus();
   m_net_powers->getVoltage(1);
+  m_net_powers->getCurrentLimit(1);
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
