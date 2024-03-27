@@ -330,14 +330,20 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   db_json::saveJsonArrayToFile("pvd_calibr_list.json",pvd_clibrs,QJsonDocument::Indented);
   */
   findApparatMaximus();
-  m_net_powers->getVoltage(0);
+  /*m_net_powers->getVoltage(0);
   m_net_powers->getVoltage(1);
   m_net_powers->getVoltage(2);
   m_net_powers->getVoltage(3);
+
+  m_net_powers->setCurrentLimit(0,10);
+  m_net_powers->setCurrentLimit(1,10);
+  m_net_powers->setCurrentLimit(2,10);
+  m_net_powers->setCurrentLimit(3,10);
+
   m_net_powers->getCurrentLimit(0);
   m_net_powers->getCurrentLimit(1);
   m_net_powers->getCurrentLimit(2);
-  m_net_powers->getCurrentLimit(3);
+  m_net_powers->getCurrentLimit(3);*/
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {
