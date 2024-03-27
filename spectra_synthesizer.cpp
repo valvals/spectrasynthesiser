@@ -344,6 +344,8 @@ SpectraSynthesizer::SpectraSynthesizer(QWidget* parent)
   m_net_powers->getCurrentLimit(1);
   m_net_powers->getCurrentLimit(2);
   m_net_powers->getCurrentLimit(3);*/
+  //m_net_powers->switchOnAllUnits();
+  //m_net_powers->switchOffAllUnits();
 }
 
 SpectraSynthesizer::~SpectraSynthesizer() {

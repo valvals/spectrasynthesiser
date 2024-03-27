@@ -90,19 +90,17 @@ void PowerSupplyManager::switchOffUnit(const quint16 index) {
 void PowerSupplyManager::switchOnAllUnits() {
   auto indexes = m_powers["lamps"].toArray().size();
   for (int i = 0; i < indexes; ++i) {
-    int out = maybeReconnectHost(i);
-    std::ignore = out;
-    m_socket->write(m_cb.makeSwitchOnAllunitsCommand());
+    switchOnUnit(i);
+    qDebug()<<"indexes for switching on: ---> "<<i;
   };
 }
 
 void PowerSupplyManager::switchOffAllUnits() {
-  auto indexes = m_powers["lamps"].toArray().size();
-  for (int i = 0; i < indexes; ++i) {
-    int out = maybeReconnectHost(i);
-    std::ignore = out;
-    m_socket->write(m_cb.makeSwitchOffAllunitsCommand());
-  };
+    auto indexes = m_powers["lamps"].toArray().size();
+    for (int i = 0; i < indexes; ++i) {
+      switchOffUnit(i);
+      qDebug()<<"indexes for switching off: ---> "<<i;
+    };
 }
 
 void PowerSupplyManager::recieveData() {
