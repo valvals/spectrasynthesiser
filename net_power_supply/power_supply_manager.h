@@ -46,7 +46,6 @@ class PowerSupplyManager: public QObject {
   CommandsBuilder m_cb;
 
   void loadJsonConfig();
-  void messageWasRecievedAfterTimeout();
   void replaceUselessGetV(double& V, QString& msg);
   void replaceUselessGetI(double& I, QString& msg);
 

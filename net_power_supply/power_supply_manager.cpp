@@ -31,6 +31,7 @@ PowerSupplyManager::~PowerSupplyManager() {
 
 void PowerSupplyManager::getID() {
   m_socket->write(m_cb.makeGetDeviceID_Command());
+  m_socket->waitForReadyRead();
 }
 
 void PowerSupplyManager::loadJsonConfig() {
@@ -91,16 +92,14 @@ void PowerSupplyManager::switchOnAllUnits() {
   auto indexes = m_powers["lamps"].toArray().size();
   for (int i = 0; i < indexes; ++i) {
     switchOnUnit(i);
-    qDebug()<<"indexes for switching on: ---> "<<i;
   };
 }
 
 void PowerSupplyManager::switchOffAllUnits() {
-    auto indexes = m_powers["lamps"].toArray().size();
-    for (int i = 0; i < indexes; ++i) {
-      switchOffUnit(i);
-      qDebug()<<"indexes for switching off: ---> "<<i;
-    };
+  auto indexes = m_powers["lamps"].toArray().size();
+  for (int i = 0; i < indexes; ++i) {
+    switchOffUnit(i);
+  };
 }
 
 void PowerSupplyManager::recieveData() {
@@ -163,10 +162,6 @@ void PowerSupplyManager::errorInSocket(QAbstractSocket::SocketError error) {
       break;
 
   }
-}
-
-void PowerSupplyManager::messageWasRecievedAfterTimeout() {
-  qDebug() << "Message was recieved after timeout!";
 }
 
 void PowerSupplyManager::replaceUselessGetV(double& V, QString& msg) {
