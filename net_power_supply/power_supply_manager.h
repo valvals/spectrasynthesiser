@@ -40,7 +40,6 @@ class PowerSupplyManager: public QObject {
   QTcpSocket*     m_socket;
   QHostAddress    m_hostAddress;
   QString         answer;
-  int             m_index;
 
   QJsonObject m_powers;
   CommandsBuilder m_cb;
@@ -53,7 +52,7 @@ class PowerSupplyManager: public QObject {
                            QString& ip,
                            int& out);
   int maybeReconnectHost(const int index);
-
+  void checkPowersConection();
 
  private slots:
   void recieveData();

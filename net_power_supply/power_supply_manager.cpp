@@ -18,7 +18,7 @@ PowerSupplyManager::PowerSupplyManager() {
   m_hostAddress.setAddress(ip);
   m_socket->connectToHost(m_hostAddress, host_port);
   m_socket->waitForConnected(1000);
-
+  checkPowersConection();
   connect(m_socket, SIGNAL(readyRead()), this, SLOT(recieveData()));
   connect(m_socket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(errorInSocket(QAbstractSocket::SocketError)));
 
@@ -125,7 +125,6 @@ void PowerSupplyManager::errorInSocket(QAbstractSocket::SocketError error) {
     case QAbstractSocket::DatagramTooLargeError:
       break;
     case QAbstractSocket::NetworkError:
-      //m_sounder.playSound("network_error.mp3");
       qDebug() << "No connection error.";
       break;
     case QAbstractSocket::AddressInUseError:
@@ -160,7 +159,6 @@ void PowerSupplyManager::errorInSocket(QAbstractSocket::SocketError error) {
       break;
     case QAbstractSocket::UnknownSocketError:
       break;
-
   }
 }
 
@@ -198,6 +196,30 @@ int PowerSupplyManager::maybeReconnectHost(const int index) {
   m_socket->disconnectFromHost();
   m_hostAddress.setAddress(new_host);
   m_socket->connectToHost(m_hostAddress, host_port, QIODevice::ReadWrite);
-  m_socket->waitForConnected();
+  m_socket->waitForConnected(1000);
   return out;
+}
+
+void PowerSupplyManager::checkPowersConection() {
+  QJsonArray lamps = m_powers["lamps"].toArray();
+  auto indexes = lamps.size();
+
+  for (int i = 0; i < indexes; ++i) {
+    auto object = lamps[i].toObject();
+    maybeReconnectHost(i);
+    auto state = m_socket->state();
+    switch (state) {
+      case QTcpSocket::UnconnectedState:
+        //qDebug()<<"no connection for index: "<<i;
+        object["conection_state"] = false;
+        break;
+      case QTcpSocket::ConnectedState:
+        //qDebug()<<"connection for index: "<<i<<" --> OK";
+        object["conection_state"] = true;
+        break;
+    }
+    lamps[i] = object;
+  };
+  m_powers["lamps"] = lamps;
+  qDebug() << m_powers;
 }
