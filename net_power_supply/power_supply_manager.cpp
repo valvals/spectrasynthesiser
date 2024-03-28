@@ -78,13 +78,15 @@ void PowerSupplyManager::getCurrentValue(const quint16 index) {
   qDebug() << "I value:" << getValueFromMessage(answer);
 }
 
-void PowerSupplyManager::getPowerStatus(const quint16 index) {
+bool PowerSupplyManager::getPowerStatus(const quint16 index) {
   int out = maybeReconnectHost(index);
   m_socket->write(m_cb.makeGetSwitchStateCommand(out));
   m_socket->waitForReadyRead();
   answer = QString::fromLocal8Bit(m_socket->readAll());
   answer.remove('\r').remove('\n');
-  qDebug() << "Power status:" << (bool)answer.toInt();
+  auto result = (bool)answer.toInt();
+  qDebug() << "Power status:" << result;
+  return result;
 }
 
 void PowerSupplyManager::switchOnUnit(const quint16 index) {
@@ -233,7 +235,7 @@ void PowerSupplyManager::checkPowersConection() {
         object["conection_state"] = true;
         getCurrentLimit(i);
         switchOnUnit(i);
-        getPowerStatus(i);
+        object["power_out_state"] = getPowerStatus(i);
         break;
     }
     lamps[i] = object;

@@ -18,7 +18,7 @@ class PowerSupplyManager: public QObject {
   PowerSupplyManager();
   ~PowerSupplyManager();
   void getID();
-  void getPowerStatus(const quint16 index);
+  bool getPowerStatus(const quint16 index);
 
   void getVoltage(const quint16 index);
   void setVoltage(const quint16 index,
