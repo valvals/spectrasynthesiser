@@ -170,21 +170,6 @@ void PowerSupplyManager::errorInSocket(QAbstractSocket::SocketError error) {
   }
 }
 
-void PowerSupplyManager::replaceUselessGetV(double& V, QString& msg) {
-  if (msg.contains("V1"))
-    msg.remove('\r').remove('\n').replace("V1 ", "");
-  if (msg.contains("V2"))
-    msg.remove('\r').remove('\n').replace("V2 ", "");
-  bool isParsing = false;
-  V = msg.toDouble(&isParsing);
-}
-
-void PowerSupplyManager::replaceUselessGetI(double& I, QString& msg) {
-  msg.remove('\r').remove('\n').replace("A", "");
-  bool isParsing = false;
-  I = msg.toDouble(&isParsing);
-}
-
 double PowerSupplyManager::getValueFromMessage(QString& msg)
 {
     QStringList value = msg.split(" ");
@@ -233,9 +218,11 @@ void PowerSupplyManager::checkPowersConection() {
       case QTcpSocket::ConnectedState:
         //qDebug()<<"connection for index: "<<i<<" --> OK";
         object["conection_state"] = true;
+        setCurrentLimit(i,m_powers["max_current"].toDouble());
         getCurrentLimit(i);
         switchOnUnit(i);
         object["power_out_state"] = getPowerStatus(i);
+        //getID();
         break;
     }
     lamps[i] = object;
