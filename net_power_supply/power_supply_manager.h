@@ -47,7 +47,7 @@ class PowerSupplyManager: public QObject {
   void loadJsonConfig();
   void replaceUselessGetV(double& V, QString& msg);
   void replaceUselessGetI(double& I, QString& msg);
-
+  double getValueFromMessage(QString &msg);
   void getIpAndOutForIndex(const int index,
                            QString& ip,
                            int& out);
@@ -55,7 +55,6 @@ class PowerSupplyManager: public QObject {
   void checkPowersConection();
 
  private slots:
-  void recieveData();
   void errorInSocket(QAbstractSocket::SocketError error);
 
 };

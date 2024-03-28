@@ -19,7 +19,7 @@ PowerSupplyManager::PowerSupplyManager() {
   m_socket->connectToHost(m_hostAddress, host_port);
   m_socket->waitForConnected(1000);
   checkPowersConection();
-  connect(m_socket, SIGNAL(readyRead()), this, SLOT(recieveData()));
+  //connect(m_socket, SIGNAL(readyRead()), this, SLOT(recieveData()));
   connect(m_socket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(errorInSocket(QAbstractSocket::SocketError)));
 
 }
@@ -32,6 +32,8 @@ PowerSupplyManager::~PowerSupplyManager() {
 void PowerSupplyManager::getID() {
   m_socket->write(m_cb.makeGetDeviceID_Command());
   m_socket->waitForReadyRead();
+  answer = QString::fromLocal8Bit(m_socket->readAll());
+  qDebug() << "ID:" << answer;
 }
 
 void PowerSupplyManager::loadJsonConfig() {
@@ -42,6 +44,8 @@ void PowerSupplyManager::getVoltage(const quint16 index) {
   int out = maybeReconnectHost(index);
   m_socket->write(m_cb.makeGetVcommand(out));
   m_socket->waitForReadyRead();
+  answer = QString::fromLocal8Bit(m_socket->readAll());
+  qDebug() << "V:" << getValueFromMessage(answer);
 }
 
 void PowerSupplyManager::setVoltage(const quint16 index,
@@ -62,18 +66,25 @@ void PowerSupplyManager::getCurrentLimit(const quint16 index) {
   int out = maybeReconnectHost(index);
   m_socket->write(m_cb.makeGetCurrentLimitCommand(out));
   m_socket->waitForReadyRead();
+  answer = QString::fromLocal8Bit(m_socket->readAll());
+  qDebug() << "I limit value:" <<getValueFromMessage(answer);;
 }
 
 void PowerSupplyManager::getCurrentValue(const quint16 index) {
   int out = maybeReconnectHost(index);
   m_socket->write(m_cb.makeGetCurrentValueCommand(out));
   m_socket->waitForReadyRead();
+  answer = QString::fromLocal8Bit(m_socket->readAll());
+  qDebug() << "I value:" << getValueFromMessage(answer);
 }
 
 void PowerSupplyManager::getPowerStatus(const quint16 index) {
   int out = maybeReconnectHost(index);
   m_socket->write(m_cb.makeGetSwitchStateCommand(out));
   m_socket->waitForReadyRead();
+  answer = QString::fromLocal8Bit(m_socket->readAll());
+  answer.remove('\r').remove('\n');
+  qDebug() << "Power status:" << (bool)answer.toInt();
 }
 
 void PowerSupplyManager::switchOnUnit(const quint16 index) {
@@ -100,11 +111,6 @@ void PowerSupplyManager::switchOffAllUnits() {
   for (int i = 0; i < indexes; ++i) {
     switchOffUnit(i);
   };
-}
-
-void PowerSupplyManager::recieveData() {
-  answer = QString::fromLocal8Bit(m_socket->readAll());
-  qDebug() << answer;
 }
 
 void PowerSupplyManager::errorInSocket(QAbstractSocket::SocketError error) {
@@ -177,6 +183,15 @@ void PowerSupplyManager::replaceUselessGetI(double& I, QString& msg) {
   I = msg.toDouble(&isParsing);
 }
 
+double PowerSupplyManager::getValueFromMessage(QString& msg)
+{
+    QStringList value = msg.split(" ");
+    Q_ASSERT(value.size()==2);
+    if(value.size()==2)
+    return value[1].toDouble();
+    return 0;
+}
+
 void PowerSupplyManager::getIpAndOutForIndex(const int index,
                                              QString& ip,
                                              int& out) {
@@ -216,6 +231,9 @@ void PowerSupplyManager::checkPowersConection() {
       case QTcpSocket::ConnectedState:
         //qDebug()<<"connection for index: "<<i<<" --> OK";
         object["conection_state"] = true;
+        getCurrentLimit(i);
+        switchOnUnit(i);
+        getPowerStatus(i);
         break;
     }
     lamps[i] = object;
